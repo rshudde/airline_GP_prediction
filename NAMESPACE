@@ -1,0 +1,3 @@
+useDynLib(airline_GP_prediction, .registration=TRUE)
+importFrom(Rcpp, evalCpp)
+exportPattern("^[[:alpha:]]+")
