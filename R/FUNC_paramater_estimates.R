@@ -102,6 +102,7 @@ vector_differences = function(y, mu_i, g_i)
   inner = y - mu_i*ones_vector - g_i
   return(inner)
 }
+
 # function to sample from an inverse gamm for sigma squared
 get_sigma_squared = function(a, b, y, M, mu, g)
 {
@@ -113,10 +114,15 @@ get_sigma_squared = function(a, b, y, M, mu, g)
   for (i in 1:nrow(y))
   {
     term_one = vector_differences(y[i,], mu[i], g[i])
-    term_two = M[i] + identity()
+    term_two = M[i] + diag(rep(1, Ti[i]))
     
+    temp_update = t(term_one) %*% term_two %*% term_one
+    d = d + temp_update / 2
   }
   
+  sigma_2 = rinvgamma(1, c, d) # TODO figure out if htis is correct
+  
+  return(sigma_2)
   
 }
 
