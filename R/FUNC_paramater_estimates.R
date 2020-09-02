@@ -1,6 +1,7 @@
 # This is a file to start doing paramater estimates for sampling mu
 rm(list = ls())
 library(invgamma)
+library(MASS)
 
 # function to return a matern kernel
 get_matern_values = function(l_k, r_mj)
@@ -134,48 +135,123 @@ lk_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
   if (l_k_prime < 0.1 || l_k_prime > 1 || l_k < 0.1 ||  l_k > 1)
   {
     to_return = 0
-    pring("GOT IN HERE")
   } else { # calcualtions assuming indicator = 1
     # calcualte first term outside of the product
-    term_one = vector_differences(y[1,], mu[1], g[1])
+    
+    y_noNA = y[1,][!is.na(y[1,])]
+    term_one = vector_differences(y_noNA, mu[1], g[1])
     term_one = term_one[!(is.na(term_one))]
     
-    M_temp = get_matern(l_k, y[1,])
-    M_prime = get_matern(l_k_prime, y[1,])
+    M_temp = get_matern(l_k, y_noNA)
+    M_prime = get_matern(l_k_prime, y_noNA)
     
     V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
     V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
     
-    temp_two = ginv(V_prime) - ginv(V_temp)
+    term_two = solve(V_prime) - solve(V_temp)
     
     ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
     
     for (i in 2:nrow(y))
     {
       # calcualte proceeding terms in product 
-      term_one = vector_differences(y[i,], mu[i], g[i])
+      y_noNA = y[i,][!is.na(y[i,])]
+      
+      term_one = vector_differences(y_noNA ,  mu[i], g[i])
       term_one = term_one[!(is.na(term_one))]
       
-      M_temp = get_matern(l_k, y[i,])
-      M_prime = get_matern(l_k_prime, y[i,])
+      M_temp = get_matern(l_k, y_noNA )
+      M_prime = get_matern(l_k_prime, y_noNA )
       
-      V_temp = get_V_i(sigma_2, M_temp, get_K(sigma_2, M_temp))
-      V_prime = get_V_i(sigma_2, M_prime, get_K(sigma_2, M_prime))
+      V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
+      V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
       
-      temp_two = ginv(V_prime) - ginv(V_temp)
+      term_two = solve(V_prime) - solve(V_temp)
       
       ratio = ratio * exp(-0.5 * t(term_one) %*% term_two %*% term_one)
     }
   
-  to_return = min(1, ratio)
+  to_return = min(1, (l_k_prime / l_k) * ratio)
   }
   
   return(to_return)
 }
 
 
+# function to calculate acceptance ratio for l_k
+lb_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
+{
+  # indicator function part
+  if (l_k_prime < 0.1 || l_k_prime > 1 || l_k < 0.1 ||  l_k > 1)
+  {
+    to_return = 0
+  } else { # calcualtions assuming indicator = 1
+    # calcualte first term outside of the product
+    
+    y_noNA = y[1,][!is.na(y[1,])]
+    term_one = vector_differences(y_noNA, mu[1], g[1])
+    term_one = term_one[!(is.na(term_one))]
+    
+    M_temp = get_matern(l_k, y_noNA)
+    M_prime = get_matern(l_k_prime, y_noNA)
+    
+    V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
+    V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
+    
+    term_two = solve(V_prime) - solve(V_temp)
+    
+    ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
+    
+    for (i in 2:nrow(y))
+    {
+      # calcualte proceeding terms in product 
+      y_noNA = y[i,][!is.na(y[i,])]
+      
+      term_one = vector_differences(y_noNA ,  mu[i], g[i])
+      term_one = term_one[!(is.na(term_one))]
+      
+      M_temp = get_matern(l_k, y_noNA )
+      M_prime = get_matern(l_k_prime, y_noNA )
+      
+      V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
+      V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
+      
+      term_two = solve(V_prime) - solve(V_temp)
+      
+      ratio = ratio * exp(-0.5 * t(term_one) %*% term_two %*% term_one)
+    }
+    
+    to_return = min(1, ratio)
+  }
+  
+  return(to_return)
+}
+
+get_lk = function(y, mu, g, sigma_2, lk_0)
+{
+  epsilon = 0.001
+  lk_t = lk_0 + 50*epsilon
+  mod_diff = abs(lk_0 - lk_t)
+    
+  while (mod_diff > epsilon)
+  {
+    # step two - draw lk_prime 
+    lk_prime = rexp(1, lk_t)
+    u_t = runif(1, 0, 1)
+    
+    acceptance = lk_acceptance(y, mu, g, sigma_2, lk_prime, lk_t)
+    
+    lk_t1 = ifelse(u_t <= acceptance, lk_prime, lk_t)
+    
+    mod_diff = abs(lk_t1 - lk_t)
+    lk_t = lk_t1
+  }
+  
+  return(lk_t1)
+}
+
 set.seed(1)
-l_k = 1
+l_k = 0.9
 sigma_2 = 2
 sigma_mu = 5
 alpha_mu = 3
@@ -228,5 +304,5 @@ mu = c(mu_1i, mu_2i)
 g = c(g1_i, g2_i)
 sigma_2 = get_sigma_squared(0.1, 0.1, y, M, mu, g)
 
-lk_acceptance(y, mu, g, sigma_2, 0.7, 0.2)
+lk = get_lk(y, mu, g, sigma_2, 0.5)
 
