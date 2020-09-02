@@ -65,7 +65,7 @@ get_sigma_mu_post = function(sigma_2, sigma_mu, V_i)
   ones_vector = rep(1, T_i)
   
   # calculate inner parenthensis
-  inner = t(ones_vector) %*% V_i^(-1) %*% ones_vector + sigma_mu^(-2)
+  inner = t(ones_vector) %*% solve(V_i) %*% ones_vector + sigma_mu^(-2)
   # invert to return
   inner_inverted = inner^-1
   
@@ -78,7 +78,7 @@ get_alpha_mu_post = function(alpha_mu, sigma_mu, sigma_mu_post, g_i, V_i, y)
   T_i = nrow(V_i)
   
   term_one = alpha_mu^2 * sigma_mu^(-2)
-  term_two = t(y - g_i) %*% V_i^(-2) %*% rep(1, T_i)
+  term_two = t(y - g_i) %*% solve(V_i) %*% rep(1, T_i)
   
   to_return = sigma_mu_post*(term_one + term_two)
   return(to_return)
@@ -97,7 +97,7 @@ get_mu_i = function(alpha_mu_post, sigma_mu_post)
 vector_differences = function(y, mu_i, g_i)
 {
   Ti = length(y)
-  ones_vector = rep(1, T_i)
+  ones_vector = rep(1, Ti)
   
   inner = y - mu_i*ones_vector - g_i
   return(inner)
@@ -114,9 +114,10 @@ get_sigma_squared = function(a, b, y, M, mu, g)
   for (i in 1:nrow(y))
   {
     term_one = vector_differences(y[i,], mu[i], g[i])
-    term_two = M[i] + diag(rep(1, Ti[i]))
+    term_one = term_one[!(is.na(term_one))]
+    term_two = M[[i]] + diag(rep(1, Ti[i]))
     
-    temp_update = t(term_one) %*% term_two %*% term_one
+    temp_update = t(term_one) %*% solve(term_two) %*% term_one
     d = d + temp_update / 2
   }
   
@@ -126,8 +127,51 @@ get_sigma_squared = function(a, b, y, M, mu, g)
   
 }
 
-
-
+# function to calculate acceptance ratio for l_k
+lk_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
+{
+  # indicator function part
+  if (l_k_prime < 0.1 || l_k_prime > 1 || l_k < 0.1 ||  l_k > 1)
+  {
+    to_return = 0
+    pring("GOT IN HERE")
+  } else { # calcualtions assuming indicator = 1
+    # calcualte first term outside of the product
+    term_one = vector_differences(y[1,], mu[1], g[1])
+    term_one = term_one[!(is.na(term_one))]
+    
+    M_temp = get_matern(l_k, y[1,])
+    M_prime = get_matern(l_k_prime, y[1,])
+    
+    V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
+    V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
+    
+    temp_two = ginv(V_prime) - ginv(V_temp)
+    
+    ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
+    
+    for (i in 2:nrow(y))
+    {
+      # calcualte proceeding terms in product 
+      term_one = vector_differences(y[i,], mu[i], g[i])
+      term_one = term_one[!(is.na(term_one))]
+      
+      M_temp = get_matern(l_k, y[i,])
+      M_prime = get_matern(l_k_prime, y[i,])
+      
+      V_temp = get_V_i(sigma_2, M_temp, get_K(sigma_2, M_temp))
+      V_prime = get_V_i(sigma_2, M_prime, get_K(sigma_2, M_prime))
+      
+      temp_two = ginv(V_prime) - ginv(V_temp)
+      
+      ratio = ratio * exp(-0.5 * t(term_one) %*% term_two %*% term_one)
+    }
+  
+  to_return = min(1, ratio)
+  }
+  
+  return(to_return)
+}
 
 
 set.seed(1)
@@ -137,9 +181,16 @@ sigma_mu = 5
 alpha_mu = 3
 x1 = matrix(rnorm(12, 5, 5), 3, 4)
 x1 = x1 / max(x1)
-y1 = c(5,6,7)
-beta1 = c(0.3, 0.2, 0.5)
+x1 = rbind(x1, rep(NA, 4))
+y1 = c(5,6,7, NA)
+beta1 = c(0.3, 0.2, 0.5, NA)
 x1i = rnorm(4)
+
+# remove NA
+x1_noNA = x1[(complete.cases(x1)), ]
+y1_noNA = y1[!is.na(y1)]
+beta1_noNA = beta1[!is.na(beta1)]
+
 
 x2 = matrix(rnorm(16, 6, 6), 4, 4)
 x2 = x2 / max(x2)
@@ -147,7 +198,7 @@ y2 = c(8,9,20,11)
 beta2 = c(0.3, 0.2, 0.4, 0.1)
 x2i = rnorm(4)
 
-M1_i = get_matern(l_k, y1)
+M1_i = get_matern(l_k, y1_noNA)
 K1_i = get_K_i(sigma_2, M1_i)
 V1_i = get_V_i(sigma_2, M1_i, K1_i)
 
@@ -155,14 +206,14 @@ M2_i = get_matern(l_k, y2)
 K2_i = get_K_i(sigma_2, M2_i)
 V2_i = get_V_i(sigma_2, M2_i, K2_i)
 
-h1 = get_h(x1, beta1)
+h1 = get_h(x1_noNA, beta1_noNA)
 h2 = get_h(x2, beta2)
 g1_i = get_g_i(x1i, h1)
 g2_i = get_g_i(x2i, h2)
 
 # now for the main calculations
 sigma_mu_post1 = get_sigma_mu_post(sigma_2, sigma_mu, V1_i)
-alpha_mu_post1 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post1, g1_i, V1_i, y1)
+alpha_mu_post1 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post1, g1_i, V1_i, y1_noNA)
 
 sigma_mu_post2 = get_sigma_mu_post(sigma_2, sigma_mu, V2_i)
 alpha_mu_post2 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post2, g2_i, V2_i, y2)
@@ -170,4 +221,12 @@ alpha_mu_post2 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post2, g2_i, V2_
 mu_1i = get_mu_i(alpha_mu_post1, sigma_mu_post1)
 mu_2i = get_mu_i(alpha_mu_post2, sigma_mu_post2)
 
+
+y = matrix(c(y1, y2), ncol = 4, byrow = T)
+M = list(M1_i, M2_i)
+mu = c(mu_1i, mu_2i)
+g = c(g1_i, g2_i)
+sigma_2 = get_sigma_squared(0.1, 0.1, y, M, mu, g)
+
+lk_acceptance(y, mu, g, sigma_2, 0.7, 0.2)
 
