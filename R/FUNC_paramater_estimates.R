@@ -46,8 +46,12 @@ get_V_i = function(sigma_2, M_i, K_i)
 
 get_h = function(data, beta)
 {
+  # TODO - pass the row as the data 
   # make sure to scale the data
-  w_it = (t(data) %*% beta + 1)/2
+  # TODO get rid of transpose
+  w_it = (data %*% beta + 1)/2
+
+  # w_it = (t(data) %*% beta + 1)/2
   inner = 1 - abs(w_it)
   inner = ifelse(abs(w_it) <= 1, inner, 0) # indicator function part
   
@@ -189,16 +193,9 @@ lb_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
     # calcualte first term outside of the product
     
     y_noNA = y[1,][!is.na(y[1,])]
-    term_one = vector_differences(y_noNA, mu[1], g[1])
-    term_one = term_one[!(is.na(term_one))]
+    h_temp = get_h(data, beta)
     
-    M_temp = get_matern(l_k, y_noNA)
-    M_prime = get_matern(l_k_prime, y_noNA)
     
-    V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
-    V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
-    
-    term_two = solve(V_prime) - solve(V_temp)
     
     ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
     
