@@ -3,6 +3,17 @@ rm(list = ls())
 library(invgamma)
 library(MASS)
 
+normalize_data = function(data)
+{
+  # get maximum in rows
+  rowmax = apply(data, 1, function(x) max(x))
+  
+  # calculate the w_it
+  data = data / rowmax
+  data = data[(complete.cases(data)), ] # remove NA values
+  return(data)
+}
+
 # function to return a matern kernel
 get_matern_values = function(l_k, r_mj)
 {
@@ -44,18 +55,27 @@ get_V_i = function(sigma_2, M_i, K_i)
 }
 
 
-get_h = function(data, beta)
+get_h_j = function(data, beta, knots, N)
 {
+
   # TODO - pass the row as the data 
   # make sure to scale the data
   # TODO get rid of transpose
   w_it = (data %*% beta + 1)/2
 
-  # w_it = (t(data) %*% beta + 1)/2
-  inner = 1 - abs(w_it)
-  inner = ifelse(abs(w_it) <= 1, inner, 0) # indicator function part
-  
-  return(inner)
+  h_return = vector()
+
+  for (i in 1:length(knots))
+  {
+    numerator = w_it - knots[i]
+    denominator = 1/N
+    value = numerator / denominator
+    
+    inner = ifelse(abs(value) <= 1, value, 0) # indicator function part
+    h_return[i] = inner
+  }
+
+  return(h_return)
 }
 
 get_g_i = function(xi, h)
@@ -64,6 +84,19 @@ get_g_i = function(xi, h)
   return(to_return)
 }
 
+get_g = function(data, beta, knots, N, xi)
+{
+  g = vector()
+  for (i in 1:nrow(data))
+  {
+    h_temp = get_h_j(data[i,], beta, knots, N)
+    g_i = get_g_i(xi, h_temp)
+    g[i] = g_i
+  }
+  return(g)
+}
+
+
 get_sigma_mu_post = function(sigma_2, sigma_mu, V_i)
 {
   T_i = nrow(V_i)
@@ -71,6 +104,7 @@ get_sigma_mu_post = function(sigma_2, sigma_mu, V_i)
   
   # calculate inner parenthensis
   inner = t(ones_vector) %*% solve(V_i) %*% ones_vector + sigma_mu^(-2)
+
   # invert to return
   inner_inverted = inner^-1
   
@@ -193,7 +227,7 @@ lb_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
     # calcualte first term outside of the product
     
     y_noNA = y[1,][!is.na(y[1,])]
-    h_temp = get_h(data, beta)
+    h_temp = get_h_j(data, beta)
     
     
     
@@ -247,29 +281,110 @@ get_lk = function(y, mu, g, sigma_2, lk_0)
   return(lk_t1)
 }
 
+get_H_matrix = function(data, beta, knots, N)
+{
+  H = vector()
+  for (i in 1:nrow(data))
+  {
+    temp = get_h_j(data[i,], beta, knots, N)
+    H = rbind(H, temp)
+  }
+  
+  return(H)
+}
+
+psi_function = function(y, mu, data, xi, beta, knots, N, simga_2, l_k)
+{
+  sum_term = 0
+  for (i in 1:nrow(y))
+  {
+    y_noNA = y[i,][!is.na(y[i,])]
+    H_term = get_H_matrix(data[[i]], beta, knots, N)
+    term_one = y_noNA - mu[i] * rep(1,length(y_noNA)) - H_term
+    
+    # constrcuting second term
+    M_i = get_matern(l_k, y_noNA )
+    K_i = get_K_i(sigma_2, M_i)
+    term_two = get_V_i(sigma_2, M_i, K_i)
+    
+    sum_term = sum(t(term_one) %*% solve(term_two) %*% term_one) + sum_term
+  }
+  
+  to_return = sum_term / 2
+  return(to_return)
+}
+
+get_xi = function(xi_0)
+{
+  # step one
+  theta = runif(1, 0, 2*pi)
+  gamma = samp.WC(knots, l_b)
+  
+  xi_proposed = xi_0*cos(theta) + gamma * sin(theta)
+  
+  # step two
+  theta_min = theta - 2*pi
+  theta_max = theta
+  
+  # step 3 
+  zeta = runif(1, 0, 1)
+  
+  term_one = exp(psi_function(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k))
+  term_two = exp(psi_function(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k))
+  acceptance = min(1, term_one / term_two)
+  
+  if (acceptance > zeta)
+  {
+    xi1 = xi_proposed
+  } else {
+    
+    if (theta < 0)
+    {
+      # step a
+      theta_min = theta
+      # step b 
+      theta = runif(1, theta_min, theta_max)
+      # step c
+      xi_proposed = xi_0*cos(theta) + gamma * sin(theta)
+      
+      # step d
+      term_one = exp(psi_function(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k))
+      term_two = exp(psi_function(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k))
+      acceptance = min(1, term_one / term_two)
+      
+      
+    }
+  }
+  
+  
+  
+  
+}
+
+
+beta = c(0.3, 0.2, 0.4, 0.1)
+N = 10
+xi = rnorm(N+1)
+
 set.seed(1)
 l_k = 0.9
 sigma_2 = 2
 sigma_mu = 5
 alpha_mu = 3
 x1 = matrix(rnorm(12, 5, 5), 3, 4)
-x1 = x1 / max(x1)
 x1 = rbind(x1, rep(NA, 4))
 y1 = c(5,6,7, NA)
-beta1 = c(0.3, 0.2, 0.5, NA)
-x1i = rnorm(4)
 
 # remove NA
-x1_noNA = x1[(complete.cases(x1)), ]
 y1_noNA = y1[!is.na(y1)]
-beta1_noNA = beta1[!is.na(beta1)]
-
 
 x2 = matrix(rnorm(16, 6, 6), 4, 4)
-x2 = x2 / max(x2)
 y2 = c(8,9,20,11)
-beta2 = c(0.3, 0.2, 0.4, 0.1)
-x2i = rnorm(4)
+beta = c(0.3, 0.2, 0.4, 0.1)
+
+x1 = normalize_data(x1)
+x2 = normalize_data(x2)
+knots = seq(0, 1, 0.1)
 
 M1_i = get_matern(l_k, y1_noNA)
 K1_i = get_K_i(sigma_2, M1_i)
@@ -279,17 +394,16 @@ M2_i = get_matern(l_k, y2)
 K2_i = get_K_i(sigma_2, M2_i)
 V2_i = get_V_i(sigma_2, M2_i, K2_i)
 
-h1 = get_h(x1_noNA, beta1_noNA)
-h2 = get_h(x2, beta2)
-g1_i = get_g_i(x1i, h1)
-g2_i = get_g_i(x2i, h2)
+g1 = get_g(x1, beta, knots, N, xi)
+g2 = get_g(x2, beta, knots, N, xi)
+
 
 # now for the main calculations
 sigma_mu_post1 = get_sigma_mu_post(sigma_2, sigma_mu, V1_i)
-alpha_mu_post1 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post1, g1_i, V1_i, y1_noNA)
+alpha_mu_post1 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post1, g1, V1_i, y1_noNA)
 
 sigma_mu_post2 = get_sigma_mu_post(sigma_2, sigma_mu, V2_i)
-alpha_mu_post2 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post2, g2_i, V2_i, y2)
+alpha_mu_post2 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post2, g2, V2_i, y2)
 
 mu_1i = get_mu_i(alpha_mu_post1, sigma_mu_post1)
 mu_2i = get_mu_i(alpha_mu_post2, sigma_mu_post2)
@@ -298,8 +412,13 @@ mu_2i = get_mu_i(alpha_mu_post2, sigma_mu_post2)
 y = matrix(c(y1, y2), ncol = 4, byrow = T)
 M = list(M1_i, M2_i)
 mu = c(mu_1i, mu_2i)
-g = c(g1_i, g2_i)
+g = c(g1, g2)
+data = list(x1, x2)
 sigma_2 = get_sigma_squared(0.1, 0.1, y, M, mu, g)
 
 lk = get_lk(y, mu, g, sigma_2, 0.5)
+
+
+###
+psi_function(y, mu, data, xi, beta, knots, N, simga_2, lk)
 
