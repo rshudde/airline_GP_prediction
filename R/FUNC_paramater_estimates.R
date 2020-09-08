@@ -216,9 +216,6 @@ lk_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
   return(to_return)
 }
 
-
-
-
 get_lk = function(y, mu, g, sigma_2, lk_0)
 {
   epsilon = 0.001
@@ -254,7 +251,8 @@ get_H_matrix = function(data, beta, knots, N)
   return(H)
 }
 
-psi_function = function(y, mu, data, xi, beta, knots, N, simga_2, l_k)
+# for sampling xis
+psi_xi = function(y, mu, data, xi, beta, knots, N, simga_2, l_k)
 {
   sum_term = 0
   for (i in 1:nrow(y))
@@ -290,19 +288,16 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b)
   theta_min = theta - 2*pi
   theta_max = theta
   
-  # step 3 
+  # step three
   zeta = runif(1, 0, 1)
   
-  psi_old = psi_function(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k)
-  psi_new = psi_function(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k)
+  psi_old = psi_xi(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k)
+  psi_new = psi_xi(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k)
   acceptance = min(1, exp(psi_old - psi_new))
   
-  if (acceptance > zeta)
+  # continuation of step 3 - don't return unti lwe get something we accept 
+  if (acceptance <= zeta)
   {
-    xi1 = xi_proposed
-    # xi_list[[count]] = xi_proposed
-  } else {
-    
     while (acceptance <= zeta )
     {
       # step a
@@ -326,6 +321,65 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b)
   }
   
   return(xi_proposed)
+}
+
+psi_alpha = function()
+{
+  
+}
+
+get_beta = function(alpha_0, c_2 = 10^5)
+{
+  # step one
+  theta = runif(1, 0, 2*pi)
+  gamma = runif(1, 0, 10^5)
+  alpha_proposed = alpha_0 * cos(theta) + gamma * sin(theta)
+  
+  
+  # step two
+  theta_min = theta - 2*pi
+  theta_max = theta
+  
+  # step 3
+  # shortcut 
+  if (alpha_proposed <= 0)
+  {
+    acceptance = 0
+  } else
+  {
+    zeta = runif(1, 0, 1)
+    
+    psi_old = psi_alpha()
+    psi_new = psi_alpha()
+    acceptance = min(1, exp(psi_old - psi_new))
+  }
+  
+  # continuation of step 3 - don't return unti lwe get something we accept 
+  if (acceptance <= zeta)
+  {
+    while (acceptance <= zeta )
+    {
+      # step a
+      if (theta < 0)
+      {
+        theta_min = theta
+      } else {
+        theta_max = theta
+      }
+      
+      # step b 
+      theta = runif(1, theta_min, theta_max)
+      # step c
+      alpha_propsed = alpha_0 * cos(theta) + gamma * sin(theta)
+      
+      # step d
+      psi_old = psi_function(y, mu, data, alpha_0, beta, knots, N, sigma_2, l_k)
+      psi_new = psi_function(y, mu, data, alpha_proposed, beta, knots, N, sigma_2, l_k)
+      acceptance = min(1, exp(psi_old - psi_new))
+    }
+  }
+  
+  return(alpha_proposed)
 }
 
 a = 5
@@ -393,6 +447,6 @@ lk = get_lk(y, mu, g, sigma_2, 0.5)
 
 
 ###
-psi = psi_function(y, mu, data, xi, beta, knots, N, simga_2, lk)
+psi = psi_xi(y, mu, data, xi, beta, knots, N, simga_2, lk)
 xi = get_xi(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b = 1)
   
