@@ -2,6 +2,7 @@
 rm(list = ls())
 library(invgamma)
 library(MASS)
+source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_woodchan_samples.R')
 
 normalize_data = function(data)
 {
@@ -216,47 +217,7 @@ lk_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
 }
 
 
-# function to calculate acceptance ratio for l_k
-lb_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
-{
-  # indicator function part
-  if (l_k_prime < 0.1 || l_k_prime > 1 || l_k < 0.1 ||  l_k > 1)
-  {
-    to_return = 0
-  } else { # calcualtions assuming indicator = 1
-    # calcualte first term outside of the product
-    
-    y_noNA = y[1,][!is.na(y[1,])]
-    h_temp = get_h_j(data, beta)
-    
-    
-    
-    ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
-    
-    for (i in 2:nrow(y))
-    {
-      # calcualte proceeding terms in product 
-      y_noNA = y[i,][!is.na(y[i,])]
-      
-      term_one = vector_differences(y_noNA ,  mu[i], g[i])
-      term_one = term_one[!(is.na(term_one))]
-      
-      M_temp = get_matern(l_k, y_noNA )
-      M_prime = get_matern(l_k_prime, y_noNA )
-      
-      V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
-      V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
-      
-      term_two = solve(V_prime) - solve(V_temp)
-      
-      ratio = ratio * exp(-0.5 * t(term_one) %*% term_two %*% term_one)
-    }
-    
-    to_return = min(1, ratio)
-  }
-  
-  return(to_return)
-}
+
 
 get_lk = function(y, mu, g, sigma_2, lk_0)
 {
@@ -314,13 +275,16 @@ psi_function = function(y, mu, data, xi, beta, knots, N, simga_2, l_k)
   return(to_return)
 }
 
-get_xi = function(xi_0)
+get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b)
 {
+  # count = 1
   # step one
   theta = runif(1, 0, 2*pi)
   gamma = samp.WC(knots, l_b)
   
-  xi_proposed = xi_0*cos(theta) + gamma * sin(theta)
+  xi_list = list()
+  xi_proposed = xi_0 * cos(theta) + gamma * sin(theta)
+  # xi_list[[count]] = xi_proposed
   
   # step two
   theta_min = theta - 2*pi
@@ -329,42 +293,51 @@ get_xi = function(xi_0)
   # step 3 
   zeta = runif(1, 0, 1)
   
-  term_one = exp(psi_function(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k))
-  term_two = exp(psi_function(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k))
-  acceptance = min(1, term_one / term_two)
+  psi_old = psi_function(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k)
+  psi_new = psi_function(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k)
+  acceptance = min(1, exp(psi_old - psi_new))
   
   if (acceptance > zeta)
   {
     xi1 = xi_proposed
+    # xi_list[[count]] = xi_proposed
   } else {
     
-    if (theta < 0)
+    while (acceptance <= zeta )
     {
       # step a
-      theta_min = theta
+      if (theta < 0)
+      {
+        theta_min = theta
+      } else {
+        theta_max = theta
+      }
+      
       # step b 
       theta = runif(1, theta_min, theta_max)
       # step c
-      xi_proposed = xi_0*cos(theta) + gamma * sin(theta)
+      xi_proposed = xi_0 * cos(theta) + gamma * sin(theta)
       
       # step d
-      term_one = exp(psi_function(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k))
-      term_two = exp(psi_function(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k))
-      acceptance = min(1, term_one / term_two)
-      
-      
+      psi_old = psi_function(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k)
+      psi_new = psi_function(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k)
+      acceptance = min(1, exp(psi_old - psi_new))
     }
   }
   
-  
-  
-  
+  return(xi_proposed)
 }
+
+a = 5
+b = 6
+c = 7
+d = 1
+ifelse(d > 1, a = c, d = c)
 
 
 beta = c(0.3, 0.2, 0.4, 0.1)
 N = 10
-xi = rnorm(N+1)
+xi_0 = rnorm(N+1)
 
 set.seed(1)
 l_k = 0.9
@@ -394,8 +367,8 @@ M2_i = get_matern(l_k, y2)
 K2_i = get_K_i(sigma_2, M2_i)
 V2_i = get_V_i(sigma_2, M2_i, K2_i)
 
-g1 = get_g(x1, beta, knots, N, xi)
-g2 = get_g(x2, beta, knots, N, xi)
+g1 = get_g(x1, beta, knots, N, xi_0)
+g2 = get_g(x2, beta, knots, N, xi_0)
 
 
 # now for the main calculations
@@ -420,5 +393,6 @@ lk = get_lk(y, mu, g, sigma_2, 0.5)
 
 
 ###
-psi_function(y, mu, data, xi, beta, knots, N, simga_2, lk)
-
+psi = psi_function(y, mu, data, xi, beta, knots, N, simga_2, lk)
+xi = get_xi(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b = 1)
+  
