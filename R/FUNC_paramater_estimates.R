@@ -323,18 +323,27 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b)
   return(xi_proposed)
 }
 
-psi_alpha = function()
+# TODO 
+# - ask about alpha term
+# - ask about which norm
+psi_alpha = function(y, mu, data, xi, alpha, knots, N, simga_2, l_k)
 {
-  
+  if (alpha[1] > 0)
+  {
+    beta = alpha / sum(alpha)
+    psi_alpha = psi_xi(y, mu, data, xi, beta, knots, N, simga_2, l_k)
+  } else {
+    psi_value = Inf
+  }
+  return(to_return)
 }
 
-get_beta = function(alpha_0, c_2 = 10^5)
+get_beta = function(alpha_0, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5)
 {
   # step one
   theta = runif(1, 0, 2*pi)
   gamma = runif(1, 0, 10^5)
   alpha_proposed = alpha_0 * cos(theta) + gamma * sin(theta)
-  
   
   # step two
   theta_min = theta - 2*pi
@@ -342,15 +351,15 @@ get_beta = function(alpha_0, c_2 = 10^5)
   
   # step 3
   # shortcut 
+  zeta = runif(1, 0, 1)
+  
   if (alpha_proposed <= 0)
   {
     acceptance = 0
   } else
   {
-    zeta = runif(1, 0, 1)
-    
-    psi_old = psi_alpha()
-    psi_new = psi_alpha()
+    psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, N, simga_2, l_k)
+    psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, N, simga_2, l_k)
     acceptance = min(1, exp(psi_old - psi_new))
   }
   
@@ -372,21 +381,23 @@ get_beta = function(alpha_0, c_2 = 10^5)
       # step c
       alpha_propsed = alpha_0 * cos(theta) + gamma * sin(theta)
       
-      # step d
-      psi_old = psi_function(y, mu, data, alpha_0, beta, knots, N, sigma_2, l_k)
-      psi_new = psi_function(y, mu, data, alpha_proposed, beta, knots, N, sigma_2, l_k)
-      acceptance = min(1, exp(psi_old - psi_new))
+      # shortcut
+      if (alpha_proposed <= 0)
+      {
+        acceptance = 0
+      } else
+      {
+        psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, N, simga_2, l_k)
+        psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, N, simga_2, l_k)
+        acceptance = min(1, exp(psi_old - psi_new))
+      }
+      
+      print(paste("acceptance: ", acceptance, " - zeta: ", zeta))
     }
   }
   
   return(alpha_proposed)
 }
-
-a = 5
-b = 6
-c = 7
-d = 1
-ifelse(d > 1, a = c, d = c)
 
 
 beta = c(0.3, 0.2, 0.4, 0.1)
@@ -449,4 +460,7 @@ lk = get_lk(y, mu, g, sigma_2, 0.5)
 ###
 psi = psi_xi(y, mu, data, xi, beta, knots, N, simga_2, lk)
 xi = get_xi(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b = 1)
+  
+# psi = psi_alpha(y, mu, data, xi, alpha = 1, knots, N, simga_2, l_k)
+get_beta(alpha_0 = 1, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5)
   
