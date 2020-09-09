@@ -330,19 +330,20 @@ psi_alpha = function(y, mu, data, xi, alpha, knots, N, simga_2, l_k)
 {
   if (alpha[1] > 0)
   {
-    beta = alpha / sum(alpha)
+    beta = alpha / sum(alpha^2)
     psi_alpha = psi_xi(y, mu, data, xi, beta, knots, N, simga_2, l_k)
   } else {
-    psi_value = Inf
+    psi_alpha = 0
   }
-  return(to_return)
+  return(psi_alpha)
 }
 
 get_beta = function(alpha_0, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5)
 {
   # step one
   theta = runif(1, 0, 2*pi)
-  gamma = runif(1, 0, 10^5)
+  gamma = mvtnorm::rmvnorm(1, mean = rep(0, length(alpha_0)), sigma = c_2 * diag(rep(1, length(alpha_0))))
+  gamma = as.vector(gamma)
   alpha_proposed = alpha_0 * cos(theta) + gamma * sin(theta)
   
   # step two
@@ -353,7 +354,7 @@ get_beta = function(alpha_0, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5
   # shortcut 
   zeta = runif(1, 0, 1)
   
-  if (alpha_proposed <= 0)
+  if (alpha_proposed[1] <= 0)
   {
     acceptance = 0
   } else
@@ -379,10 +380,10 @@ get_beta = function(alpha_0, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5
       # step b 
       theta = runif(1, theta_min, theta_max)
       # step c
-      alpha_propsed = alpha_0 * cos(theta) + gamma * sin(theta)
+      alpha_proposed = alpha_0 * cos(theta) + gamma * sin(theta)
       
       # shortcut
-      if (alpha_proposed <= 0)
+      if (alpha_proposed[1] <= 0)
       {
         acceptance = 0
       } else
@@ -391,8 +392,6 @@ get_beta = function(alpha_0, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5
         psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, N, simga_2, l_k)
         acceptance = min(1, exp(psi_old - psi_new))
       }
-      
-      print(paste("acceptance: ", acceptance, " - zeta: ", zeta))
     }
   }
   
@@ -400,67 +399,67 @@ get_beta = function(alpha_0, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5
 }
 
 
-beta = c(0.3, 0.2, 0.4, 0.1)
-N = 10
-xi_0 = rnorm(N+1)
-
-set.seed(1)
-l_k = 0.9
-sigma_2 = 2
-sigma_mu = 5
-alpha_mu = 3
-x1 = matrix(rnorm(12, 5, 5), 3, 4)
-x1 = rbind(x1, rep(NA, 4))
-y1 = c(5,6,7, NA)
-
-# remove NA
-y1_noNA = y1[!is.na(y1)]
-
-x2 = matrix(rnorm(16, 6, 6), 4, 4)
-y2 = c(8,9,20,11)
-beta = c(0.3, 0.2, 0.4, 0.1)
-
-x1 = normalize_data(x1)
-x2 = normalize_data(x2)
-knots = seq(0, 1, 0.1)
-
-M1_i = get_matern(l_k, y1_noNA)
-K1_i = get_K_i(sigma_2, M1_i)
-V1_i = get_V_i(sigma_2, M1_i, K1_i)
-
-M2_i = get_matern(l_k, y2)
-K2_i = get_K_i(sigma_2, M2_i)
-V2_i = get_V_i(sigma_2, M2_i, K2_i)
-
-g1 = get_g(x1, beta, knots, N, xi_0)
-g2 = get_g(x2, beta, knots, N, xi_0)
-
-
-# now for the main calculations
-sigma_mu_post1 = get_sigma_mu_post(sigma_2, sigma_mu, V1_i)
-alpha_mu_post1 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post1, g1, V1_i, y1_noNA)
-
-sigma_mu_post2 = get_sigma_mu_post(sigma_2, sigma_mu, V2_i)
-alpha_mu_post2 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post2, g2, V2_i, y2)
-
-mu_1i = get_mu_i(alpha_mu_post1, sigma_mu_post1)
-mu_2i = get_mu_i(alpha_mu_post2, sigma_mu_post2)
-
-
-y = matrix(c(y1, y2), ncol = 4, byrow = T)
-M = list(M1_i, M2_i)
-mu = c(mu_1i, mu_2i)
-g = c(g1, g2)
-data = list(x1, x2)
-sigma_2 = get_sigma_squared(0.1, 0.1, y, M, mu, g)
-
-lk = get_lk(y, mu, g, sigma_2, 0.5)
-
-
-###
-psi = psi_xi(y, mu, data, xi, beta, knots, N, simga_2, lk)
-xi = get_xi(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b = 1)
-  
-# psi = psi_alpha(y, mu, data, xi, alpha = 1, knots, N, simga_2, l_k)
-get_beta(alpha_0 = 1, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5)
-  
+# beta = c(0.3, 0.2, 0.4, 0.1)
+# N = 10
+# xi_0 = rnorm(N+1)
+# 
+# set.seed(1)
+# l_k = 0.9
+# sigma_2 = 2
+# sigma_mu = 5
+# alpha_mu = 3
+# x1 = matrix(rnorm(12, 5, 5), 3, 4)
+# x1 = rbind(x1, rep(NA, 4))
+# y1 = c(5,6,7, NA)
+# 
+# # remove NA
+# y1_noNA = y1[!is.na(y1)]
+# 
+# x2 = matrix(rnorm(16, 6, 6), 4, 4)
+# y2 = c(8,9,20,11)
+# beta = c(0.3, 0.2, 0.4, 0.1)
+# 
+# x1 = normalize_data(x1)
+# x2 = normalize_data(x2)
+# knots = seq(0, 1, 0.1)
+# 
+# M1_i = get_matern(l_k, y1_noNA)
+# K1_i = get_K_i(sigma_2, M1_i)
+# V1_i = get_V_i(sigma_2, M1_i, K1_i)
+# 
+# M2_i = get_matern(l_k, y2)
+# K2_i = get_K_i(sigma_2, M2_i)
+# V2_i = get_V_i(sigma_2, M2_i, K2_i)
+# 
+# g1 = get_g(x1, beta, knots, N, xi_0)
+# g2 = get_g(x2, beta, knots, N, xi_0)
+# 
+# 
+# # now for the main calculations
+# sigma_mu_post1 = get_sigma_mu_post(sigma_2, sigma_mu, V1_i)
+# alpha_mu_post1 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post1, g1, V1_i, y1_noNA)
+# 
+# sigma_mu_post2 = get_sigma_mu_post(sigma_2, sigma_mu, V2_i)
+# alpha_mu_post2 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post2, g2, V2_i, y2)
+# 
+# mu_1i = get_mu_i(alpha_mu_post1, sigma_mu_post1)
+# mu_2i = get_mu_i(alpha_mu_post2, sigma_mu_post2)
+# 
+# 
+# y = matrix(c(y1, y2), ncol = 4, byrow = T)
+# M = list(M1_i, M2_i)
+# mu = c(mu_1i, mu_2i)
+# g = c(g1, g2)
+# data = list(x1, x2)
+# sigma_2 = get_sigma_squared(0.1, 0.1, y, M, mu, g)
+# 
+# lk = get_lk(y, mu, g, sigma_2, 0.5)
+# 
+# 
+# ###
+# psi = psi_xi(y, mu, data, xi, beta, knots, N, simga_2, lk)
+# xi = get_xi(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b = 1)
+#   
+# # psi = psi_alpha(y, mu, data, xi, alpha = 1, knots, N, simga_2, l_k)
+# get_beta(alpha_0 = rnorm(4, 0, 1), y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5)
+#   
