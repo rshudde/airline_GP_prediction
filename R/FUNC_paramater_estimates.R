@@ -4,6 +4,12 @@ library(invgamma)
 library(MASS)
 source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_woodchan_samples.R')
 
+clean_y = function(y_data)
+{
+  to_return = y_data[!is.na(y_data)]
+  return(to_return)
+}
+
 normalize_data = function(data)
 {
   # get maximum in rows
@@ -27,6 +33,7 @@ get_matern_values = function(l_k, r_mj)
 get_matern = function(l_k, y)
 {
   # call individual values for upper triangular matrix
+  y = y[!is.na(y)]
   distance_numeric = dist(y)
   distance_matrix = as.matrix(distance_numeric)
   
@@ -81,7 +88,9 @@ get_h_j = function(data, beta, knots, N)
 
 get_g_i = function(xi, h)
 {
-  to_return = sum(xi * h)
+  # print(xi)
+  # print(h)
+  to_return = sum(t(xi) %*% h)
   return(to_return)
 }
 
@@ -115,6 +124,7 @@ get_sigma_mu_post = function(sigma_2, sigma_mu, V_i)
 get_alpha_mu_post = function(alpha_mu, sigma_mu, sigma_mu_post, g_i, V_i, y)
 {
   # set up terms needed
+  y = y[!is.na(y)]
   T_i = nrow(V_i)
   
   term_one = alpha_mu^2 * sigma_mu^(-2)
@@ -153,7 +163,8 @@ get_sigma_squared = function(a, b, y, M, mu, g)
   
   for (i in 1:nrow(y))
   {
-    term_one = vector_differences(y[i,], mu[i], g[i])
+    y_noNa = y[i,][!is.na(y[i,])]
+    term_one = vector_differences(y_noNa, mu[i], g[[i]])
     term_one = term_one[!(is.na(term_one))]
     term_two = M[[i]] + diag(rep(1, Ti[i]))
     
@@ -252,7 +263,7 @@ get_H_matrix = function(data, beta, knots, N)
 }
 
 # for sampling xis
-psi_xi = function(y, mu, data, xi, beta, knots, N, simga_2, l_k)
+psi_xi = function(y, mu, data, xi, beta, knots, N, sigma_2, l_k, M, K)
 {
   sum_term = 0
   for (i in 1:nrow(y))
@@ -263,9 +274,9 @@ psi_xi = function(y, mu, data, xi, beta, knots, N, simga_2, l_k)
     
     # constrcuting second term
     M_i = get_matern(l_k, y_noNA )
-    K_i = get_K_i(sigma_2, M_i)
-    term_two = get_V_i(sigma_2, M_i, K_i)
-    
+    K_i = get_K_i(sigma_2, M[[i]])
+    term_two = get_V_i(sigma_2, M[[i]], K[[i]])
+
     sum_term = sum(t(term_one) %*% solve(term_two) %*% term_one) + sum_term
   }
   
@@ -273,7 +284,7 @@ psi_xi = function(y, mu, data, xi, beta, knots, N, simga_2, l_k)
   return(to_return)
 }
 
-get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b)
+get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
 {
   # count = 1
   # step one
@@ -291,8 +302,8 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b)
   # step three
   zeta = runif(1, 0, 1)
   
-  psi_old = psi_xi(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k)
-  psi_new = psi_xi(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k)
+  psi_old = psi_xi(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k, M, K)
+  psi_new = psi_xi(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k, M, K)
   acceptance = min(1, exp(psi_old - psi_new))
   
   # continuation of step 3 - don't return unti lwe get something we accept 
@@ -314,8 +325,8 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b)
       xi_proposed = xi_0 * cos(theta) + gamma * sin(theta)
       
       # step d
-      psi_old = psi_function(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k)
-      psi_new = psi_function(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k)
+      psi_old = psi_function(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k, M, K)
+      psi_new = psi_function(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k, M, K)
       acceptance = min(1, exp(psi_old - psi_new))
     }
   }
@@ -326,19 +337,19 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b)
 # TODO 
 # - ask about alpha term
 # - ask about which norm
-psi_alpha = function(y, mu, data, xi, alpha, knots, N, simga_2, l_k)
+psi_alpha = function(y, mu, data, xi, alpha, knots, N, sigma_2, l_k, M, K)
 {
   if (alpha[1] > 0)
   {
     beta = alpha / sum(alpha^2)
-    psi_alpha = psi_xi(y, mu, data, xi, beta, knots, N, simga_2, l_k)
+    to_return = psi_xi(y, mu, data, xi, beta, knots, N, sigma_2, l_k, M, K)
   } else {
-    psi_alpha = 0
+    to_return = 0
   }
-  return(psi_alpha)
+  return(to_return)
 }
 
-get_beta = function(alpha_0, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5)
+get_beta = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2 = 10^5)
 {
   # step one
   theta = runif(1, 0, 2*pi)
@@ -359,8 +370,8 @@ get_beta = function(alpha_0, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5
     acceptance = 0
   } else
   {
-    psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, N, simga_2, l_k)
-    psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, N, simga_2, l_k)
+    psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, N, sigma_2, l_k, M, K)
+    psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, N, sigma_2, l_k, M, K)
     acceptance = min(1, exp(psi_old - psi_new))
   }
   
@@ -388,8 +399,8 @@ get_beta = function(alpha_0, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5
         acceptance = 0
       } else
       {
-        psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, N, simga_2, l_k)
-        psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, N, simga_2, l_k)
+        psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, N, sigma_2, l_k, M, K)
+        psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, N, sigma_2, l_k, M, K)
         acceptance = min(1, exp(psi_old - psi_new))
       }
     }
@@ -398,7 +409,7 @@ get_beta = function(alpha_0, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5
   return(alpha_proposed)
 }
 
-
+# 
 # beta = c(0.3, 0.2, 0.4, 0.1)
 # N = 10
 # xi_0 = rnorm(N+1)
@@ -457,9 +468,9 @@ get_beta = function(alpha_0, y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5
 # 
 # 
 # ###
-# psi = psi_xi(y, mu, data, xi, beta, knots, N, simga_2, lk)
+# psi = psi_xi(y, mu, data, xi, beta, knots, N, sigma_2, lk)
 # xi = get_xi(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b = 1)
-#   
-# # psi = psi_alpha(y, mu, data, xi, alpha = 1, knots, N, simga_2, l_k)
-# get_beta(alpha_0 = rnorm(4, 0, 1), y, mu, data, xi, knots, N, simga_2, l_k, c_2 = 10^5)
-#   
+# 
+# # psi = psi_alpha(y, mu, data, xi, alpha = 1, knots, N, sigma_2, l_k)
+# get_beta(alpha_0 = rnorm(4, 0, 1), y, mu, data, xi, knots, N, sigma_2, l_k, c_2 = 10^5)
+# 
