@@ -9,20 +9,27 @@ source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_paramate
 
 
 # get data
-x1 = matrix(rnorm(12, 5, 5), 3, 4)
-x1 = rbind(x1, rep(NA, 4))
-y1 = c(5,6,7, NA)
+nrow = 50
+ncol = 20
+data = list()
+y = vector()
 
-x2 = matrix(rnorm(16, 6, 6), 4, 4)
-y2 = c(8,9,20,11)
+n_datasets = 40
+for (i in 1:n_datasets)
+{
+  mean = sample(1:10, 1)
+  sd = sample(2:9, 1)
+  
+  temp_x = normalize_data(matrix(rnorm(nrow*ncol, mean, sd), nrow, ncol))
+  
+  min_y = sample(1:1000, 1)
+  max_y = sample(1:1000, 1)
+  temp_y = sample(min_y:max_y, nrow, replace = TRUE)
+  
+  data[[i]] = temp_x
+  y = rbind(y, temp_y)
+}
 
-# normalize data
-x1 = normalize_data(x1)
-x2 = normalize_data(x2)
-
-data = list(x1, x2)
-# y = list(clean_y(y1), clean_y(y2))
-y = matrix(c(y1, y2), ncol = 4, byrow = T)
 
 # initialize hyperparamaters
 sigma_mu = 2
@@ -34,7 +41,7 @@ a = 0.1
 b = 0.1
 
 # initialize paramaters
-alpha_0 = rep(1, ncol(x1))
+alpha_0 = rep(1, ncol(data[[1]]))
 xi_0 = rnorm(n) # length of knots
 mu_0 = rep(0, nrow(y)) # length is number of flights
 sigma_2_0 = 1
@@ -113,7 +120,8 @@ for (b in 2:B)
     g[[i]] = get_g(data[[i]], beta[b, ], knots, N, xi[b-1, ])
     sigma_mu_post_temp = get_sigma_mu_post(sigma_2[b-1], sigma_mu, V[[i]])
     alpha_mu_post_temp = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post_temp, g[[i]], V[[i]], y[i,])
-    mu_temp[i] = get_mu_i(alpha_mu_post_temp, sigma_mu_post_temp)
+    mu_temp[i] = get_mu_i(alpha_mu_post_temp, abs(sigma_mu_post_temp))
+    # print(paste("iteration: ", i, ": ", mu_temp[i]))
   }
   mu = rbind(mu, mu_temp)
   
@@ -126,7 +134,22 @@ for (b in 2:B)
   
   # get l_k
   l_k[b] = get_lk(y, mu[b, ], g, sigma_2[b], l_k[b-1])
+  
+  if (b %% 100 == 0) print(b)
 }
 
-print(colMeans(beta))
+burn_in = floor(B*.1)
+print(colMeans(beta[-c(1:burn_in), ]))
+
+beta_post = beta[-c(1:burn_in), ]
+
+size = 2
+par(mfrow = c(size, size))
+for (i in 1:(size*size))
+{
+  plot(beta_post[, i], type = "l", main = paste("plot of beta[, ", i, "]"))
+  abline(h = mean(beta_post[,i]), col = "red")
+}
+
+
 
