@@ -1,5 +1,5 @@
 # This is a file to start doing paramater estimates for sampling mu
-rm(list = ls())
+# rm(list = ls())
 library(invgamma)
 library(MASS)
 source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_woodchan_samples.R')
@@ -24,8 +24,8 @@ normalize_data = function(data)
 # function to return a matern kernel
 get_matern_values = function(l_k, r_mj)
 {
-    term_one = 1 + sqrt(5)*r_mj / l_k + 5*r_mj^2 / l_k^2
-    exponential = exp(-sqrt(5*r_mj / l_k))
+    term_one = 1 + sqrt(5)*r_mj / l_k + 5*r_mj^2 / 3*l_k^2
+    exponential = exp(-sqrt(5)*r_mj / l_k)
     
     return(term_one * exponential)
 }
@@ -157,6 +157,7 @@ vector_differences = function(y, mu_i, g_i)
 get_sigma_squared = function(a, b, y, M, mu, g)
 {
   Ti = apply(y, 1, function(x) length(which(!is.na(x)))) 
+  # print(Ti)
   
   c = a + sum(Ti)
   d = b
@@ -167,15 +168,18 @@ get_sigma_squared = function(a, b, y, M, mu, g)
     term_one = vector_differences(y_noNa, mu[i], g[[i]])
     term_one = term_one[!(is.na(term_one))]
     term_two = M[[i]] + diag(rep(1, Ti[i]))
-    
+
     temp_update = t(term_one) %*% solve(term_two) %*% term_one
+    
+    # if (temp_update <=0) print(temp_update)
+    # print(t(term_one) %*% term_one)
     d = d + temp_update / 2
   }
+  # print(paste("c", c, "\td", d))
   
-  sigma_2 = rinvgamma(1, c, d) # TODO figure out if htis is correct
+  sigma_2 = rinvgamma(1, c, abs(d)) # TODO figure out if htis is correct
   
   return(sigma_2)
-  
 }
 
 # function to calculate acceptance ratio for l_k
