@@ -4,7 +4,7 @@ library(invgamma)
 library(MASS)
 source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_woodchan_samples.R')
 source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_paramater_estimates.R')
-# source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/DATA_generate_simulation.R')
+source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/DATA_generate_simulation.R')
 # initial estimates for paramaters outside loop
 
 
@@ -45,7 +45,7 @@ g = list()
 
 for (i in 1:nrow(y))
 {
-  M[[i]] = get_matern(l_k_0, rownames(y[i, ]))
+  M[[i]] = get_matern(l_k_0, rownames(X[[i]]))
   K[[i]] = get_K_i(sigma_2_0, M[[i]])
   V[[i]] = get_V_i(sigma_2_0, M[[i]], K[[i]])
 }
@@ -80,12 +80,13 @@ l_k[1] = get_lk(y, mu, g, sigma_2[1], l_k_0)
 
 # now loop over everything
 B = 10000
+start = Sys.time()
 for (b in 2:B)
 {
   # updating M and K
   for (i in 1:nrow(y))
   {
-    M[[i]] = get_matern(l_k[b-1], y[i, ])
+    M[[i]] = get_matern(l_k[b-1], rownames(X[[i]]))
     K[[i]] = get_K_i(sigma_2[b-1], M[[i]])
     V[[i]] = get_V_i(sigma_2[b-1], M[[i]], K[[i]])
   }
@@ -119,6 +120,7 @@ for (b in 2:B)
   
   if (b %% 100 == 0) print(b)
 }
+print(Sys.time() - start)
 
 burn_in = floor(B*.1)
 print(colMeans(beta[-c(1:burn_in), ]))
