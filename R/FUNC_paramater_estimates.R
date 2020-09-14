@@ -15,7 +15,7 @@ normalize_data = function(data)
   # get maximum in rows
   rowmax = apply(data, 1, function(x) max(x))
   
-  # calculate the w_it
+  # calculate the x_i tilda
   data = data / rowmax
   data = data[(complete.cases(data)), ] # remove NA values
   return(data)
@@ -24,17 +24,16 @@ normalize_data = function(data)
 # function to return a matern kernel
 get_matern_values = function(l_k, r_mj)
 {
-    term_one = 1 + sqrt(5)*r_mj / l_k + 5*r_mj^2 / 3*l_k^2
+    term_one = 1 + sqrt(5)*r_mj / l_k + 5*(r_mj)^2 / (3*l_k^2)
     exponential = exp(-sqrt(5)*r_mj / l_k)
-    
     return(term_one * exponential)
 }
 
-get_matern = function(l_k, y)
+get_matern = function(l_k, time_points)
 {
   # call individual values for upper triangular matrix
-  y = y[!is.na(y)]
-  distance_numeric = dist(y)
+  # y = y[!is.na(y)]
+  distance_numeric = dist(time_points)
   distance_matrix = as.matrix(distance_numeric)
   
  # get full matrix
@@ -43,6 +42,7 @@ get_matern = function(l_k, y)
   # return M matfix
   return(M_i)
 }
+
 
 # function to get our K matrix
 get_K_i = function(sigma_2, M_i)
@@ -96,6 +96,7 @@ get_g_i = function(xi, h)
 
 get_g = function(data, beta, knots, N, xi)
 {
+  w_it = (data %*% beta + 1) / 2
   g = vector()
   for (i in 1:nrow(data))
   {
