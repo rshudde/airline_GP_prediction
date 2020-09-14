@@ -1,0 +1,13 @@
+1. Fix sigma^2
+2. Check matern
+3. fix data generation 
+4. Check alpha code
+5. l_b 
+
+
+matern:
+
+# Matern kernel with smoothness parameter 3/2 or 5/2
+1 replace leading sigma_2 with 1
+Theta is length scale parameter
+(mk = function(x, xp, sigma, theta, flag)({(  if(flag == 0){(    return((sigma^2)*(1+(sqrt(3)*abs(x-xp)/theta))*exp(-sqrt(3)*abs(x-xp)/theta))} # matern 3/2(  else{(    return((sigma^2)*(1+sqrt(5)*abs(x-xp)/theta+5*(x-xp)^2/(3*theta^2))*exp(-sqrt(5)*abs(x-xp)/theta))} # matern 5/2(}
