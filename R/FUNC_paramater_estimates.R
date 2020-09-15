@@ -458,8 +458,8 @@ lb_acceptance = function(lb_prime, lb, y)
       term_one = (g_lb - g_lb_prime)
       
       # stuff we need to calcualte v_i
-      M_temp = get_matern(l_k, y_noNA )
-      M_prime = get_matern(l_k_prime, y_noNA )
+      M_temp = get_matern(lb, y_noNA )
+      M_prime = get_matern(lb_prime, y_noNA )
       
       V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
       V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
