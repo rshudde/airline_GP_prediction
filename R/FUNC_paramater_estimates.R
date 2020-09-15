@@ -62,7 +62,6 @@ get_V_i = function(sigma_2, M_i, K_i)
   return(V_i)
 }
 
-
 get_h_j = function(data, beta, knots, N)
 {
 
@@ -413,6 +412,70 @@ get_beta = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2 
   
   return(alpha_proposed)
 }
+
+g_lb_value = function(lb_value, beta, knots, N, xi)
+{
+  
+  # TODO - pass the row as the data 
+  # make sure to scale the data
+  # TODO get rid of transpose
+
+  h_return = vector()
+  
+  for (i in 1:length(knots))
+  {
+    numerator = lb_value - knots[i]
+    denominator = 1/N
+    value = numerator / denominator
+    
+    inner = ifelse(abs(value) <= 1, value, 0) # indicator function part
+    h_return[i] = inner
+  }
+
+    to_return = sum(t(xi) %*% h_return)
+  
+  return(h_return)
+}
+
+lb_acceptance = function(lb_prime, lb, y)
+{
+  indicator = TRUE
+  product_value = 0
+  
+  for (i in 1:nrow(y) && indicator)
+  {
+    if (indicator)
+    {
+      if (((l_b < 1) || (l_b > 0.01)) || ((l_k < 1) || (l_k > 0.01)))
+      {
+        indicator = FALSE
+      }
+      
+      # if indicator is still good, calculate term in product
+      g_lb = g_lb_value(lb, beta, knots, N, xi)
+      g_lb_prime = g_lb_value(lb_prime, beta, knots, N, xi)
+      
+      term_one = (g_lb - g_lb_prime)
+      
+      # stuff we need to calcualte v_i
+      M_temp = get_matern(l_k, y_noNA )
+      M_prime = get_matern(l_k_prime, y_noNA )
+      
+      V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
+      V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
+      
+      
+    }
+  }
+  
+  # return 0 if the indicator condition is not met
+  to_return = indicator * product
+  
+  return(product_value)
+}
+
+
+
 
 # 
 # beta = c(0.3, 0.2, 0.4, 0.1)
