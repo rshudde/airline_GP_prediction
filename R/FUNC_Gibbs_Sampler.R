@@ -12,6 +12,7 @@ source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/DATA_generate
 data = generate_simulation_data(50, 10)
 X = data$X
 y = data$y
+beta = data$beta
 
 # initialize hyperparamaters
 sigma_mu = 2
