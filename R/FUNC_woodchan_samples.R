@@ -74,9 +74,13 @@ nnd_C = function(knot, g, nu, l, tausq)
 {
   C.vec = C.eval(knot, g, nu, l, tausq)$vec
   eval = C.eval(knot, g, nu, l, tausq)$min.eig.val
-  if (eval > 0)
+  # print(eval)
+  if (eval > 0) 
+  {
     return(list("cj" = C.vec, "g" = g))
+  }
   else{
+    # print("here")
     g = g + 1
     nnd_C(knot, g, nu, l, tausq)
   }
@@ -88,7 +92,7 @@ eigval = function(knot, nu, l, tausq)
   g = min_g(knot)
   c.j = nnd_C(knot, g, nu, l, tausq)$cj
   lambda = Re(fft(c.j))
-  if (min(lambda) > 0)
+  if (min(lambda) > 0) 
     return(lambda)
   else
     stop("nnd condition is NOT satisfied!!!")
