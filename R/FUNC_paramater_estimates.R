@@ -177,7 +177,7 @@ get_sigma_squared = function(a, b, y, M, mu, g)
   }
   # print(paste("c", c, "\td", d))
   
-  sigma_2 = rinvgamma(1, c, abs(d)) # TODO figure out if htis is correct
+  sigma_2 = rinvgamma(1, c, abs(d)) # TODO figure out if this is correct
   
   return(sigma_2)
 }
@@ -193,7 +193,7 @@ lk_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
     # calcualte first term outside of the product
     
     y_noNA = y[1,][!is.na(y[1,])]
-    term_one = vector_differences(y_noNA, mu[1], g[1])
+    term_one = vector_differences(y_noNA, mu[1], g[[1]])
     term_one = term_one[!(is.na(term_one))]
     
     M_temp = get_matern(l_k, y_noNA)
@@ -211,7 +211,7 @@ lk_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
       # calcualte proceeding terms in product 
       y_noNA = y[i,][!is.na(y[i,])]
       
-      term_one = vector_differences(y_noNA ,  mu[i], g[i])
+      term_one = vector_differences(y_noNA ,  mu[i], g[[i]])
       term_one = term_one[!(is.na(term_one))]
       
       M_temp = get_matern(l_k, y_noNA )
@@ -234,9 +234,9 @@ lk_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
 get_lk = function(y, mu, g, sigma_2, lk_0)
 {
   epsilon = 0.001
-  lk_t = lk_0 + 50*epsilon
-  mod_diff = abs(lk_0 - lk_t)
-    
+  mod_diff = 0.01
+  lk_t = lk_0 
+
   while (mod_diff > epsilon)
   {
     # step two - draw lk_prime 
@@ -437,108 +437,76 @@ g_lb_value = function(lb_value, beta, knots, N, xi)
   return(h_return)
 }
 
-lb_acceptance = function(lb_prime, lb, y)
+lb_acceptance = function(y, mu, g, sigma_2, lb_prime, lb, lk, beta, knots)
 {
-  indicator = TRUE
-  product_value = 0
-  
-  for (i in 1:nrow(y) && indicator)
+  # indicator function part
+  if (lb_prime < 0.1 || lb_prime > 1 || lb < 0.1 ||  lb > 1)
   {
-    if (indicator)
+    to_return = 0
+  } else { # calcualtions assuming indicator = 1
+    y_noNA = y[1,][!is.na(y[1,])]
+    
+    # calcualte first term outside of the product
+    g_lb = g_lb_value(lb, beta, knots, N, xi)
+    g_lb_prime = g_lb_value(lb_prime, beta, knots, N, xi)
+    
+    term_one = (g_lb - g_lb_prime)
+    
+    # stuff we need to calcualte v_i
+    M = get_matern(lk, y_noNA )
+    V = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M))
+    
+    term_Two = solve(V)
+    
+    ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
+    
+    for (i in 2:nrow(y))
     {
-      if (((l_b < 1) || (l_b > 0.01)) || ((l_k < 1) || (l_k > 0.01)))
-      {
-        indicator = FALSE
-      }
+      y_noNA = y[i,][!is.na(y[i,])]
       
-      # if indicator is still good, calculate term in product
+      # calcualte proceeding terms in product 
       g_lb = g_lb_value(lb, beta, knots, N, xi)
       g_lb_prime = g_lb_value(lb_prime, beta, knots, N, xi)
       
       term_one = (g_lb - g_lb_prime)
       
       # stuff we need to calcualte v_i
-      M_temp = get_matern(lb, y_noNA )
-      M_prime = get_matern(lb_prime, y_noNA )
+      M = get_matern(lk, y_noNA)
+      V = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M))
       
-      V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
-      V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
+      term_Two = solve(V)
       
-      
+      ratio = ratio * exp(-0.5 * t(term_one) %*% term_two %*% term_one)
     }
+    
+    to_return = min(1, (lb_prime / lb) * ratio)
   }
   
-  # return 0 if the indicator condition is not met
-  to_return = indicator * product
-  
-  return(product_value)
+  return(to_return)
 }
 
+get_lb = function(y, mu, g, sigma_2, lb_0, lk, beta, knots)
+{
+  epsilon = 0.001
+  mod_diff = 0.01
+  lb_t = lb_0
+  # lb_t = lb_0 + 50*epsilon
+  # mod_diff = abs(lb_t - lb_0)
+  
+  while (mod_diff > epsilon)
+  {
+    # step two - draw lb_prime 
+    lb_prime = rexp(1, lb_t)
+    u_t = runif(1, 0, 1)
+    
+    acceptance = lb_acceptance(y, mu, g, sigma_2, lb_prime, lb_t, lk)
+    lb_t1 = ifelse(u_t <= acceptance, lb_prime, lb_t)
+    
+    mod_diff = abs(lb_t1 - lb_t)
+    lb_t = lb_t1
+  }
+  
+  return(lb_t1)
+}
 
-
-
-# 
-# beta = c(0.3, 0.2, 0.4, 0.1)
-# N = 10
-# xi_0 = rnorm(N+1)
-# 
-# set.seed(1)
-# l_k = 0.9
-# sigma_2 = 2
-# sigma_mu = 5
-# alpha_mu = 3
-# x1 = matrix(rnorm(12, 5, 5), 3, 4)
-# x1 = rbind(x1, rep(NA, 4))
-# y1 = c(5,6,7, NA)
-# 
-# # remove NA
-# y1_noNA = y1[!is.na(y1)]
-# 
-# x2 = matrix(rnorm(16, 6, 6), 4, 4)
-# y2 = c(8,9,20,11)
-# beta = c(0.3, 0.2, 0.4, 0.1)
-# 
-# x1 = normalize_data(x1)
-# x2 = normalize_data(x2)
-# knots = seq(0, 1, 0.1)
-# 
-# M1_i = get_matern(l_k, y1_noNA)
-# K1_i = get_K_i(sigma_2, M1_i)
-# V1_i = get_V_i(sigma_2, M1_i, K1_i)
-# 
-# M2_i = get_matern(l_k, y2)
-# K2_i = get_K_i(sigma_2, M2_i)
-# V2_i = get_V_i(sigma_2, M2_i, K2_i)
-# 
-# g1 = get_g(x1, beta, knots, N, xi_0)
-# g2 = get_g(x2, beta, knots, N, xi_0)
-# 
-# 
-# # now for the main calculations
-# sigma_mu_post1 = get_sigma_mu_post(sigma_2, sigma_mu, V1_i)
-# alpha_mu_post1 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post1, g1, V1_i, y1_noNA)
-# 
-# sigma_mu_post2 = get_sigma_mu_post(sigma_2, sigma_mu, V2_i)
-# alpha_mu_post2 = get_alpha_mu_post(alpha_mu, sigma_mu, sigma_mu_post2, g2, V2_i, y2)
-# 
-# mu_1i = get_mu_i(alpha_mu_post1, sigma_mu_post1)
-# mu_2i = get_mu_i(alpha_mu_post2, sigma_mu_post2)
-# 
-# 
-# y = matrix(c(y1, y2), ncol = 4, byrow = T)
-# M = list(M1_i, M2_i)
-# mu = c(mu_1i, mu_2i)
-# g = c(g1, g2)
-# data = list(x1, x2)
-# sigma_2 = get_sigma_squared(0.1, 0.1, y, M, mu, g)
-# 
-# lk = get_lk(y, mu, g, sigma_2, 0.5)
-# 
-# 
-# ###
-# psi = psi_xi(y, mu, data, xi, beta, knots, N, sigma_2, lk)
-# xi = get_xi(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b = 1)
-# 
-# # psi = psi_alpha(y, mu, data, xi, alpha = 1, knots, N, sigma_2, l_k)
-# get_beta(alpha_0 = rnorm(4, 0, 1), y, mu, data, xi, knots, N, sigma_2, l_k, c_2 = 10^5)
-# 
+#
