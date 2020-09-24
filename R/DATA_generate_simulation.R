@@ -54,7 +54,5 @@ generate_simulation_data = function(n_datasets, n_covariates)
   return(list(X = data, y = y_matrix, beta = beta))
 }
 
-a = generate_simulation_data(50, 7)
-
 
 
