@@ -14,10 +14,15 @@
 # }
 
 
-generate_simulation_data = function(n_datasets, n_covariates)
+generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, length.out = 100))
 {
   ncol = n_covariates
   data = list()
+  # xi - values
+  beta = sample(1:20, n_covariates)
+  beta = beta/sum(beta) # norm beta = 1
+  N = length(knots)
+  xi = rnorm(length(knots), 0, 1) # genreeate xi for testing purposes
   
   # to get x variables first
   for (i in 1:n_datasets)
@@ -28,22 +33,17 @@ generate_simulation_data = function(n_datasets, n_covariates)
     sd = sample(2:9, 1)
     
     temp_x = matrix(rnorm(nrow*ncol, mean, sd), nrow, ncol)
-    temp_x = temp_x/max(sqrt(rowSums(temp_x*temp_x))) # new way of normalizing code
+    temp_x = temp_x/max(sqrt(rowSums(temp_x*temp_x))) # new way of normalizing code - x_tilda 
     rownames(temp_x) = sort(indices)
     
     data[[i]] = temp_x
   }
-  
-  # xi - values
-  xi = rnorm(11, 0, 1)
+
   mu = rnorm(length(data), 0, 1)
-  beta = sample(1:20, n_covariates)
-  beta = beta/sum(beta)
-  knots = seq(0, 1, 0.1)
-  N = length(knots)
   
+  # assumed l_k and sigma_2 variables 
   l_k = 2
-  sigma_2 = 4
+  sigma_2 = 0.5
   
   y_matrix = vector()
   for (i in 1:n_datasets)
