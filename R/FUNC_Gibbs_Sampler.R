@@ -7,11 +7,13 @@ source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_paramate
 source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/DATA_generate_simulation.R')
 # initial estimates for paramaters outside loop
 
+knots_gibbs = seq(0, 1, length.out = 100) # suggested to be 
+
 
 # get data
 n_covariates = 10
 n_datasets = 100
-data = generate_simulation_data(n_datasets = n_datasets, n_covariates = n_covariates)
+data = generate_simulation_data(n_datasets = n_datasets, n_covariates = n_covariates, knots = knots_gibbs)
 X = data$X
 y = data$y
 beta_true = data$beta
@@ -26,8 +28,7 @@ B = 1000
 # initialize hyperparamaters
 sigma_mu_gibbs = 2
 alpha_mu_gibbs = 5
-knots_gibbs = seq(0, 1, 0.1)
-n_gibbs = length(knots)
+n_gibbs = length(knots_gibbs)
 N_gibbs = nrow(y)
 a_gibbs = 0.1
 b_gibbs = 0.1
