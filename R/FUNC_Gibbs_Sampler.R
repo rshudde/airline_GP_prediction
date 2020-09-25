@@ -10,7 +10,7 @@ source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/DATA_generate
 
 # get data
 n_covariates = 10
-n_datasets = 20
+n_datasets = 100
 data = generate_simulation_data(n_datasets = n_datasets, n_covariates = n_covariates)
 X = data$X
 y = data$y
@@ -21,7 +21,7 @@ beta_true = data$beta
 ################################################################################################################
 
 # number of iterations for gibbs sampler
-B = 10
+B = 1000
 
 # initialize hyperparamaters
 sigma_mu_gibbs = 2
@@ -43,6 +43,8 @@ l_b_0_gibbs = 1
 # empty things
 # beta = vector() # will be a matrix
 beta_gibbs = matrix(rep(0, B * n_covariates), nrow = B, ncol = n_covariates)
+alpha_gibbs = matrix(rep(0, B * n_covariates), nrow = B, ncol = n_covariates)
+
 sigma_2_gibbs = vector()
 l_k_gibbs = vector()
 # xi = vector() # will be a matrix
@@ -69,7 +71,8 @@ for (i in 1:nrow(y))
 # initial iteration outside the loop
 
 # getting beta
-beta_gibbs[1, ] =  get_beta(alpha_0_gibbs, y, mu_0_gibbs, X, xi_0_gibbs, knots_gibbs, N_gibbs, sigma_2_0_gibbs, l_k_0_gibbs, M_gibbs, K_gibbs)
+alpha_gibbs[1, ] =  get_alpha(alpha_0_gibbs, y, mu_0_gibbs, X, xi_0_gibbs, knots_gibbs, N_gibbs, sigma_2_0_gibbs, l_k_0_gibbs, M_gibbs, K_gibbs)
+beta_gibbs[1, ] = alpha_gibbs[1, ] / sqrt(sum(alpha_gibbs[1, ]^2))
 
 # getting mu
 mu_temp = vector()
@@ -91,12 +94,16 @@ xi_gibbs[1, ] = get_xi(xi_0_gibbs, y, mu_gibbs, X, beta_gibbs[1, ], knots_gibbs,
   
 # get l_k
 l_k_gibbs[1] = get_lk(y, mu_gibbs[1, ], g_gibbs, sigma_2_gibbs[1], l_k_0_gibbs)
-l_b_gibbs[1] = get_lb(y, mu_gibbs, g_gibbs, sigma_2_gibbs[1], l_b_0_gibbs, l_k_gibbs[1], beta_gibbs[1, ], knots = knots_gibbs)
+# l_b_gibbs[1] = get_lb(y, mu = mu_gibbs, g = g_gibbs, sigma_2 = sigma_2_gibbs[1], lb_0 = l_b_0_gibbs, 
+#                       lk = l_k_gibbs[1], beta = beta_gibbs[1, ], knots = knots_gibbs, xi = xi_gibbs[1, ])
+# print(paste("Alskfjalksdjflaskjdflaksdjflaksjdflkj: ", l_b_gibbs))
 
+l_b_gibbs[1] = 2
 
 
 ################################################################################################################
 ################################################################################################################
+
 
 # now loop over everything
 start = Sys.time()
@@ -112,9 +119,10 @@ for (idx in 2:B)
   }
 
   # getting beta
-  beta_gibbs[idx, ] = get_beta(alpha_0_gibbs, y, mu_gibbs[idx-1, ], X, xi_gibbs[idx-1, ], knots_gibbs, N_gibbs, 
+  alpha_gibbs[idx, ] = get_alpha(alpha_gibbs[idx - 1, ], y, mu_gibbs[idx-1, ], X, xi_gibbs[idx-1, ], knots_gibbs, N_gibbs,
                                sigma_2_gibbs[idx-1], l_k_gibbs[idx-1], M_gibbs, K_gibbs)
-
+  beta_gibbs[idx, ] = alpha_gibbs[idx, ] / sqrt(sum(alpha_gibbs[idx, ]^2))
+  
   # getting mu
   mu_temp = vector()
   g_gibbs = list()
@@ -122,7 +130,7 @@ for (idx in 2:B)
   {
     g_gibbs[[i]] = get_g(X[[i]], beta_gibbs[idx, ], knots_gibbs, N_gibbs, xi_gibbs[idx-1, ])
     sigma_mu_post_temp = get_sigma_mu_post(sigma_2_gibbs[idx-1], sigma_mu_gibbs, V_gibbs[[i]])
-    alpha_mu_post_temp = get_alpha_mu_post(alpha_mu_gibbs, sigma_mu_gibbs, sigma_mu_post_temp, 
+    alpha_mu_post_temp = get_alpha_mu_post(alpha_mu_gibbs, sigma_mu_gibbs, sigma_mu_post_temp,
                                            g_gibbs[[i]], V_gibbs[[i]], y[i,])
     mu_temp[i] = get_mu_i(alpha_mu_post_temp, abs(sigma_mu_post_temp))
     # print(paste("iteration: ", i, ": ", mu_temp[i]))
@@ -135,37 +143,25 @@ for (idx in 2:B)
 
   # getting xi
   # xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
-  xi_gibbs[idx, ] = get_xi(xi_gibbs[idx-1,], y, mu_gibbs[idx, ], X, beta_gibbs[idx, ], knots_gibbs, N_gibbs, 
+  xi_gibbs[idx, ] = get_xi(xi_gibbs[idx-1,], y, mu_gibbs[idx, ], X, beta_gibbs[idx, ], knots_gibbs, N_gibbs,
                      sigma_2_gibbs[idx], l_k_gibbs[idx-1], l_b_gibbs[idx-1], M_gibbs, K_gibbs)
 
   # # get l_k and l_b
   l_k_gibbs[idx] = get_lk(y, mu_gibbs, g_gibbs, sigma_2_gibbs[idx], l_k_gibbs[idx-1]) # should just be passing it mu
-  l_b_gibbs[idx] = get_lb(y, mu_gibbs, g_gibbs, sigma_2_gibbs[idx], l_b_gibbs[idx-1], l_k_gibbs[idx])
+  # l_b_gibbs[idx] = get_lb(y, mu_gibbs, g_gibbs, sigma_2_gibbs[idx], l_b_gibbs[idx-1], l_k_gibbs[idx], beta_gibbs[idx, ], knots_gibbs)
 
+  l_b_gibbs[idx] = 2
 
   # if (b %% 10 == 0) print(b)
-  time = round(Sys.time() - start_inner)
+  # time = round(Sys.time() - start_inner)
   # if (time > 0.5) stop ("something wrong")
 
-  if (idx %% 50 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2), " sum g:", sum(unlist(g))))
+  if (idx %% 50 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2), " sum g:", round(sum(unlist(g_gibbs)),2)))
 }
-print(Sys.time() - start)
+print(round(Sys.time() - start),2)
 
 
 
-# burn_in = floor(B*.1)
-# print(colMeans(beta[-c(1:burn_in), ]))
-# 
-# beta_post = beta[-c(1:burn_in), ]
-# beta_actual = data$beta
-# 
-# size = 2
-# par(mfrow = c(size, size))
-# for (i in 1:(size*size))
-# {
-#   plot(beta_post[, i], type = "l", main = paste("plot of beta[, ", i, "]"))
-#   abline(h = beta_actual[i], col = "red")
-# }
 
 
 
