@@ -1,6 +1,19 @@
 # get data
 # nrow = 10
 
+# don't need this 
+# normalize_data = function(data)
+# {
+#   # get maximum in rows
+#   rowmax = apply(data, 1, function(x) max(x))
+#   
+#   # calculate the x_i tilda
+#   data = data / rowmax
+#   data = data[(complete.cases(data)), ] # remove NA values
+#   return(data)
+# }
+
+
 generate_simulation_data = function(n_datasets, n_covariates)
 {
   ncol = n_covariates
@@ -14,7 +27,8 @@ generate_simulation_data = function(n_datasets, n_covariates)
     mean = sample(1:10, 1)
     sd = sample(2:9, 1)
     
-    temp_x = normalize_data(matrix(rnorm(nrow*ncol, mean, sd), nrow, ncol))
+    temp_x = matrix(rnorm(nrow*ncol, mean, sd), nrow, ncol)
+    temp_x = temp_x/max(sqrt(rowSums(temp_x*temp_x))) # new way of normalizing code
     rownames(temp_x) = sort(indices)
     
     data[[i]] = temp_x
