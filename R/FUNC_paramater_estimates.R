@@ -10,17 +10,6 @@ clean_y = function(y_data)
   return(to_return)
 }
 
-normalize_data = function(data)
-{
-  # get maximum in rows
-  rowmax = apply(data, 1, function(x) max(x))
-  
-  # calculate the x_i tilda
-  data = data / rowmax
-  data = data[(complete.cases(data)), ] # remove NA values
-  return(data)
-}
-
 # function to return a matern kernel
 get_matern_values = function(l_k, r_mj)
 {
@@ -345,7 +334,7 @@ psi_alpha = function(y, mu, data, xi, alpha, knots, N, sigma_2, l_k, M, K)
 {
   if (alpha[1] > 0)
   {
-    beta = alpha / sum(alpha^2)
+    beta = alpha / sum(alpha^2) # changed this
     to_return = psi_xi(y, mu, data, xi, beta, knots, N, sigma_2, l_k, M, K)
   } else {
     to_return = 0
@@ -353,7 +342,7 @@ psi_alpha = function(y, mu, data, xi, alpha, knots, N, sigma_2, l_k, M, K)
   return(to_return)
 }
 
-get_beta = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2 = 10^5)
+get_alpha = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2 = 10^5)
 {
   # step one
   theta = runif(1, 0, 2*pi)
@@ -379,7 +368,7 @@ get_beta = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2 
     acceptance = min(1, exp(psi_old - psi_new))
   }
   
-  # continuation of step 3 - don't return unti lwe get something we accept 
+  # continuation of step 3 - don't return until we get something we accept 
   if (acceptance <= zeta)
   {
     while (acceptance <= zeta )
@@ -413,6 +402,7 @@ get_beta = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2 
   return(alpha_proposed)
 }
 
+# TODO make this the function that constructs the xis / g values
 g_lb_value = function(lb_value, beta, knots, N, xi)
 {
   
@@ -437,8 +427,9 @@ g_lb_value = function(lb_value, beta, knots, N, xi)
   return(h_return)
 }
 
-lb_acceptance = function(y, mu, g, sigma_2, lb_prime, lb, lk, beta, knots)
+lb_acceptance = function(y, mu, g, sigma_2, lb_prime, lb, lk, beta, knots, xi)
 {
+  # print(knots)
   # indicator function part
   if (lb_prime < 0.1 || lb_prime > 1 || lb < 0.1 ||  lb > 1)
   {
@@ -447,16 +438,22 @@ lb_acceptance = function(y, mu, g, sigma_2, lb_prime, lb, lk, beta, knots)
     y_noNA = y[1,][!is.na(y[1,])]
     
     # calcualte first term outside of the product
-    g_lb = g_lb_value(lb, beta, knots, N, xi)
-    g_lb_prime = g_lb_value(lb_prime, beta, knots, N, xi)
+    g_lb = g_lb_value(lb, beta, knots, nrow(y), xi)
+    g_lb_prime = g_lb_value(lb_prime, beta, knots, nrow(y), xi)
+    
+    g_lb = get_g(data, be)
     
     term_one = (g_lb - g_lb_prime)
     
     # stuff we need to calcualte v_i
-    M = get_matern(lk, y_noNA )
-    V = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M))
+    M = get_matern(lk, y_noNA)
+    V = get_V_i(sigma_2, M, get_K_i(sigma_2, M))
     
-    term_Two = solve(V)
+    term_two = solve(V)
+    # print("here")
+    # print(V)
+    # print(dim(term_one))
+    # print(dim(term_two))
     
     ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
     
@@ -465,18 +462,18 @@ lb_acceptance = function(y, mu, g, sigma_2, lb_prime, lb, lk, beta, knots)
       y_noNA = y[i,][!is.na(y[i,])]
       
       # calcualte proceeding terms in product 
-      g_lb = g_lb_value(lb, beta, knots, N, xi)
-      g_lb_prime = g_lb_value(lb_prime, beta, knots, N, xi)
+      g_lb = g_lb_value(lb, beta, knots, nrow(y), xi)
+      g_lb_prime = g_lb_value(lb_prime, beta, knots, nrow(y), xi)
       
       term_one = (g_lb - g_lb_prime)
       
       # stuff we need to calcualte v_i
       M = get_matern(lk, y_noNA)
-      V = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M))
+      V = get_V_i(sigma_2, M, get_K_i(sigma_2, M))
       
-      term_Two = solve(V)
+      term_two = solve(V)
       
-      ratio = ratio * exp(-0.5 * t(term_one) %*% term_two %*% term_one)
+      ratio = ratio * exp(-0.5 * t(term_two) %*% term_two %*% term_one)
     }
     
     to_return = min(1, (lb_prime / lb) * ratio)
@@ -485,7 +482,7 @@ lb_acceptance = function(y, mu, g, sigma_2, lb_prime, lb, lk, beta, knots)
   return(to_return)
 }
 
-get_lb = function(y, mu, g, sigma_2, lb_0, lk, beta, knots)
+get_lb = function(y, mu, g, sigma_2, lb_0, lk, beta, knots, xi)
 {
   epsilon = 0.001
   mod_diff = 0.01
@@ -499,7 +496,7 @@ get_lb = function(y, mu, g, sigma_2, lb_0, lk, beta, knots)
     lb_prime = rexp(1, lb_t)
     u_t = runif(1, 0, 1)
     
-    acceptance = lb_acceptance(y, mu, g, sigma_2, lb_prime, lb_t, lk)
+    acceptance = lb_acceptance(y, mu, g, sigma_2, lb_prime, lb_t, lk, beta, knots, xi)
     lb_t1 = ifelse(u_t <= acceptance, lb_prime, lb_t)
     
     mod_diff = abs(lb_t1 - lb_t)
