@@ -7,12 +7,12 @@ source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_paramate
 source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/DATA_generate_simulation.R')
 # initial estimates for paramaters outside loop
 
-knots_gibbs = seq(0, 1, length.out = 10) # suggested to be 
+knots_gibbs = seq(0, 1, length.out = 200) # suggested to be 
 
 
 # get data
-n_covariates = 10
-n_datasets = 30
+n_covariates = 16
+n_datasets = 300
 data = generate_simulation_data(n_datasets = n_datasets, n_covariates = n_covariates, knots = knots_gibbs)
 X = data$X
 y = data$y
