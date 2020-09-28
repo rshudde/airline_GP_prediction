@@ -7,12 +7,12 @@ source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_paramate
 source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/DATA_generate_simulation.R')
 # initial estimates for paramaters outside loop
 
-knots_gibbs = seq(0, 1, length.out = 100) # suggested to be 
+knots_gibbs = seq(0, 1, length.out = 10) # suggested to be 
 
 
 # get data
 n_covariates = 10
-n_datasets = 100
+n_datasets = 30
 data = generate_simulation_data(n_datasets = n_datasets, n_covariates = n_covariates, knots = knots_gibbs)
 X = data$X
 y = data$y
@@ -47,12 +47,12 @@ beta_gibbs = matrix(rep(0, B * n_covariates), nrow = B, ncol = n_covariates)
 alpha_gibbs = matrix(rep(0, B * n_covariates), nrow = B, ncol = n_covariates)
 
 sigma_2_gibbs = vector()
-l_k_gibbs = vector()
+lk_gibbs = vector()
 # xi = vector() # will be a matrix
 xi_gibbs = matrix(rep(0, B * length(knots_gibbs)), nrow = B, ncol = length(knots_gibbs))
 # mu = vector()
 mu_gibbs = matrix(rep(0, B * n_datasets), nrow = B, ncol = n_datasets)
-l_b_gibbs = vector()
+lb_gibbs = vector()
 
 # empty things - matrix form
 
@@ -94,14 +94,11 @@ sigma_2_gibbs[1] = get_sigma_squared(a_gibbs, b_gibbs, y, M_gibbs, mu_gibbs, g_g
 xi_gibbs[1, ] = get_xi(xi_0_gibbs, y, mu_gibbs, X, beta_gibbs[1, ], knots_gibbs, N_gibbs, sigma_2_gibbs[1], l_k_0_gibbs, l_b_0_gibbs, M_gibbs, K_gibbs)
   
 # get l_k
-l_k_gibbs[1] = get_lk(y, mu_gibbs[1, ], g_gibbs, sigma_2_gibbs[1], l_k_0_gibbs)
-# l_b_gibbs[1] = get_lb(y, mu = mu_gibbs, g = g_gibbs, sigma_2 = sigma_2_gibbs[1], lb_0 = l_b_0_gibbs, 
-#                       lk = l_k_gibbs[1], beta = beta_gibbs[1, ], knots = knots_gibbs, xi = xi_gibbs[1, ])
-# print(paste("Alskfjalksdjflaskjdflaksdjflaksjdflkj: ", l_b_gibbs))
-
-l_b_gibbs[1] = 2
-
-
+lk_gibbs[1] = get_lk(y, mu_gibbs[1, ], g_gibbs, sigma_2_gibbs[1], l_k_0_gibbs)
+blah = get_lb(y, l_b_0_gibbs, xi_gibbs[1, ])
+if(is.logical(blah)) stop("something worng with lb_gibbs")
+lb_gibbs[1] = blah
+print(blah)
 ################################################################################################################
 ################################################################################################################
 
@@ -114,14 +111,14 @@ for (idx in 2:B)
   # updating M and K
   for (i in 1:nrow(y))
   {
-    M_gibbs[[i]] = get_matern(l_k_gibbs[idx-1], rownames(X[[i]]))
+    M_gibbs[[i]] = get_matern(lk_gibbs[idx-1], rownames(X[[i]]))
     K_gibbs[[i]] = get_K_i(sigma_2_gibbs[idx-1], M_gibbs[[i]])
     V_gibbs[[i]] = get_V_i(sigma_2_gibbs[idx-1], M_gibbs[[i]], K_gibbs[[i]])
   }
 
   # getting beta
   alpha_gibbs[idx, ] = get_alpha(alpha_gibbs[idx - 1, ], y, mu_gibbs[idx-1, ], X, xi_gibbs[idx-1, ], knots_gibbs, N_gibbs,
-                               sigma_2_gibbs[idx-1], l_k_gibbs[idx-1], M_gibbs, K_gibbs)
+                               sigma_2_gibbs[idx-1], lk_gibbs[idx-1], M_gibbs, K_gibbs)
   beta_gibbs[idx, ] = alpha_gibbs[idx, ] / sqrt(sum(alpha_gibbs[idx, ]^2))
   
   # getting mu
@@ -145,19 +142,16 @@ for (idx in 2:B)
   # getting xi
   # xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
   xi_gibbs[idx, ] = get_xi(xi_gibbs[idx-1,], y, mu_gibbs[idx, ], X, beta_gibbs[idx, ], knots_gibbs, N_gibbs,
-                     sigma_2_gibbs[idx], l_k_gibbs[idx-1], l_b_gibbs[idx-1], M_gibbs, K_gibbs)
+                     sigma_2_gibbs[idx], lk_gibbs[idx-1], lb_gibbs[idx-1], M_gibbs, K_gibbs)
 
   # # get l_k and l_b
-  l_k_gibbs[idx] = get_lk(y, mu_gibbs, g_gibbs, sigma_2_gibbs[idx], l_k_gibbs[idx-1]) # should just be passing it mu
-  # l_b_gibbs[idx] = get_lb(y, mu_gibbs, g_gibbs, sigma_2_gibbs[idx], l_b_gibbs[idx-1], l_k_gibbs[idx], beta_gibbs[idx, ], knots_gibbs)
+  lk_gibbs[idx] = get_lk(y, mu_gibbs, g_gibbs, sigma_2_gibbs[idx], lk_gibbs[idx-1]) # should just be passing it mu
+  lb_gibbs[idx] = get_lb(y, lb_gibbs[idx-1], xi_gibbs[idx, ])
+  
+  # lb_gibbs[idx] = 2
 
-  l_b_gibbs[idx] = 2
 
-  # if (b %% 10 == 0) print(b)
-  # time = round(Sys.time() - start_inner)
-  # if (time > 0.5) stop ("something wrong")
-
-  if (idx %% 50 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2), " sum g:", round(sum(unlist(g_gibbs)),2)))
+  if (idx %% 50 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2)))
 }
 print(round(Sys.time() - start),2)
 
