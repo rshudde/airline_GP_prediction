@@ -172,10 +172,10 @@ get_sigma_squared = function(a, b, y, M, mu, g)
 }
 
 # function to calculate acceptance ratio for l_k
-lk_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
+lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k)
 {
   # indicator function part
-  if (l_k_prime < 0.1 || l_k_prime > 1 || l_k < 0.1 ||  l_k > 1)
+  if (lk_prime < 0.1 || lk_prime > 1 || l_k < 0.1 ||  l_k > 1)
   {
     to_return = 0
   } else { # calcualtions assuming indicator = 1
@@ -186,14 +186,14 @@ lk_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
     term_one = term_one[!(is.na(term_one))]
     
     M_temp = get_matern(l_k, y_noNA)
-    M_prime = get_matern(l_k_prime, y_noNA)
+    M_prime = get_matern(lk_prime, y_noNA)
     
     V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
     V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
     
     term_two = solve(V_prime) - solve(V_temp)
     
-    ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
+    ratio = exp(-0.5 * as.numeric(t(term_one) %*% term_two %*% term_one))
     
     for (i in 2:nrow(y))
     {
@@ -204,20 +204,20 @@ lk_acceptance = function(y, mu, g, sigma_2, l_k_prime, l_k)
       term_one = term_one[!(is.na(term_one))]
       
       M_temp = get_matern(l_k, y_noNA )
-      M_prime = get_matern(l_k_prime, y_noNA )
+      M_prime = get_matern(lk_prime, y_noNA )
       
       V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
       V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
       
       term_two = solve(V_prime) - solve(V_temp)
       
-      ratio = ratio * exp(-0.5 * t(term_one) %*% term_two %*% term_one)
+      ratio = ratio * exp(-0.5 * as.numeric(t(term_one) %*% term_two %*% term_one))
     }
   
-  to_return = min(1, (l_k_prime / l_k) * ratio)
+  to_return = min(1, (lk_prime / l_k) * as.numeric(ratio))
   }
   
-  return(to_return)
+  return(as.numeric(to_return))
 }
 
 get_lk = function(y, mu, g, sigma_2, lk_0)
@@ -402,32 +402,8 @@ get_alpha = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2
   return(alpha_proposed)
 }
 
-# TODO make this the function that constructs the xis / g values
-g_lb_value = function(lb_value, beta, knots, N, xi)
-{
-  
-  # TODO - pass the row as the data 
-  # make sure to scale the data
-  # TODO get rid of transpose
-
-  h_return = vector()
-  
-  for (i in 1:length(knots))
-  {
-    numerator = lb_value - knots[i]
-    denominator = 1/N
-    value = numerator / denominator
-    
-    inner = ifelse(abs(value) <= 1, value, 0) # indicator function part
-    h_return[i] = inner
-  }
-
-    to_return = sum(t(xi) %*% h_return)
-  
-  return(h_return)
-}
-
-lb_acceptance = function(y, mu, g, sigma_2, lb_prime, lb, lk, beta, knots, xi)
+## LB functions below
+lb_acceptance = function(y, lb, lb_prime, xi)
 {
   # print(knots)
   # indicator function part
@@ -435,54 +411,31 @@ lb_acceptance = function(y, mu, g, sigma_2, lb_prime, lb, lk, beta, knots, xi)
   {
     to_return = 0
   } else { # calcualtions assuming indicator = 1
-    y_noNA = y[1,][!is.na(y[1,])]
+    # y_noNA = y[1,][!is.na(y[1,])]
     
     # calcualte first term outside of the product
-    g_lb = g_lb_value(lb, beta, knots, nrow(y), xi)
-    g_lb_prime = g_lb_value(lb_prime, beta, knots, nrow(y), xi)
-    
-    g_lb = get_g(data, be)
-    
-    term_one = (g_lb - g_lb_prime)
+    term_one = xi
     
     # stuff we need to calcualte v_i
-    M = get_matern(lk, y_noNA)
-    V = get_V_i(sigma_2, M, get_K_i(sigma_2, M))
-    
-    term_two = solve(V)
-    # print("here")
-    # print(V)
-    # print(dim(term_one))
-    # print(dim(term_two))
+    M_lb = get_matern(lb, xi)
+    M_lb_prime = get_matern(lb_prime, xi)
+
+    term_two = solve(M_lb) - solve(M_lb_prime)
     
     ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
+
+    to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
     
-    for (i in 2:nrow(y))
-    {
-      y_noNA = y[i,][!is.na(y[i,])]
-      
-      # calcualte proceeding terms in product 
-      g_lb = g_lb_value(lb, beta, knots, nrow(y), xi)
-      g_lb_prime = g_lb_value(lb_prime, beta, knots, nrow(y), xi)
-      
-      term_one = (g_lb - g_lb_prime)
-      
-      # stuff we need to calcualte v_i
-      M = get_matern(lk, y_noNA)
-      V = get_V_i(sigma_2, M, get_K_i(sigma_2, M))
-      
-      term_two = solve(V)
-      
-      ratio = ratio * exp(-0.5 * t(term_two) %*% term_two %*% term_one)
-    }
-    
-    to_return = min(1, (lb_prime / lb) * ratio)
   }
   
+  # return correct type 
+  
+  to_return = as.numeric(to_return)
   return(to_return)
 }
 
-get_lb = function(y, mu, g, sigma_2, lb_0, lk, beta, knots, xi)
+# get_lb = function(y, mu, g, sigma_2, lb_0, lk, beta, knots, xi)
+get_lb = function(y, lb_0, xi)
 {
   epsilon = 0.001
   mod_diff = 0.01
@@ -494,13 +447,16 @@ get_lb = function(y, mu, g, sigma_2, lb_0, lk, beta, knots, xi)
   {
     # step two - draw lb_prime 
     lb_prime = rexp(1, lb_t)
+    # print(paste("lb:", lb_t, "lb_prime:", lb_prime))
     u_t = runif(1, 0, 1)
     
-    acceptance = lb_acceptance(y, mu, g, sigma_2, lb_prime, lb_t, lk, beta, knots, xi)
+    acceptance = lb_acceptance(y, lb_t, lb_prime, xi)
+    # acceptance = lb_acceptance(y, mu, g, sigma_2, lb_prime, lb_t, lk, beta, knots, xi)
     lb_t1 = ifelse(u_t <= acceptance, lb_prime, lb_t)
     
     mod_diff = abs(lb_t1 - lb_t)
     lb_t = lb_t1
+    # print(paste("mod_diff:", mod_diff))
   }
   
   return(lb_t1)
