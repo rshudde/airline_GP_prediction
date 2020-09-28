@@ -2,9 +2,9 @@
 rm(list = ls())
 library(invgamma)
 library(MASS)
-source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_woodchan_samples.R')
-source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_paramater_estimates.R')
-source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/DATA_generate_simulation.R')
+source('R/FUNC_woodchan_samples.R')
+source('R/FUNC_paramater_estimates.R')
+source('R/DATA_generate_simulation.R')
 # initial estimates for paramaters outside loop
 
 knots_gibbs = seq(0, 1, length.out = 200) # suggested to be 
