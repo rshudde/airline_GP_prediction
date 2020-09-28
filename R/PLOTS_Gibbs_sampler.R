@@ -16,7 +16,7 @@ for (i in 1:length(beta_true))
   abline(h = beta_means[i], col = "blue")
   # abline(h = beta_estimates[1, i], col = "lightgreen")
   # abline(h = beta_estimates[2, i], col = "lightgreen")
-  legend("topleft", legend=c("Actual Beta Value", "Posterior Mean"), col = c("red", "blue"), lty=(rep(1,2)))
+  legend("topleft", legend=c("Actual Beta Value", "Posterior Mean"), col = c("red", "blue"), lty=(rep(1,2)), cex = 0.6)
 }
 
 

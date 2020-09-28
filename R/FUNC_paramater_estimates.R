@@ -3,7 +3,7 @@
 library(invgamma)
 library(MASS)
 library(FastGP)
-source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_woodchan_samples.R')
+# source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_woodchan_samples.R')
 
 clean_y = function(y_data)
 {
