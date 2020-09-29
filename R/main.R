@@ -16,7 +16,7 @@ knots = seq(0, 1, length.out = length_out) # suggested to be n_covariates*n_data
 data = generate_simulation_data(n_datasets = n_datasets, n_covariates = n_covariates, knots = knots)
 
 # run gibbs sampler
-results = gibbs_sampler(data_gibbs = data, knots_gibbs = knots, B = 5000, write = TRUE, lb_0 = 0.4, lk_0 = 0.4)
+results = gibbs_sampler(data_gibbs = data, knots_gibbs = knots, B = 1000, write = TRUE, lb_0 = 0.1, lk_0 = 0.1)
 
 
 
