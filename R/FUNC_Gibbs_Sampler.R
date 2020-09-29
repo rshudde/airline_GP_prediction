@@ -6,6 +6,18 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
                          lk_0 = 1, lb_0 = 1, a = 0.1, b = 0.1, sigma_mu = 2, alpha_mu = 5,
                          burn_in = 0.3, write = FALSE)
 {
+  ## stuff for debugging
+  # B = 1000
+  # lk_0 = 1
+  # lb_0 = 1
+  # a = 0.1
+  # b = 0.1
+  # sigma_mu = 2
+  # alpha_mu = 5
+  # burn_in = 0.3
+  # write = FALSE
+  # data_gibbs = data
+  # knots_gibbs = knots
   
   X = data_gibbs$X
   y = data_gibbs$y
