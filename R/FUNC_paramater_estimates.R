@@ -14,8 +14,8 @@ clean_y = function(y_data)
 # function to return a matern kernel
 get_matern_values = function(l_k, r_mj)
 {
-    term_one = 1 + sqrt(5)*r_mj / l_k + 5*(r_mj)^2 / (3*l_k^2)
-    exponential = exp(-sqrt(5)*r_mj / l_k)
+    term_one = 1 + sqrt(5) * r_mj / l_k + 5 * (r_mj)^2 / (3 * l_k^2)
+    exponential = exp(-sqrt(5) * r_mj / l_k)
     return(term_one * exponential)
 }
 
@@ -79,13 +79,17 @@ get_g_i = function(xi, h)
 {
   # print(xi)
   # print(h)
-  to_return = sum(t(xi) %*% h)
+  # to_return = sum(t(xi) %*% h)
+  to_return = sum(crossprod(xi, h))
+  
   return(to_return)
 }
 
 get_g = function(data, beta, knots, N, xi)
 {
-  w_it = (data %*% beta + 1) / 2
+  # w_it = (data %*% beta + 1) / 2
+  w_it = (crossprod(t(data), beta)+ 1) / 2
+  
   g = vector()
   for (i in 1:nrow(data))
   {
@@ -103,7 +107,10 @@ get_sigma_mu_post = function(sigma_2, sigma_mu, V_i)
   ones_vector = rep(1, T_i)
   
   # calculate inner parenthensis
-  inner = t(ones_vector) %*% chol2inv(V_i) %*% ones_vector + sigma_mu^(-2)
+  inner_part_one = crossprod(ones_vector, chol2inv(V_i))
+  inner = inner_part_one %*% ones_vector + sigma_mu^(-2)
+  
+  # inner = t(ones_vector) %*% chol2inv(V_i) %*% ones_vector + sigma_mu^(-2)
 
   # invert to return
   inner_inverted = inner^-1
@@ -118,7 +125,11 @@ get_alpha_mu_post = function(alpha_mu, sigma_mu, sigma_mu_post, g_i, V_i, y)
   T_i = nrow(V_i)
   
   term_one = alpha_mu^2 * sigma_mu^(-2)
-  term_two = t(y - g_i) %*% chol2inv(V_i) %*% rep(1, T_i)
+  
+  term_two_part_one = crossprod(y - g_i, chol2inv(V_i))
+  term_two = term_two_part_one %*% rep(1, T_i)
+  
+  # term_two = t(y - g_i) %*% chol2inv(V_i) %*% rep(1, T_i)
   
   to_return = sigma_mu_post*(term_one + term_two)
   return(to_return)
@@ -139,7 +150,7 @@ vector_differences = function(y, mu_i, g_i)
   Ti = length(y)
   ones_vector = rep(1, Ti)
   
-  inner = y - mu_i*ones_vector - g_i
+  inner = y - mu_i * ones_vector - g_i
   return(inner)
 }
 
@@ -159,7 +170,13 @@ get_sigma_squared = function(a, b, y, M, mu, g)
     term_one = term_one[!(is.na(term_one))]
     term_two = M[[i]] + diag(rep(1, Ti[i]))
 
-    temp_update = t(term_one) %*% solve(term_two) %*% term_one
+    # temp_update_part_one = crossprod(term_one, solve(term_two))
+    
+    temp_update_part_one = crossprod(term_one, solve(term_two)) 
+    
+    temp_update = temp_update_part_one %*% term_one
+    
+    # temp_update = t(term_one) %*% solve(term_two) %*% term_one
     
     # if (temp_update <=0) print(temp_update)
     # print(t(term_one) %*% term_one)
@@ -194,7 +211,9 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k)
     
     term_two = chol2inv(V_prime) - chol2inv(V_temp)
     
-    ratio = exp(-0.5 * as.numeric(t(term_one) %*% term_two %*% term_one))
+    matrix_part = crossprod(term_one, term_two)
+    matrix_part = matrix_part %*% term_one
+    ratio = exp(-0.5 * as.numeric(matrix_part))
     
     for (i in 2:nrow(y))
     {
@@ -212,7 +231,11 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k)
       
       term_two = chol2inv(V_prime) - chol2inv(V_temp)
       
-      ratio = ratio * exp(-0.5 * as.numeric(t(term_one) %*% term_two %*% term_one))
+      matrix_part = crossprod(term_one, term_two)
+      matrix_part = matrix_part %*% term_one
+      ratio = ratio * exp(-0.5 * as.numeric(matrix_part))
+      
+      # ratio = ratio * exp(-0.5 * as.numeric(t(term_one) %*% term_two %*% term_one))
     }
   
   to_return = min(1, (lk_prime / l_k) * as.numeric(ratio))
@@ -248,7 +271,7 @@ get_H_matrix = function(data, beta, knots, N)
 {
   row = nrow(data)
   col = length(knots)
-  H = matrix(rep(0, row*col), nrow = row, ncol = col)
+  H = matrix(rep(0, row * col), nrow = row, ncol = col)
 
   for (i in 1:nrow(data))
   {
@@ -273,7 +296,11 @@ psi_xi = function(y, mu, data, xi, beta, knots, N, sigma_2, l_k, M, K)
     K_i = get_K_i(sigma_2, M[[i]])
     term_two = get_V_i(sigma_2, M[[i]], K[[i]])
 
-    sum_term = sum(t(term_one) %*% chol2inv(term_two) %*% term_one) + sum_term
+    matrix_part = crossprod(term_one, chol2inv(term_two))
+    matrix_part = matrix_part %*% term_one
+    sum_term = sum(matrix_part) + sum_term
+    
+    # sum_term = sum(t(term_one) %*% chol2inv(term_two) %*% term_one) + sum_term
   }
   
   to_return = sum_term / 2
@@ -426,14 +453,18 @@ lb_acceptance = function(y, lb, lb_prime, xi)
     # term_two = solve(M_lb, tol = 1e-21) - solve(M_lb_prime, tol = 1e-21)
     term_two = tinv(M_lb) - tinv(M_lb_prime)
     
-    ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
+    
+    matrix_part = crossprod(term_one, term_two)
+    matrix_part = matrix_part %*% term_one
+    ratio = exp(-0.5 * matrix_part)
+    
+    # ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
 
     to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
     
   }
   
   # return correct type 
-  
   to_return = as.numeric(to_return)
   return(to_return)
 }
@@ -466,4 +497,3 @@ get_lb = function(y, lb_0, xi)
   return(lb_t1)
 }
 
-#
