@@ -7,7 +7,7 @@ source('R/FUNC_Gibbs_Sampler.R')
 # initial estimates for paramaters outside loop
 # get data
 n_covariates = 10
-n_datasets = 100
+n_datasets = 500
 length_out = floor(n_covariates*n_datasets / 3)
 
 knots = seq(0, 1, length.out = length_out) # suggested to be n_covariates*n_datasets / 2
