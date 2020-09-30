@@ -1,19 +1,4 @@
-# get data
-# nrow = 10
-
-# don't need this 
-# normalize_data = function(data)
-# {
-#   # get maximum in rows
-#   rowmax = apply(data, 1, function(x) max(x))
-#   
-#   # calculate the x_i tilda
-#   data = data / rowmax
-#   data = data[(complete.cases(data)), ] # remove NA values
-#   return(data)
-# }
-
-
+# generate data to test on
 generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, length.out = 100))
 {
   ncol = n_covariates
