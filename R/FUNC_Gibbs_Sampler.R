@@ -157,7 +157,7 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   
   
   # get burnin 
-  burn_in = floor(B*.2)
+  burn_in = floor(B*burn_in)
   
   beta_gibbs = beta_gibbs[-c(1:burn_in), ]
   mu_gibbs = mu_gibbs[-c(1:burn_in), ]
@@ -167,11 +167,11 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   
   if (write)
   {
-    write.csv(beta_gibbs,"beta.csv", row.names = TRUE)
-    write.csv(mu_gibbs,"mu.csv", row.names = TRUE)
-    write.csv(sigma_2_gibbs,"sigma_2.csv", row.names = TRUE)
-    write.csv(lb_gibbs,"lb.csv", row.names = TRUE)
-    write.csv(lk_gibbs,"lk.csv", row.names = TRUE)
+    write.csv(beta_gibbs,"beta_500.csv", row.names = TRUE)
+    write.csv(mu_gibbs,"mu_500.csv", row.names = TRUE)
+    write.csv(sigma_2_gibbs,"sigma_2_500.csv", row.names = TRUE)
+    write.csv(lb_gibbs,"lb_500.csv", row.names = TRUE)
+    write.csv(lk_gibbs,"lk_500.csv", row.names = TRUE)
   }
   
   return(list(beta = beta_gibbs, mu = mu_gibbs, sigma_2 = sigma_2_gibbs, xi = xi_gibbs, lb = lb_gibbs,
