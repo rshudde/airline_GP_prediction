@@ -4,7 +4,8 @@ generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, 
   ncol = n_covariates
   data = list()
   # xi - values
-  beta = sample(1:20, n_covariates)
+  beta = sample(-10:10, n_covariates, replace = FALSE)
+  beta[1] = abs(beta[1])
   beta = beta/sum(beta) # norm beta = 1
   N = length(knots)
   xi = rnorm(length(knots), 0, 1) # genreeate xi for testing purposes
