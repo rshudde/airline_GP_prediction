@@ -1,5 +1,9 @@
 # This is the readme with function descriptions
 
+## File main.R
+
+Wrapper file that calls *FUNC_Gibbs_Sampler.R* to give back results
+
 ## File DATA_generate_simulation.R
 
 Function **generate_simulation_data**
@@ -94,6 +98,15 @@ Function **get_lb**
 - function to do MH update of lb
 - calls *lb_acceptance* to get values for udpates
 
+## File FUNC_Gibbs_Sampler.R
+
+Function **gibbs_sampler**
+- runs gibbs sampler based on *FUNC_paramater_estimates.R* functions
+
+
+##File PLOTS_Gibbs_sampler.R
+
+No functions in this file, just for plotting results
 
 
 
