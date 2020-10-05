@@ -173,7 +173,7 @@ get_sigma_squared = function(a, b, y, M, mu, g)
     
     # the two terms in the multiplication 
     term_one = vector_differences(y_noNa, mu[i], g[[i]])
-    term_one = term_one[!(is.na(term_one))]
+    # term_one = term_one[!(is.na(term_one))]
     term_two = M[[i]] + diag(rep(1, Ti[i]))
 
     # do matrix multiplication 
