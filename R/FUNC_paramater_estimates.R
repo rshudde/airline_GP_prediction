@@ -383,6 +383,7 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
 # function for calculating likelihood of alpha
 psi_alpha = function(y, mu, data, xi, alpha, knots, N, sigma_2, l_k, M, K)
 {
+  # check indicator values
   if (alpha[1] > 0)
   {
     beta = alpha / sum(alpha^2) # changed this to be the l2 norm
@@ -393,6 +394,7 @@ psi_alpha = function(y, mu, data, xi, alpha, knots, N, sigma_2, l_k, M, K)
   return(to_return)
 }
 
+# function to get alpha values
 get_alpha = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2 = 10^5)
 {
   # step one
@@ -406,7 +408,7 @@ get_alpha = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2
   theta_max = theta
   
   # step 3
-  # shortcut 
+  # shortcut to check if we need to go into the loop
   zeta = runif(1, 0, 1)
   
   if (alpha_proposed[1] <= 0)
@@ -416,6 +418,7 @@ get_alpha = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2
   {
     psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, N, sigma_2, l_k, M, K)
     psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, N, sigma_2, l_k, M, K)
+    # calculate new acceptance values
     acceptance = min(1, exp(psi_old - psi_new))
   }
   
@@ -462,8 +465,6 @@ lb_acceptance = function(y, lb, lb_prime, xi)
   {
     to_return = 0
   } else { # calcualtions assuming indicator = 1
-    # y_noNA = y[1,][!is.na(y[1,])]
-    
     # calcualte first term outside of the product
     term_one = xi
     
@@ -471,48 +472,49 @@ lb_acceptance = function(y, lb, lb_prime, xi)
     M_lb = get_matern(lb, xi)
     M_lb_prime = get_matern(lb_prime, xi)
 
-    # term_two = solve(M_lb, tol = 1e-21) - solve(M_lb_prime, tol = 1e-21)
+    # use tinv to invert M here
     term_two = tinv(M_lb) - tinv(M_lb_prime)
     
-    
+    # matrix multiplication
     matrix_part = crossprod(term_one, term_two)
     matrix_part = matrix_part %*% term_one
     ratio = exp(-0.5 * matrix_part)
     
-    # ratio = exp(-0.5 * t(term_one) %*% term_two %*% term_one)
-
+    # minimum value for eturn 
     to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
-    
   }
   
-  # return correct type 
+  # return correct type - don't return matrix from matrix multiplication
   to_return = as.numeric(to_return)
   return(to_return)
 }
 
-# get_lb = function(y, mu, g, sigma_2, lb_0, lk, beta, knots, xi)
+# function to calculate lb updates
 get_lb = function(y, lb_0, xi)
 {
   epsilon = 0.001
-  mod_diff = 0.01
+  mod_diff = 0.01 # start mod_diff small to force into loop
   lb_t = lb_0
-  # lb_t = lb_0 + 50*epsilon
-  # mod_diff = abs(lb_t - lb_0)
   
   while (mod_diff > epsilon)
   {
     # step two - draw lb_prime 
     lb_prime = rexp(1, lb_t)
-    # print(paste("lb:", lb_t, "lb_prime:", lb_prime))
+
+    #  draw uniform valuable
     u_t = runif(1, 0, 1)
     
+    # calculate new acceptance 
     acceptance = lb_acceptance(y, lb_t, lb_prime, xi)
-    # acceptance = lb_acceptance(y, mu, g, sigma_2, lb_prime, lb_t, lk, beta, knots, xi)
+
+    # update lb_t1 based on acceptance
     lb_t1 = ifelse(u_t <= acceptance, lb_prime, lb_t)
     
+    # c alculate new mod_difference
     mod_diff = abs(lb_t1 - lb_t)
+    
+    # update the lb_t1 value (it will either chance or not based on lb_t1)
     lb_t = lb_t1
-    # print(paste("mod_diff:", mod_diff))
   }
   
   return(lb_t1)
