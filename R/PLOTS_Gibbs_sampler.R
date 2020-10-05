@@ -4,17 +4,8 @@ source('R/FUNC_paramater_estimates.R')
 source('R/DATA_generate_simulation.R')
 source('R/FUNC_Gibbs_Sampler.R')
 
-# initial estimates for paramaters outside loop
-# 
-# knots = seq(0, 1, length.out = 10) # suggested to be 
-# 
-# 
-# # get data
-# n_covariates = 10
-# n_datasets = 100
-# data = generate_simulation_data(n_datasets = n_datasets, n_covariates = n_covariates, knots = knots)
-# 
-# results = gibbs_sampler(data_gibbs = data, knots_gibbs = knots, B = 500)
+y_grid = c(1:nrow(beta_post))
+
 
 ###################
 beta_true = data$beta
@@ -22,7 +13,8 @@ beta_post = results$beta
 beta_estimates = apply(beta_post, 2, function(x) quantile(x, c(0.025, 0.975)))
 beta_means = colMeans(beta_post)
 
-y_grid = c(1:nrow(beta_post))
+## beta plots
+
 par(mfrow = c(3,3))
 for (i in 1:length(beta_true))
 {
@@ -46,12 +38,84 @@ for (i in 1:length(beta_true))
   #        lty=c(1, 1, 3), cex = 0.4, inset=c(-0.2,0))
 }
 
-
+###################
+sigma_estimates = results$sigma_2
+sigma_actual = data$sigma_2
 par(mfrow = c(1,1))
-plot(sort(beta_true[-1]), sort(beta_means[-1]), type = "l")
+plot(y_grid, sigma_estimates, type = "l", main = "Plot of sigma2", col = "gray")
+lines(sigma_actual, col = "darkgreen", lwd = 2)
+lines(mean(sigma_estimates), col = "red", lty = 2, lwd = 2)
 
-plot(sort(beta_true), sort(beta_means), type = "l")
+###################
+lk_estimates = results$lk
+lk_actual = data$l_k
+max_value = max(max(lk_estimates), lk_actual)
+par(mfrow = c(1,1))
+plot(y_grid, lk_estimates, type = "l", main = "Plot of lk", col = "gray", ylim = c(min(lk_estimates), 1.3*max_value))
+abline(h = lk_actual, col = "darkgreen", lwd = 2)
+abline(h = mean(lk_estimates), col = "red", lty = 2, lwd = 2)
+
+###################
+mu_true = data$mu
+mu_post = results$mu
+mu_estimates = apply(mu_post, 2, function(x) quantile(x, c(0.025, 0.975)))
+mu_means = colMeans(mu_post)
+
+## mu plots
+
+par(mfrow = c(3,3))
+for (i in 1:9)
+{
+  max_value = max(max(mu_post[, i]), mu_true[i], mu_means[i])
+  min_value = min(min(mu_post[, i]), mu_true[i], mu_means[i])
+  plot(y_grid, mu_post[, i], type = "l", ylim = c(-1*abs(min_value), 1*max_value), main = paste("Plot of mu[, ", i, "]"), xlab = "MCMC iteration",
+       ylab = "mu estimates", xlim = c(10, nrow(mu_post) - 10), col = "gray")
+  abline(h = mu_true[i], col = "darkgreen", lwd = 2)
+  abline(h = mu_means[i], col = "red", lty = 2, lwd = 2)
+  
+  # adding confience intervals
+  high = mu_estimates[2, i]
+  low = mu_estimates[1, i]
+  
+  abline(h = high, col = "darkgreen", lty = 3)
+  abline(h = low, col = "darkgreen", lty = 3)
+  # polygon(c(y_grid, rev(y_grid)), c(rep(high, length(y_grid)), rev(rep(low, length(y_grid)))),  
+  #         col = yarrr::transparent("darkgreen", trans.val = .9), border = NA)
+  # 
+  # legend("topleft", legend=c("Actual mu Value", "Posterior Mean", "95% CI"), col = c("red", "blue", "darkgreen"), 
+  #        lty=c(1, 1, 3), cex = 0.4, inset=c(-0.2,0))
+}
 
 
+###################
+xi_true = data$xi
+xi_post = results$xi
+xi_estimates = apply(xi_post, 2, function(x) quantile(x, c(0.025, 0.975)))
+xi_means = colMeans(xi_post)
+
+## xi plots
+
+par(mfrow = c(3,3))
+for (i in 1:9)
+{
+  max_value = max(max(xi_post[, i]), xi_true[i], xi_means[i])
+  min_value = min(min(xi_post[, i]), xi_true[i], xi_means[i])
+  plot(y_grid, xi_post[, i], type = "l", ylim = c(-1*abs(min_value), 1*max_value), main = paste("Plot of xi[, ", i, "]"), xlab = "MCMC iteration",
+       ylab = "xi estimates", xlim = c(10, nrow(xi_post) - 10), col = "gray")
+  abline(h = xi_true[i], col = "darkgreen", lwd = 2)
+  abline(h = xi_means[i], col = "red", lty = 2, lwd = 2)
+  
+  # adding confience intervals
+  high = xi_estimates[2, i]
+  low = xi_estimates[1, i]
+  
+  abline(h = high, col = "darkgreen", lty = 3)
+  abline(h = low, col = "darkgreen", lty = 3)
+  # polygon(c(y_grid, rev(y_grid)), c(rep(high, length(y_grid)), rev(rep(low, length(y_grid)))),  
+  #         col = yarrr::transparent("darkgreen", trans.val = .9), border = NA)
+  # 
+  # legend("topleft", legend=c("Actual xi Value", "Posterior Mean", "95% CI"), col = c("red", "blue", "darkgreen"), 
+  #        lty=c(1, 1, 3), cex = 0.4, inset=c(-0.2,0))
+}
 
 
