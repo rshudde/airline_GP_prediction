@@ -1,5 +1,5 @@
 # generate data to test on
-generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, length.out = 100))
+generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, length.out = 100), l_k = 2, sigma_2 = 0.5)
 {
   # get the number of covariates and the amount of data 
   ncol = n_covariates
@@ -35,10 +35,6 @@ generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, 
   #  get random starting mu values
   mu = rnorm(length(data), 0, 1)
   
-  # assumed l_k and sigma_2 variables 
-  l_k = 2
-  sigma_2 = 0.5
-  
   # data generation via equation 5 from writeup 
   y_matrix = vector()
   for (i in 1:n_datasets)
@@ -64,7 +60,8 @@ generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, 
   }
   
   # return our x, y, and beta values
-  return(list(X = data, y = y_matrix, beta = beta))
+  return(list(X = data, y = y_matrix, beta = beta, sigma_2 = sigma_2, l_k = l_k, sigma_2 = sigma_2,
+              xi = xi, mu = mu))
 }
 
 
