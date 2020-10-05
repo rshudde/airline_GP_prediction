@@ -2,6 +2,7 @@
 library(invgamma)
 library(MASS)
 
+# functin to do Gibbs sampling 
 gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
                          lk_0 = 1, lb_0 = 1, a = 0.1, b = 0.1, sigma_mu = 2, alpha_mu = 5,
                          burn_in = 0.3, write = FALSE)
@@ -19,9 +20,11 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   # data_gibbs = data
   # knots_gibbs = knots
   
+  # get X and y values from the data
   X = data_gibbs$X
   y = data_gibbs$y
   
+  # get the number of datasets and covariates
   n_datasets = length(X)
   n_covariates = ncol(X[[1]])
   
@@ -41,34 +44,32 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   l_k_0_gibbs = lk_0
   l_b_0_gibbs = lb_0
   
-  # empty things
-  # beta = vector() # will be a matrix
+  # initialize beta / sigma / lk / xi / mu / lb values
   beta_gibbs = matrix(rep(0, B * n_covariates), nrow = B, ncol = n_covariates)
   alpha_gibbs = matrix(rep(0, B * n_covariates), nrow = B, ncol = n_covariates)
   
   sigma_2_gibbs = vector()
   lk_gibbs = vector()
-  # xi = vector() # will be a matrix
   xi_gibbs = matrix(rep(0, B * length(knots_gibbs)), nrow = B, ncol = length(knots_gibbs))
-  # mu = vector()
   mu_gibbs = matrix(rep(0, B * n_datasets), nrow = B, ncol = n_datasets)
   lb_gibbs = vector()
   
-  # empty things - matrix form
+  #### FIRST ITERATION 
+  
   # initialize M and K
   M_gibbs = list()
   K_gibbs = list()
   V_gibbs = list()
   g_gibbs = list()
   
+  # get M / K / V values
   for (i in 1:nrow(y))
   {
     M_gibbs[[i]] = get_matern(l_k_0_gibbs, rownames(X[[i]]))
     K_gibbs[[i]] = get_K_i(sigma_2_0_gibbs, M_gibbs[[i]])
     V_gibbs[[i]] = get_V_i(sigma_2_0_gibbs, M_gibbs[[i]], K_gibbs[[i]])
   }
-  # initial iteration outside the loop
-  
+
   # getting beta
   alpha_gibbs[1, ] =  get_alpha(alpha_0_gibbs, y, mu_0_gibbs, X, xi_0_gibbs, knots_gibbs, N_gibbs, sigma_2_0_gibbs, l_k_0_gibbs, M_gibbs, K_gibbs)
   beta_gibbs[1, ] = alpha_gibbs[1, ] / sqrt(sum(alpha_gibbs[1, ]^2))
@@ -91,7 +92,7 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   # getting xi 
   xi_gibbs[1, ] = get_xi(xi_0_gibbs, y, mu_gibbs, X, beta_gibbs[1, ], knots_gibbs, N_gibbs, sigma_2_gibbs[1], l_k_0_gibbs, l_b_0_gibbs, M_gibbs, K_gibbs)
   
-  # get l_k
+  # get l_k - with checks for initial values
   lk_gibbs[1] = get_lk(y, mu_gibbs[1, ], g_gibbs, sigma_2_gibbs[1], l_k_0_gibbs)
   blah = get_lb(y, l_b_0_gibbs, xi_gibbs[1, ])
   if(is.logical(blah)) stop("something worng with lb_gibbs")
@@ -102,12 +103,12 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   ################################################################################################################
   ################################################################################################################
   
-  
   # now loop over everything
   start = Sys.time()
   for (idx in 2:B)
   {
     start_inner = Sys.time()
+    
     # updating M and K
     for (i in 1:nrow(y))
     {
@@ -135,28 +136,24 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
     }
     mu_gibbs[idx, ] = mu_temp
     
-    # if (idx > 860) stop("iteration 860")
     # getting sigma
     sigma_2_gibbs[idx] = get_sigma_squared(a_gibbs, b_gibbs, y, M_gibbs, mu_gibbs[idx, ], g_gibbs)
     
     # getting xi
-    # xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
     xi_gibbs[idx, ] = get_xi(xi_gibbs[idx-1,], y, mu_gibbs[idx, ], X, beta_gibbs[idx, ], knots_gibbs, N_gibbs,
                              sigma_2_gibbs[idx], lk_gibbs[idx-1], lb_gibbs[idx-1], M_gibbs, K_gibbs)
     
     # # get l_k and l_b
     lk_gibbs[idx] = get_lk(y, mu_gibbs, g_gibbs, sigma_2_gibbs[idx], lk_gibbs[idx-1]) # should just be passing it mu
     lb_gibbs[idx] = get_lb(y, lb_gibbs[idx-1], xi_gibbs[idx, ])
-    
-    # lb_gibbs[idx] = 2
-    
-    
+  
+    # print statement for time  
     if (idx %% 50 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2)))
   }
   print(round(Sys.time() - start),2)
   
   
-  # get burnin 
+  # get burnin and remove 
   burn_in = floor(B*burn_in)
   
   beta_gibbs = beta_gibbs[-c(1:burn_in), ]
@@ -165,6 +162,7 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   lb_gibbs = lb_gibbs[-c(1:burn_in)]
   lk_gibbs = lk_gibbs[-c(1:burn_in)]
   
+  # write to csv file if running on server
   if (write)
   {
     write.csv(beta_gibbs,"beta_500.csv", row.names = TRUE)
