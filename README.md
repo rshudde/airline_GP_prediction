@@ -64,11 +64,9 @@ Function **get_sigma_squared**
 Function **lk_acceptance**
 - function to get alpha(lk, lk')
 
-
 Function **get_lk**
 - function to do MH update of lk
 - calls *lk_acceptance* to get values for udpates
-
 
 Function **get_H_matrix**
 - function to create H matrix for the xi draws
@@ -82,29 +80,19 @@ Function **get_xi**
 - calls *psi_xi* for acceptance values
 - calls *samp.WC* (Pallavi's code) for initial xi values
 
-Function **function**
+Function **psi_alpha**
 - function for calculating likelihood of alpha
--
 
+Function **get_alpha**
+- function for calculating alpha values
+- calls **psi_alpha** for updates
 
+Function **lb_acceptance**
+- function to get alpha(lb, lb')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Function **get_lb**
+- function to do MH update of lb
+- calls *lb_acceptance* to get values for udpates
 
 
 
