@@ -300,7 +300,7 @@ psi_xi = function(y, mu, data, xi, beta, knots, N, sigma_2, l_k, M, K)
     
     # construct H matrix
     H_term = get_H_matrix(data[[i]], beta, knots, N)
-    term_one = y_noNA - mu[i] * rep(1,length(y_noNA)) - H_term
+    term_one = y_noNA - rep(mu[i],length(y_noNA)) - H_term %*% xi ## forgot to multiply by xi here
     
     # constrcuting second term
     M_i = get_matern(l_k, y_noNA )
