@@ -1,21 +1,15 @@
-rm(list = ls())
-source('R/FUNC_woodchan_samples.R')
-source('R/FUNC_paramater_estimates.R')
-source('R/DATA_generate_simulation.R')
-source('R/FUNC_Gibbs_Sampler.R')
-
-y_grid = c(1:nrow(beta_post))
-
-
 ###################
 beta_true = data$beta
 beta_post = results$beta
 beta_estimates = apply(beta_post, 2, function(x) quantile(x, c(0.025, 0.975)))
 beta_means = colMeans(beta_post)
 
+y_grid = c(1:nrow(beta_post))
+
+
 ## beta plots
 
-par(mfrow = c(3,3))
+par(mfrow = c(2,3))
 for (i in 1:length(beta_true))
 {
   max_value = max(max(beta_post[, i]), beta_true[i], beta_means[i])
@@ -31,9 +25,7 @@ for (i in 1:length(beta_true))
   
   abline(h = high, col = "darkgreen", lty = 3)
   abline(h = low, col = "darkgreen", lty = 3)
-  # polygon(c(y_grid, rev(y_grid)), c(rep(high, length(y_grid)), rev(rep(low, length(y_grid)))),  
-  #         col = yarrr::transparent("darkgreen", trans.val = .9), border = NA)
-  # 
+
   # legend("topleft", legend=c("Actual Beta Value", "Posterior Mean", "95% CI"), col = c("red", "blue", "darkgreen"), 
   #        lty=c(1, 1, 3), cex = 0.4, inset=c(-0.2,0))
 }
@@ -43,8 +35,8 @@ sigma_estimates = results$sigma_2
 sigma_actual = data$sigma_2
 par(mfrow = c(1,1))
 plot(y_grid, sigma_estimates, type = "l", main = "Plot of sigma2", col = "gray")
-lines(sigma_actual, col = "darkgreen", lwd = 2)
-lines(mean(sigma_estimates), col = "red", lty = 2, lwd = 2)
+abline(h = sigma_actual, col = "darkgreen", lwd = 2)
+abline(h = mean(sigma_estimates), col = "red", lty = 2, lwd = 2)
 
 ###################
 lk_estimates = results$lk
