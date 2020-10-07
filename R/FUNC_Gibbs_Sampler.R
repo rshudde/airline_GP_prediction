@@ -4,23 +4,23 @@ library(MASS)
 
 # functin to do Gibbs sampling 
 gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
-                         lk_0 = 0.1, lb_0 = 0.1, a = 0.1, b = 0.1, sigma_mu = 100, alpha_mu = 0,
+                         lk_0 = 0.1, lb_0 = 0.1, a = 10^(-3), b = 10^(-3), sigma_mu = 100, alpha_mu = 0,
                          burn_in = 0.3, write = FALSE)
 {
   set.seed(1)
 
-  ## stuff for debugging
-  B = 1000
-  lk_0 = 0.1
-  lb_0 = 0.1
-  a = 10^(-3)
-  b = 10^(-3)
-  sigma_mu = 100 # TODO fix naming here
-  alpha_mu = 0
-  burn_in = 0.3
-  write = FALSE
-  data_gibbs = data
-  knots_gibbs = knots
+  # ## stuff for debugging
+  # B = 1000
+  # lk_0 = 0.1
+  # lb_0 = 0.1
+  # a = 10^(-3)
+  # b = 10^(-3)
+  # sigma_mu = 100 # TODO fix naming here
+  # alpha_mu = 0
+  # burn_in = 0.3
+  # write = FALSE
+  # data_gibbs = data
+  # knots_gibbs = knots
   
   # get X and y values from the data
   X = data_gibbs$X
@@ -96,11 +96,7 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   
   # get l_k - with checks for initial values
   lk_gibbs[1] = get_lk(y, mu_gibbs[1, ], g_gibbs, sigma_2_gibbs[1], l_k_0_gibbs)
-  blah = get_lb(y, l_b_0_gibbs, xi_gibbs[1, ])
-  if(is.logical(blah)) stop("something worng with lb_gibbs")
-  lb_gibbs[1] = blah
-  print(blah)
-  
+  lb_gibbs[1] = get_lb(y, l_b_0_gibbs, xi_gibbs[1, ])
   
   ################################################################################################################
   ################################################################################################################
