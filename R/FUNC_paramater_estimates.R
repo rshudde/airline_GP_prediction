@@ -359,8 +359,8 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
       xi_proposed = xi_0 * cos(theta) + gamma * sin(theta)
       
       # step d
-      psi_old = psi_function(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k, M, K)
-      psi_new = psi_function(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k, M, K)
+      psi_old = psi_xi(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k, M, K)
+      psi_new = psi_xi(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k, M, K)
       
       # calculate new acceptance
       acceptance = min(1, exp(psi_old - psi_new))
