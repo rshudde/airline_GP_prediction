@@ -33,8 +33,7 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   # initialize hyperparamaters
   sigma_mu_gibbs = sigma_mu
   alpha_mu_gibbs = alpha_mu
-  n_gibbs = length(knots_gibbs)
-  N_gibbs = nrow(y)
+  N_gibbs = nrow(y) # number of flights we see
   a_gibbs = a
   b_gibbs = b
 
@@ -47,7 +46,7 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   xi_gibbs = matrix(rep(0, B * length(knots_gibbs)), nrow = B, ncol = length(knots_gibbs))
   mu_gibbs = matrix(rep(0, B * n_datasets), nrow = B, ncol = n_datasets)
 
-  xi_gibbs[1, ] = rnorm(n_gibbs, 1, 4) # length of knots
+  xi_gibbs[1, ] = rnorm(length(knots_gibbs), 0, 1) # length of knots
   alpha_gibbs[1, ] = rep(1, n_covariates)
   alpha_0_gibbs = rep(1, n_covariates)
   beta_gibbs[1, ] = alpha_0_gibbs / sqrt(sum(alpha_0_gibbs^2))
@@ -76,7 +75,7 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
     }
     
     # getting beta
-    alpha_gibbs[idx, ] = get_alpha(alpha_gibbs[idx - 1, ], y, mu_gibbs[idx-1, ], X, xi_gibbs[idx-1, ], knots_gibbs, N_gibbs,
+    alpha_gibbs[idx, ] = get_alpha(alpha_gibbs[idx - 1, ], y, mu_gibbs[idx-1, ], X, xi_gibbs[idx-1, ], knots_gibbs,
                                    sigma_2_gibbs[idx-1], lk_gibbs[idx-1], M_gibbs, K_gibbs)
     beta_gibbs[idx, ] = alpha_gibbs[idx, ] / sqrt(sum(alpha_gibbs[idx, ]^2))
     
@@ -85,7 +84,7 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
     g_gibbs = list()
     for (i in 1:nrow(y))
     {
-      g_gibbs[[i]] = get_g(X[[i]], beta_gibbs[idx, ], knots_gibbs, N_gibbs, xi_gibbs[idx-1, ])
+      g_gibbs[[i]] = get_g(X[[i]], beta_gibbs[idx, ], knots_gibbs, xi_gibbs[idx-1, ])
       sigma_mu_post_temp = get_sigma_mu_post(sigma_2_gibbs[idx-1], sigma_mu_gibbs, V_gibbs[[i]])
       alpha_mu_post_temp = get_alpha_mu_post(alpha_mu_gibbs, sigma_mu_gibbs, sigma_mu_post_temp,
                                              g_gibbs[[i]], V_gibbs[[i]], y[i,])
@@ -98,7 +97,7 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
     sigma_2_gibbs[idx] = get_sigma_squared(a_gibbs, b_gibbs, y, M_gibbs, mu_gibbs[idx, ], g_gibbs)
     
     # getting xi
-    xi_gibbs[idx, ] = get_xi(xi_gibbs[idx-1,], y, mu_gibbs[idx, ], X, beta_gibbs[idx, ], knots_gibbs, N_gibbs,
+    xi_gibbs[idx, ] = get_xi(xi_gibbs[idx-1,], y, mu_gibbs[idx, ], X, beta_gibbs[idx, ], knots_gibbs,
                              sigma_2_gibbs[idx], lk_gibbs[idx-1], lb_gibbs[idx-1], M_gibbs, K_gibbs)
     
     # # get l_k and l_b
