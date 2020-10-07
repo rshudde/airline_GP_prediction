@@ -35,22 +35,18 @@ Function **get_V_i**
 
 Function **get_h_j**
 - calculates h vector from equation 6
-- TODO this may have some issues 
 
 Function **get_g_i**
 - calculates g values from equation 6
-- TODO this may have some issues 
 
 Function **get_g**
 - calculates actual g vector from equation 6
 - calls *get_g_i* to get values
-- TODO this may have some issues
 
 Function **get_sigma_mu_post**
 - function to calculate sigma_mu_post from full conditional of mu_i
 
 Function **get_alpha_mu_post**
-- TODO may have sigma_2^(-2) when we really just need sigma_2(^-1)
 - this may be wrong, going to have someone look at it
 
 Function **get_mu_i**
