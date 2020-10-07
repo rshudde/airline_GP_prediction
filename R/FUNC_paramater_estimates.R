@@ -56,8 +56,11 @@ get_V_i = function(sigma_2, M_i, K_i)
 
 
 # calculates h vector from equation 6
-get_h_j = function(data, beta, knots, N)
+get_h_j = function(data, beta, knots)
 {
+  
+  N = length(knots)
+  
   # get w_it values 
   w_it = (data %*% beta + 1)/2
 
@@ -88,12 +91,12 @@ get_g_i = function(xi, h)
 
 
 # g function from equation 6
-get_g = function(data, beta, knots, N, xi)
+get_g = function(data, beta, knots, xi)
 {
   g = vector()
   for (i in 1:nrow(data))
   {
-    h_temp = get_h_j(data[i,], beta, knots, N)
+    h_temp = get_h_j(data[i,], beta, knots)
     g_i = get_g_i(xi, h_temp)
     g[i] = g_i
   }
@@ -152,9 +155,8 @@ get_mu_i = function(alpha_mu_post, sigma_mu_post)
 vector_differences = function(y, mu_i, g_i)
 {
   Ti = length(y)
-  ones_vector = rep(1, Ti)
-  
-  inner = y - mu_i * ones_vector - g_i
+
+  inner = y - rep(mu_i, Ti) - g_i
   return(inner)
 }
 
@@ -186,7 +188,7 @@ get_sigma_squared = function(a, b, y, M, mu, g)
   }
 
   # do inverse gamma draw
-  sigma_2 = rinvgamma(1, c, abs(d)) # TODO figure out if this is correct
+  sigma_2 = rinvgamma(1, c, d) # TODO figure out if this is correct
   
   return(sigma_2)
 }
@@ -288,7 +290,7 @@ get_lk = function(y, mu, g, sigma_2, lk_0)
 
 
 # get the H matrix for calculating the xi
-get_H_matrix = function(data, beta, knots, N)
+get_H_matrix = function(data, beta, knots)
 {
   row = nrow(data)
   col = length(knots)
@@ -296,7 +298,7 @@ get_H_matrix = function(data, beta, knots, N)
 
   for (i in 1:nrow(data))
   {
-    H[i, ] = get_h_j(data[i,], beta, knots, N)
+    H[i, ] = get_h_j(data[i,], beta, knots)
   }
   
   return(H)
@@ -304,7 +306,7 @@ get_H_matrix = function(data, beta, knots, N)
 
 
 # function for negative log likelihood for xis
-psi_xi = function(y, mu, data, xi, beta, knots, N, sigma_2, l_k, M, K)
+psi_xi = function(y, mu, data, xi, beta, knots, sigma_2, l_k, M, K)
 {
   sum_term = 0
   for (i in 1:nrow(y))
@@ -313,7 +315,7 @@ psi_xi = function(y, mu, data, xi, beta, knots, N, sigma_2, l_k, M, K)
     y_noNA = y[i,][!is.na(y[i,])]
     
     # construct H matrix
-    H_term = get_H_matrix(data[[i]], beta, knots, N)
+    H_term = get_H_matrix(data[[i]], beta, knots)
     term_one = y_noNA - rep(mu[i],length(y_noNA)) - H_term %*% xi ## forgot to multiply by xi here
     
     # constrcuting second term
@@ -333,7 +335,7 @@ psi_xi = function(y, mu, data, xi, beta, knots, N, sigma_2, l_k, M, K)
 
 
 # function to sample the xi values
-get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
+get_xi = function(xi_0, y, mu, data, beta, knots, sigma_2, l_k, l_b, M, K)
 {
   # step one
   theta = runif(1, 0, 2*pi)
@@ -350,8 +352,8 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
   zeta = runif(1, 0, 1)
   
   # calculate new and old psi values
-  psi_old = psi_xi(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k, M, K)
-  psi_new = psi_xi(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k, M, K)
+  psi_old = psi_xi(y, mu, data, xi_0, beta, knots, sigma_2, l_k, M, K)
+  psi_new = psi_xi(y, mu, data, xi_proposed, beta, knots, sigma_2, l_k, M, K)
   acceptance = min(1, exp(psi_old - psi_new))
   
   # continuation of step 3 - don't return until we get something we accept 
@@ -374,8 +376,8 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
       xi_proposed = xi_0 * cos(theta) + gamma * sin(theta)
       
       # step d
-      psi_old = psi_xi(y, mu, data, xi_0, beta, knots, N, sigma_2, l_k, M, K)
-      psi_new = psi_xi(y, mu, data, xi_proposed, beta, knots, N, sigma_2, l_k, M, K)
+      psi_old = psi_xi(y, mu, data, xi_0, beta, knots, sigma_2, l_k, M, K)
+      psi_new = psi_xi(y, mu, data, xi_proposed, beta, knots, sigma_2, l_k, M, K)
       
       # calculate new acceptance
       acceptance = min(1, exp(psi_old - psi_new))
@@ -387,13 +389,13 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
 
 
 # function for calculating likelihood of alpha
-psi_alpha = function(y, mu, data, xi, alpha, knots, N, sigma_2, l_k, M, K)
+psi_alpha = function(y, mu, data, xi, alpha, knots, sigma_2, l_k, M, K)
 {
   # check indicator values
   if (alpha[1] > 0)
   {
     beta = alpha / sum(alpha^2) # changed this to be the l2 norm
-    to_return = psi_xi(y, mu, data, xi, beta, knots, N, sigma_2, l_k, M, K)
+    to_return = psi_xi(y, mu, data, xi, beta, knots, sigma_2, l_k, M, K)
   } else {
     to_return = 0
   }
@@ -402,7 +404,7 @@ psi_alpha = function(y, mu, data, xi, alpha, knots, N, sigma_2, l_k, M, K)
 
 
 # function for MH sampling to get alpha values
-get_alpha = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2 = 10^5)
+get_alpha = function(alpha_0, y, mu, data, xi, knots, sigma_2, l_k, M, K, c_2 = 10^5)
 {
   # step one
   theta = runif(1, 0, 2*pi)
@@ -423,8 +425,8 @@ get_alpha = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2
     acceptance = 0
   } else
   {
-    psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, N, sigma_2, l_k, M, K)
-    psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, N, sigma_2, l_k, M, K)
+    psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, sigma_2, l_k, M, K)
+    psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, sigma_2, l_k, M, K)
     # calculate new acceptance values
     acceptance = min(1, exp(psi_old - psi_new))
   }
@@ -453,8 +455,8 @@ get_alpha = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2
         acceptance = 0
       } else
       {
-        psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, N, sigma_2, l_k, M, K)
-        psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, N, sigma_2, l_k, M, K)
+        psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, sigma_2, l_k, M, K)
+        psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, sigma_2, l_k, M, K)
         acceptance = min(1, exp(psi_old - psi_new))
       }
     }
