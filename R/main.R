@@ -12,7 +12,7 @@ n_datasets = 30
 length_out = floor(n_covariates*n_datasets / 3)
 
 knots = seq(0, 1, length.out = length_out) # suggested to be n_covariates*n_datasets / 2
-l_k_start = 2
+l_k_start = 1
 sigma_2_start = 0.5
 
 # generate data
@@ -21,8 +21,6 @@ data = generate_simulation_data(n_datasets = n_datasets, n_covariates = n_covari
 
 # run gibbs sampler
 results = gibbs_sampler(data_gibbs = data, knots_gibbs = knots, B = 1000, write = TRUE, lb_0 = 0.1, lk_0 = 0.1, burn_in = 0.3)
-
-
 
 ###################
 plot_beta(data, results)
