@@ -13,7 +13,8 @@ generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, 
   # generates xi values
   N = length(knots)
   # set.seed(1)
-  xi = rnorm(length(knots), 1, 4) # genreeate xi for testing purposes
+  # xi = rnorm(length(knots), 1, 4) # genreeate xi for testing purposes
+  xi = rnorm(length(knots), 0, 1) # genreeate xi for testing purposes
   
   # to get x variables first
   for (i in 1:n_datasets)
@@ -27,9 +28,9 @@ generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, 
     sd = 1
     
     # sample data from normal 
-    temp_x = matrix(rnorm(nrow*ncol, mean, sd), nrow, ncol)
+    temp_x = matrix(rnorm(nrow * ncol, mean, sd), nrow, ncol)
     # new way of normalizing code to get x_tilde 
-    temp_x = temp_x/max(sqrt(rowSums(temp_x*temp_x))) 
+    temp_x = temp_x / max(sqrt(rowSums(temp_x * temp_x))) 
     rownames(temp_x) = sort(indices)
     
     # add data to list 
@@ -52,7 +53,7 @@ generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, 
     # third term - eta values 
     M_i = get_matern(l_k, rownames(data[[i]]))
     K = get_K_i(sigma_2, M_i)
-    third_term = mvtnorm::rmvnorm(1, rep(0, nrow(data[[i]])), K + sigma_2*diag(1, nrow = nrow(data[[i]])))
+    third_term = mvtnorm::rmvnorm(1, rep(0, nrow(data[[i]])), K + sigma_2 * diag(1, nrow = nrow(data[[i]])))
     
     temp = rep(NA, 10) # rep the number of covariates
     y_temp = as.vector(first_term + second_term + third_term)
