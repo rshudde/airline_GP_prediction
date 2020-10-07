@@ -13,8 +13,8 @@ generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, 
   # generates xi values
   N = length(knots)
   # set.seed(1)
-  # xi = rnorm(length(knots), 1, 4) # genreeate xi for testing purposes
-  xi = rnorm(length(knots), 0, 1) # genreeate xi for testing purposes
+  xi = rnorm(length(knots), 1, 4) # genreeate xi for testing purposes
+  # xi = rnorm(length(knots), 0, 1) # genreeate xi for testing purposes
   
   # to get x variables first
   for (i in 1:n_datasets)
