@@ -48,7 +48,7 @@ generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, 
     first_term = mu[[i]] %*% rep(1, nrow(data[[i]]))
     
     # g values from FUNC_paramater_estimates
-    second_term = get_g(data[[i]], beta, knots, N, xi)
+    second_term = get_g(data[[i]], beta, knots, xi)
     
     # third term - eta values 
     M_i = get_matern(l_k, rownames(data[[i]]))
