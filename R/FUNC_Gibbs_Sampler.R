@@ -9,18 +9,18 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
 {
   set.seed(1)
 
-  # ## stuff for debugging
-  # B = 1000
-  # lk_0 = 0.1
-  # lb_0 = 0.1
-  # a = 10^(-3)
-  # b = 10^(-3)
-  # sigma_mu = 100 # TODO fix naming here
-  # alpha_mu = 0
-  # burn_in = 0.3
-  # write = FALSE
-  # data_gibbs = data
-  # knots_gibbs = knots
+  ## stuff for debugging
+  B = 1000
+  lk_0 = 0.1
+  lb_0 = 0.1
+  a = 10^(-3)
+  b = 10^(-3)
+  sigma_mu = 100 # TODO fix naming here
+  alpha_mu = 0
+  burn_in = 0.3
+  write = FALSE
+  data_gibbs = data
+  knots_gibbs = knots
   
   # get X and y values from the data
   X = data_gibbs$X
@@ -37,67 +37,23 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   N_gibbs = nrow(y)
   a_gibbs = a
   b_gibbs = b
-  
-  # initialize paramaters
-  alpha_0_gibbs = rep(1, ncol(X[[1]]))
-  xi_0_gibbs = rnorm(n_gibbs) # length of knots
-  mu_0_gibbs = rep(0, nrow(y)) # length is number of flights
-  sigma_2_0_gibbs = 1
-  l_k_0_gibbs = lk_0
-  l_b_0_gibbs = lb_0
-  
+
   # initialize beta / sigma / lk / xi / mu / lb values
   beta_gibbs = matrix(rep(0, B * n_covariates), nrow = B, ncol = n_covariates)
   alpha_gibbs = matrix(rep(0, B * n_covariates), nrow = B, ncol = n_covariates)
   
-  sigma_2_gibbs = vector()
-  lk_gibbs = vector()
+  sigma_2_gibbs = as.vector(1)
+  lk_gibbs = as.vector(1)
   xi_gibbs = matrix(rep(0, B * length(knots_gibbs)), nrow = B, ncol = length(knots_gibbs))
   mu_gibbs = matrix(rep(0, B * n_datasets), nrow = B, ncol = n_datasets)
-  lb_gibbs = vector()
-  
-  #### FIRST ITERATION 
-  
-  # initialize M and K
-  M_gibbs = list()
-  K_gibbs = list()
-  V_gibbs = list()
-  g_gibbs = list()
-  
-  # get M / K / V values
-  for (i in 1:nrow(y))
-  {
-    M_gibbs[[i]] = get_matern(l_k_0_gibbs, rownames(X[[i]]))
-    K_gibbs[[i]] = get_K_i(sigma_2_0_gibbs, M_gibbs[[i]])
-    V_gibbs[[i]] = get_V_i(sigma_2_0_gibbs, M_gibbs[[i]], K_gibbs[[i]])
-  }
 
-  # getting beta
-  alpha_gibbs[1, ] =  get_alpha(alpha_0_gibbs, y, mu_0_gibbs, X, xi_0_gibbs, knots_gibbs, N_gibbs, sigma_2_0_gibbs, l_k_0_gibbs, M_gibbs, K_gibbs)
-  beta_gibbs[1, ] = alpha_gibbs[1, ] / sqrt(sum(alpha_gibbs[1, ]^2))
+  xi_gibbs[1, ] = rnorm(n_gibbs, 1, 4) # length of knots
+  alpha_gibbs[1, ] = rep(1, n_covariates)
+  alpha_0_gibbs = rep(1, n_covariates)
+  beta_gibbs[1, ] = alpha_0_gibbs / sqrt(sum(alpha_0_gibbs^2))
   
-  # getting mu
-  mu_temp = vector()
-  g_gibbs = list()
-  for (i in 1:nrow(y))
-  {
-    g_gibbs[[i]] = get_g(X[[i]], beta_gibbs[1, ], knots_gibbs, N_gibbs, xi_0_gibbs)
-    sigma_mu_post_temp = get_sigma_mu_post(sigma_2_0_gibbs, sigma_mu_gibbs, V_gibbs[[i]])
-    alpha_mu_post_temp = get_alpha_mu_post(alpha_mu_gibbs, sigma_mu_gibbs, sigma_mu_post_temp, g_gibbs[[i]], V_gibbs[[i]], y[i,])
-    mu_temp[i] = get_mu_i(alpha_mu_post_temp, sigma_mu_post_temp)
-  }
-  mu_gibbs[1, ] = mu_temp
-  
-  # getting sigma 
-  sigma_2_gibbs[1] = get_sigma_squared(a_gibbs, b_gibbs, y, M_gibbs, mu_gibbs, g_gibbs)
-  
-  # getting xi 
-  xi_gibbs[1, ] = get_xi(xi_0_gibbs, y, mu_gibbs, X, beta_gibbs[1, ], knots_gibbs, N_gibbs, sigma_2_gibbs[1], l_k_0_gibbs, l_b_0_gibbs, M_gibbs, K_gibbs)
-  
-  # get l_k - with checks for initial values
-  lk_gibbs[1] = get_lk(y, mu_gibbs[1, ], g_gibbs, sigma_2_gibbs[1], l_k_0_gibbs)
-  lb_gibbs[1] = get_lb(y, l_b_0_gibbs, xi_gibbs[1, ])
-  
+  lb_gibbs = as.vector(lb_0)
+  lk_gibbs = as.vector(lk_0)
   ################################################################################################################
   ################################################################################################################
   
@@ -106,6 +62,10 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   for (idx in 2:B)
   {
     start_inner = Sys.time()
+    
+    M_gibbs = list()
+    K_gibbs = list()
+    V_gibbs = list()
     
     # updating M and K
     for (i in 1:nrow(y))
