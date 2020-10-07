@@ -1,16 +1,15 @@
-# This is a file to start doing paramater estimates for sampling mu
-# rm(list = ls())
+# This is a file to start doing paramater estimates for sampling
 library(invgamma)
 library(MASS)
 library(FastGP)
-# source('~/Desktop/Summer2020/AirplanePaper/airline_GP_prediction/R/FUNC_woodchan_samples.R')
 
-
+# function to remove NA values, not actually used
 clean_y = function(y_data)
 {
   to_return = y_data[!is.na(y_data)]
   return(to_return)
 }
+
 
 # function to get the individual values for a Matern(5/2) kernel
 get_matern_values = function(l_k, r_mj)
@@ -19,6 +18,7 @@ get_matern_values = function(l_k, r_mj)
     exponential = exp(-sqrt(5) * r_mj / l_k)
     return(term_one * exponential)
 }
+
 
 # function to actually create matern matrix
 get_matern = function(l_k, time_points)
@@ -43,6 +43,7 @@ get_K_i = function(sigma_2, M_i)
   return(K_i)
 }
 
+
 # function to get V
 get_V_i = function(sigma_2, M_i, K_i)
 {
@@ -52,6 +53,7 @@ get_V_i = function(sigma_2, M_i, K_i)
   V_i = K_i + sigma_2 * iden
   return(V_i)
 }
+
 
 # calculates h vector from equation 6
 get_h_j = function(data, beta, knots, N)
@@ -75,6 +77,7 @@ get_h_j = function(data, beta, knots, N)
   return(h_return)
 }
 
+
 # calculatesindividual g values frm euation 6
 get_g_i = function(xi, h)
 {
@@ -82,6 +85,7 @@ get_g_i = function(xi, h)
   
   return(to_return)
 }
+
 
 # g function from equation 6
 get_g = function(data, beta, knots, N, xi)
@@ -95,6 +99,7 @@ get_g = function(data, beta, knots, N, xi)
   }
   return(g)
 }
+
 
 # function to get sigma_mu for the calculations of mu_i
 get_sigma_mu_post = function(sigma_2, sigma_mu, V_i)
@@ -113,6 +118,7 @@ get_sigma_mu_post = function(sigma_2, sigma_mu, V_i)
   return(inner_inverted)
 }
 
+
 # function to get alpha_mu for the calculations of mu_i
 get_alpha_mu_post = function(alpha_mu, sigma_mu, sigma_mu_post, g_i, V_i, y)
 {
@@ -130,6 +136,7 @@ get_alpha_mu_post = function(alpha_mu, sigma_mu, sigma_mu_post, g_i, V_i, y)
   return(to_return)
 }
 
+
 # function to draw the mu values
 get_mu_i = function(alpha_mu_post, sigma_mu_post)
 {
@@ -138,6 +145,7 @@ get_mu_i = function(alpha_mu_post, sigma_mu_post)
   
   return(to_return)
 }
+
 
 # TODO this is where we are no longer sure if we are sane 
 # this is the function to calculate Yi = mu_i - gI
@@ -149,6 +157,7 @@ vector_differences = function(y, mu_i, g_i)
   inner = y - mu_i * ones_vector - g_i
   return(inner)
 }
+
 
 # function to sample from an inverse gamma for sigma squared
 get_sigma_squared = function(a, b, y, M, mu, g)
@@ -181,6 +190,7 @@ get_sigma_squared = function(a, b, y, M, mu, g)
   
   return(sigma_2)
 }
+
 
 # function to calculate acceptance ratio for l_k
 lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k)
@@ -243,6 +253,8 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k)
   return(as.numeric(to_return))
 }
 
+
+# function for MH sampling of lk
 get_lk = function(y, mu, g, sigma_2, lk_0)
 {
   # small epsilon 
@@ -274,6 +286,7 @@ get_lk = function(y, mu, g, sigma_2, lk_0)
   return(lk_t1)
 }
 
+
 # get the H matrix for calculating the xi
 get_H_matrix = function(data, beta, knots, N)
 {
@@ -288,6 +301,7 @@ get_H_matrix = function(data, beta, knots, N)
   
   return(H)
 }
+
 
 # function for negative log likelihood for xis
 psi_xi = function(y, mu, data, xi, beta, knots, N, sigma_2, l_k, M, K)
@@ -316,6 +330,7 @@ psi_xi = function(y, mu, data, xi, beta, knots, N, sigma_2, l_k, M, K)
   to_return = sum_term / 2
   return(to_return)
 }
+
 
 # function to sample the xi values
 get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
@@ -370,9 +385,7 @@ get_xi = function(xi_0, y, mu, data, beta, knots, N, sigma_2, l_k, l_b, M, K)
   return(xi_proposed)
 }
 
-# TODO 
-# - ask about alpha term
-# - ask about which norm
+
 # function for calculating likelihood of alpha
 psi_alpha = function(y, mu, data, xi, alpha, knots, N, sigma_2, l_k, M, K)
 {
@@ -387,7 +400,8 @@ psi_alpha = function(y, mu, data, xi, alpha, knots, N, sigma_2, l_k, M, K)
   return(to_return)
 }
 
-# function to get alpha values
+
+# function for MH sampling to get alpha values
 get_alpha = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2 = 10^5)
 {
   # step one
@@ -449,6 +463,7 @@ get_alpha = function(alpha_0, y, mu, data, xi, knots, N, sigma_2, l_k, M, K, c_2
   return(alpha_proposed)
 }
 
+
 ## LB functions below
 lb_acceptance = function(y, lb, lb_prime, xi)
 {
@@ -481,6 +496,7 @@ lb_acceptance = function(y, lb, lb_prime, xi)
   to_return = as.numeric(to_return)
   return(to_return)
 }
+
 
 # function to calculate lb updates
 get_lb = function(y, lb_0, xi)
