@@ -8,17 +8,17 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
                          burn_in = 0.3, write = FALSE)
 {
   ## stuff for debugging
-  # B = 1000
-  # lk_0 = 1
-  # lb_0 = 1
-  # a = 0.1
-  # b = 0.1
-  # sigma_mu = 2
-  # alpha_mu = 5
-  # burn_in = 0.3
-  # write = FALSE
-  # data_gibbs = data
-  # knots_gibbs = knots
+  B = 1000
+  lk_0 = 1
+  lb_0 = 1
+  a = 0.1
+  b = 0.1
+  sigma_mu = 2
+  alpha_mu = 5
+  burn_in = 0.3
+  write = FALSE
+  data_gibbs = data
+  knots_gibbs = knots
   
   # get X and y values from the data
   X = data_gibbs$X
@@ -161,6 +161,8 @@ gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
   sigma_2_gibbs = sigma_2_gibbs[-c(1:burn_in)]
   lb_gibbs = lb_gibbs[-c(1:burn_in)]
   lk_gibbs = lk_gibbs[-c(1:burn_in)]
+  xi_gibbs = xi_gibbs[-c(1:burn_in), ]
+  
   
   # write to csv file if running on server
   if (write)
