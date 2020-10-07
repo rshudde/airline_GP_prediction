@@ -56,10 +56,6 @@ get_V_i = function(sigma_2, M_i, K_i)
 # calculates h vector from equation 6
 get_h_j = function(data, beta, knots, N)
 {
-
-  # TODO - pass the row as the data 
-  # TODO get rid of transpose
-  
   # get w_it values 
   w_it = (data %*% beta + 1)/2
 
@@ -90,9 +86,6 @@ get_g_i = function(xi, h)
 # g function from equation 6
 get_g = function(data, beta, knots, N, xi)
 {
-  # w_it = (data %*% beta + 1) / 2
-  w_it = (crossprod(t(data), beta)+ 1) / 2
-  
   g = vector()
   for (i in 1:nrow(data))
   {
@@ -112,7 +105,7 @@ get_sigma_mu_post = function(sigma_2, sigma_mu, V_i)
   
   # calculate sigma_mu_post
   inner_part_one = crossprod(ones_vector, chol2inv(V_i))
-  inner = inner_part_one %*% ones_vector + sigma_mu^(-2)
+  inner = inner_part_one %*% ones_vector + sigma_mu^(-1) # this should not be ^(-2)
   
   # invert to return
   inner_inverted = inner^-1
