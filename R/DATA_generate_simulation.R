@@ -12,15 +12,19 @@ generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, 
   
   # generates xi values
   N = length(knots)
-  xi = rnorm(length(knots), 0, 1) # genreeate xi for testing purposes
+  # set.seed(1)
+  xi = rnorm(length(knots), 1, 4) # genreeate xi for testing purposes
   
   # to get x variables first
   for (i in 1:n_datasets)
   {
     nrow = sample(2:10, 1) # sample how many observations we will have 
     indices = sample(1:10, nrow) # get the indices (basically randomly picking which 'days of the week' we observe)
-    mean = sample(1:10, 1)
-    sd = sample(2:9, 1)
+    # mean = sample(1:10, 1)
+    # sd = sample(2:9, 1)
+    
+    mean = 0
+    sd = 1
     
     # sample data from normal 
     temp_x = matrix(rnorm(nrow*ncol, mean, sd), nrow, ncol)
