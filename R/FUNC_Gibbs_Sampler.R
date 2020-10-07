@@ -4,17 +4,19 @@ library(MASS)
 
 # functin to do Gibbs sampling 
 gibbs_sampler = function(data_gibbs, knots_gibbs, B = 1000,
-                         lk_0 = 1, lb_0 = 1, a = 0.1, b = 0.1, sigma_mu = 2, alpha_mu = 5,
+                         lk_0 = 0.1, lb_0 = 0.1, a = 0.1, b = 0.1, sigma_mu = 100, alpha_mu = 0,
                          burn_in = 0.3, write = FALSE)
 {
+  set.seed(1)
+
   ## stuff for debugging
   B = 1000
-  lk_0 = 1
-  lb_0 = 1
-  a = 0.1
-  b = 0.1
-  sigma_mu = 2
-  alpha_mu = 5
+  lk_0 = 0.1
+  lb_0 = 0.1
+  a = 10^(-3)
+  b = 10^(-3)
+  sigma_mu = 100 # TODO fix naming here
+  alpha_mu = 0
   burn_in = 0.3
   write = FALSE
   data_gibbs = data
