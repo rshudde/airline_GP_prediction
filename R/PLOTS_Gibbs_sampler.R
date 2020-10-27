@@ -52,14 +52,20 @@ plot_sigma = function(data, results)
 plot_lk = function(data, results)
 {
   lk_estimates = results$lk
+  lb_estimates = results$lb
+  
   lk_actual = data$l_k
-  max_value = max(max(lk_estimates), lk_actual)
+  max_value_lk = max(max(lk_estimates), lk_actual)
   par(mfrow = c(1,1))
   y_grid = c(1:length(lk_estimates))
   
-  plot(y_grid, lk_estimates, type = "l", main = "Plot of lk", col = "gray", ylim = c(min(lk_estimates), 1.3*max_value))
+  par(mfrow = c(1,2))
+  
+  plot(y_grid, lk_estimates, type = "l", main = "Plot of lk", col = "gray", ylim = c(min(lk_estimates), 1.3*max_value_lk))
   abline(h = lk_actual, col = "darkgreen", lwd = 2)
   abline(h = mean(lk_estimates), col = "red", lty = 2, lwd = 2)
+  
+  plot(y_grid, lb_estimates, type = "l", main = "Plot of lb", col = "gray", ylim = c(min(lb_estimates), max(lb_estimates)))
 }
 
 
