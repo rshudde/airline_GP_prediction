@@ -318,9 +318,9 @@ psi_xi = function(y, mu, data, xi, beta, knots, sigma_2, l_k, M, K)
     H_term = get_H_matrix(data[[i]], beta, knots)
     term_one = y_noNA - rep(mu[i],length(y_noNA)) - H_term %*% xi ## forgot to multiply by xi here
     
-    # constrcuting second term
-    M_i = get_matern(l_k, y_noNA )
-    K_i = get_K_i(sigma_2, M[[i]])
+    # constructing second term
+    # M_i = get_matern(l_k, y_noNA )
+    # K_i = get_K_i(sigma_2, M[[i]])
     term_two = get_V_i(sigma_2, M[[i]], K[[i]])
 
     # matrix multiplication
