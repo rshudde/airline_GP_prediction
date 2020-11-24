@@ -17,7 +17,7 @@ plot_beta = function(data, results)
   {
     max_value = max(max(beta_post[, i]), beta_true[i], beta_means[i])
     min_value = min(min(beta_post[, i]), beta_true[i], beta_means[i])
-    plot(y_grid, beta_post[, i], type = "l", ylim = c(-1*abs(min_value), 1*max_value), main = paste("Plot of beta[, ", i, "]"), xlab = "MCMC iteration",
+    plot(y_grid, beta_post[, i], type = "l", ylim = c(min_value, 1*max_value), main = paste("Plot of beta[, ", i, "]"), xlab = "MCMC iteration",
          ylab = "beta estimates", xlim = c(10, nrow(beta_post) - 10), col = "gray")
     abline(h = beta_true[i], col = "darkgreen", lwd = 2)
     abline(h = beta_means[i], col = "red", lty = 2, lwd = 2)
