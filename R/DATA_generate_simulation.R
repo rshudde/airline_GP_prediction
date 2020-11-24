@@ -1,5 +1,5 @@
 # generate data to test on
-generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, length.out = 100), l_k = 2, sigma_2 = 0.5)
+generate_simulation_data = function(n_datasets, n_covariates, xi_initial, knots = seq(0, 1, length.out = 100), l_k = 2, sigma_2 = 0.5)
 {
   # get the number of covariates and the amount of data 
   ncol = n_covariates
@@ -7,22 +7,21 @@ generate_simulation_data = function(n_datasets, n_covariates, knots = seq(0, 1, 
   
   # sample betas from -10 to 10
   beta = sample(-10:10, n_covariates, replace = FALSE)
+  beta = beta / sqrt(sum(beta^2)) # ||beta|| = 1
   beta[1] = abs(beta[1]) # force the first beta to be positive 
-  beta = beta/sum(beta) # ||beta|| = 1
   
   # generates xi values
   N = length(knots)
   # set.seed(1)
-  xi = rnorm(length(knots), 1, 4) # genreeate xi for testing purposes
+  # xi = rnorm(length(knots), 1, 4) # genreeate xi for testing purposes
   # xi = rnorm(length(knots), 0, 1) # genreeate xi for testing purposes
+  xi = xi_initial
   
   # to get x variables first
   for (i in 1:n_datasets)
   {
     nrow = sample(2:10, 1) # sample how many observations we will have 
     indices = sample(1:10, nrow) # get the indices (basically randomly picking which 'days of the week' we observe)
-    # mean = sample(1:10, 1)
-    # sd = sample(2:9, 1)
     
     mean = 0
     sd = 1
