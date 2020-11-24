@@ -73,7 +73,7 @@ get_h_j = function(data, beta, knots)
     denominator = 1/N
     value = numerator / denominator
     
-    inner = ifelse(abs(value) <= 1, value, 0) # indicator function part
+    inner = ifelse(abs(value) <= 1, 1 - abs(value), 0) # indicator function part
     h_return[i] = inner
   }
 
@@ -168,7 +168,7 @@ get_sigma_squared = function(a, b, y, M, mu, g)
   Ti = apply(y, 1, function(x) length(which(!is.na(x)))) 
 
   c = a + sum(Ti) # first value for IG draw 
-  d = b
+  d = 0 # second value for IG draw
   
   for (i in 1:nrow(y))
   {
@@ -184,11 +184,12 @@ get_sigma_squared = function(a, b, y, M, mu, g)
     temp_update_part_one = crossprod(term_one, solve(term_two)) 
     temp_update = temp_update_part_one %*% term_one
     
-    d = d + temp_update / 2
+    d = d + temp_update
   }
+  d = b + d/2 # make sure to add b and divide the sum by 2
 
   # do inverse gamma draw
-  sigma_2 = rinvgamma(1, c, d) # TODO figure out if this is correct
+  sigma_2 = rinvgamma(1, c, d) 
   
   return(sigma_2)
 }
@@ -316,7 +317,7 @@ psi_xi = function(y, mu, data, xi, beta, knots, sigma_2, l_k, M, K)
     
     # construct H matrix
     H_term = get_H_matrix(data[[i]], beta, knots)
-    term_one = y_noNA - rep(mu[i],length(y_noNA)) - H_term %*% xi ## forgot to multiply by xi here
+    term_one = y_noNA - rep(mu[i], length(y_noNA)) - H_term %*% xi ## forgot to multiply by xi here
     
     # constructing second term
     # M_i = get_matern(l_k, y_noNA )
@@ -338,14 +339,14 @@ psi_xi = function(y, mu, data, xi, beta, knots, sigma_2, l_k, M, K)
 get_xi = function(xi_0, y, mu, data, beta, knots, sigma_2, l_k, l_b, M, K)
 {
   # step one
-  theta = runif(1, 0, 2*pi)
+  theta = runif(1, 0, 2 * pi)
   gamma = samp.WC(knots, l_b)
   
   xi_list = list()
   xi_proposed = xi_0 * cos(theta) + gamma * sin(theta)
 
   # step two
-  theta_min = theta - 2*pi
+  theta_min = theta - 2 * pi
   theta_max = theta
   
   # step three
@@ -394,7 +395,7 @@ psi_alpha = function(y, mu, data, xi, alpha, knots, sigma_2, l_k, M, K)
   # check indicator values
   if (alpha[1] > 0)
   {
-    beta = alpha / sum(alpha^2) # changed this to be the l2 norm
+    beta = alpha / sqrt(sum(alpha^2)) # changed this to be the l2 norm
     to_return = psi_xi(y, mu, data, xi, beta, knots, sigma_2, l_k, M, K)
   } else {
     to_return = 0
@@ -413,7 +414,7 @@ get_alpha = function(alpha_0, y, mu, data, xi, knots, sigma_2, l_k, M, K, c_2 = 
   alpha_proposed = alpha_0 * cos(theta) + gamma * sin(theta)
   
   # step two
-  theta_min = theta - 2*pi
+  theta_min = theta - 2 * pi
   theta_max = theta
   
   # step 3
@@ -434,6 +435,9 @@ get_alpha = function(alpha_0, y, mu, data, xi, knots, sigma_2, l_k, M, K, c_2 = 
   # continuation of step 3 - don't return until we get something we accept 
   if (acceptance <= zeta)
   {
+    # just need to calculate this once
+    psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, sigma_2, l_k, M, K)
+    
     while (acceptance <= zeta )
     {
       # step a
@@ -455,7 +459,6 @@ get_alpha = function(alpha_0, y, mu, data, xi, knots, sigma_2, l_k, M, K, c_2 = 
         acceptance = 0
       } else
       {
-        psi_old = psi_alpha(y, mu, data, xi, alpha_0, knots, sigma_2, l_k, M, K)
         psi_new = psi_alpha(y, mu, data, xi, alpha_proposed, knots, sigma_2, l_k, M, K)
         acceptance = min(1, exp(psi_old - psi_new))
       }
