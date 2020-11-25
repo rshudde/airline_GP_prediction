@@ -1,71 +1,108 @@
 # generate data to test on
-generate_simulation_data = function(n_datasets, n_covariates, xi_initial, knots = seq(0, 1, length.out = 100), l_k = 2, sigma_2 = 0.5)
+generate_simulation_data = function(n_datasets, n_time, n_covariates,
+                                    lb_true, mu_true, xi_true, beta_true,
+                                    lk_true, sigma_2_true, seed = 1)
 {
-  # get the number of covariates and the amount of data 
-  ncol = n_covariates
-  data = list()
+  set.seed(seed)
   
-  # sample betas from -10 to 10
-  beta = sample(-10:10, n_covariates, replace = FALSE)
-  beta = beta / sqrt(sum(beta^2)) # ||beta|| = 1
-  beta[1] = abs(beta[1]) # force the first beta to be positive 
-  
-  # generates xi values
-  N = length(knots)
-  # set.seed(1)
-  # xi = rnorm(length(knots), 1, 4) # genreeate xi for testing purposes
-  # xi = rnorm(length(knots), 0, 1) # genreeate xi for testing purposes
-  xi = xi_initial
-  
-  # to get x variables first
-  for (i in 1:n_datasets)
+  # default truth 
+  if (missing(lb_true)) 
   {
-    nrow = sample(2:10, 1) # sample how many observations we will have 
-    indices = sample(1:10, nrow) # get the indices (basically randomly picking which 'days of the week' we observe)
-    
-    mean = 0
-    sd = 1
-    
-    # sample data from normal 
-    temp_x = matrix(rnorm(nrow * ncol, mean, sd), nrow, ncol)
-    # new way of normalizing code to get x_tilde 
-    temp_x = temp_x / max(sqrt(rowSums(temp_x * temp_x))) 
-    rownames(temp_x) = sort(indices)
-    
-    # add data to list 
-    data[[i]] = temp_x
+    lb_true = 2
   }
 
-  #  get random starting mu values
-  mu = rnorm(length(data), 0, 1)
-  
-  # data generation via equation 5 from writeup 
-  y_matrix = vector()
-  for (i in 1:n_datasets)
+  if (missing(mu_true)) 
   {
-    # mu terms
-    first_term = mu[[i]] %*% rep(1, nrow(data[[i]]))
+    mu_true = runif(n_datasets, -5, 5)
     
-    # g values from FUNC_paramater_estimates
-    second_term = get_g(data[[i]], beta, knots, xi)
+  }
+  if (missing(xi_true))
+  {
     
-    # third term - eta values 
-    M_i = get_matern(l_k, rownames(data[[i]]))
-    K = get_K_i(sigma_2, M_i)
-    third_term = mvtnorm::rmvnorm(1, rep(0, nrow(data[[i]])), K + sigma_2 * diag(1, nrow = nrow(data[[i]])))
+    n_Knots = 20
+    knots = seq(0, 1, length.out = n_Knots)
+    xi_true = runif(n_Knots, -10, 10)  #rep(1, n_Knots)
+    # xi_true = abs(runif(n_Knots, -10, 10))  #rep(1, n_Knots)
     
-    temp = rep(NA, 10) # rep the number of covariates
-    y_temp = as.vector(first_term + second_term + third_term)
+    # B_true = get_matern(lb_true, knots)
+    # xi_true = as.numeric(mvtnorm::rmvnorm(1, rep(0, n_Knots), B_true))
     
-    # arrange so our rownames are corresponding to the days of the week we observe
-    temp[as.integer(rownames(data[[i]]))] = y_temp
-    
-    y_matrix = rbind(y_matrix, temp)
+  } else{
+    n_Knots = length(xi_true)
+    knots = seq(0, 1, length.out = n_Knots)
   }
   
-  # return our x, y, and beta values
-  return(list(X = data, y = y_matrix, beta = beta, sigma_2 = sigma_2, l_k = l_k, sigma_2 = sigma_2,
-              xi = xi, mu = mu))
+  if (missing(beta_true))
+  {
+    alpha = sample(-10:10, n_covariates, replace = T)
+    alpha[1] = abs(alpha[1]) # force the first beta to be positive 
+    beta_true = alpha / sqrt(sum(alpha^2)) # ||beta|| = 1
+  }
+  if (missing(lk_true)) 
+  {
+    lk_true = 2
+  }
+  if (missing(sigma_2_true)) 
+  {
+    sigma_2_true = 0.5
+  }
+  
+  # to get x variables first
+  X = time_idx = vector("list", n_datasets)
+  c.X = rep(NA, n_datasets)
+  
+  for(i in 1:n_datasets)
+  {
+    # n_time_obs_i = sample(2:n_time, 1) # sample how many observations we will have
+    # time_idx[[i]] = sort(sample(1:n_time, n_time_obs_i)) # get the indices (basically randomly picking which 'days of the week' we observe)
+    n_time_obs_i = n_time
+    time_idx[[i]] = 1:n_time
+    
+    # iid design
+    X[[i]] = matrix(rnorm(n_time_obs_i * n_covariates, 0, 1), n_time_obs_i, n_covariates)
+    
+    c.X[i] = max(apply(X = X[[i]], MARGIN = 1, FUN = function(r){sqrt(sum(r^2))}))
+  }
+  
+  # get maximum of X
+  c.X = max(c.X)
+  
+  # data generation via equation 5 from writeup 
+  y_matrix = matrix(nrow = n_datasets, ncol = n_time)
+  Xtilde = w_true = g_true = vector("list", n_datasets)
+  loglhood_true = 0
+  for (i in 1:n_datasets)
+  {
+    ## g values from FUNC_paramater_estimates
+    Xtilde[[i]] = X[[i]]/c.X
+    w_true[[i]] = (as.numeric(Xtilde[[i]] %*% beta_true) + 1)/2
+    Hmat_i = get_H_matrix(w_true[[i]], knots, n_Knots)
+    g_true[[i]] = get_g(Hmat_i, xi_true)
+    
+    # third term - eta values 
+    M_i = get_matern(lk_true, time_idx[[i]])
+    K_i = get_K_i(sigma_2_true, M_i)
+    V_i = get_V_i(sigma_2_true, K_i)
+    third_term = as.numeric(mvtnorm::rmvnorm(1, numeric(length(time_idx[[i]])), V_i))
+    
+    # y values
+    y_matrix[i, time_idx[[i]]] = 
+      mu_true[i] + g_true[[i]] + third_term
+    
+    # log likelihood
+    loglhood_true = loglhood_true -
+      as.numeric(determinant(V_i, log = T)$modulus)/2 -
+      emulator::quad.form.inv(V_i,
+                              y_matrix[i, time_idx[[i]]] - mu_true[i] - 
+                                g_true[[i]])/2
+  }
+  
+  # return our x, y, and beta values - and everything else 
+  return(list(X = Xtilde, y = y_matrix, time_idx = time_idx,
+              mu_true = mu_true, beta_true = beta_true,
+              w_true = w_true, g_true = g_true, xi_true = xi_true,
+              lb_true = lb_true, lk_true = lk_true, sigma_2_true = sigma_2_true,
+              loglhood_true = loglhood_true))
 }
 
 
