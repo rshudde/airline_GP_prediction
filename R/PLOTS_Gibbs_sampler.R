@@ -145,4 +145,3 @@ plot_xi = function(data, results)
 }
 
 
-
