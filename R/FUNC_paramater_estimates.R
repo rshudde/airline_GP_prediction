@@ -277,7 +277,7 @@ get_sigmaB_2 = function(a, b, xi, lb, knots, n_Knots)
 {
   # calculating shape and rate of inv gamma
   rate_term = 
-    emulator::quad.form.inv(get_matern(lb, knots), xi)
+    emulator::quad.form.inv(get_matern(lb, knots) + diag(n_Knots), xi)
   
   # do inverse gamma draw
   sigmaB_2 = invgamma::rinvgamma(n = 1, shape = a + n_Knots/2,
