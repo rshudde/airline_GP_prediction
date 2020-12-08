@@ -1,19 +1,23 @@
 rm(list = ls())
-source('FUNC_woodchan_samples.R')
-source('FUNC_paramater_estimates.R')
-source('DATA_generate_simulation.R')
-source('FUNC_Gibbs_Sampler.R')
-source('PLOTS_Gibbs_sampler.R')
+source('R/FUNC_woodchan_samples.R')
+source('R/FUNC_paramater_estimates.R')
+source('R/DATA_generate_simulation.R')
+source('R/FUNC_Gibbs_Sampler.R')
+source('R/PLOTS_Gibbs_sampler.R')
 
 # generate data
-data = generate_simulation_data(n_datasets = 10, n_time = 20, n_covariates = 3,
+data = generate_simulation_data(n_datasets = 50, n_time = 10, n_covariates = 10,
                                 seed = 2)
 
 # run gibbs sampler
-results = gibbs_sampler(data_gibbs = data, B = 1000, 
-                        mu_initial = data$mu_true, beta_initial = data$beta_true,
-                        sigma_2_initial = data$sigma_2_true, xi_initial = data$xi_true,
-                        lk_initial = data$lk_true, lb_initial = data$lb_true, 
+results = gibbs_sampler(data_gibbs = data, 
+                        B = 1000, 
+                        # mu_initial = data$mu_true,
+                        # beta_initial = data$beta_true,
+                        # sigma_2_initial = data$sigma_2_true, 
+                        # xi_initial = data$xi_true,
+                        # lk_initial = data$lk_true, 
+                        # lb_initial = data$lb_true, 
                         burn_in = 0.5)
 
 # posterior mean
@@ -23,6 +27,8 @@ sigma_2_pm = mean(results$sigma_2)
 w_pm = colMeans(results$w)
 g_pm = colMeans(results$g)
 loglhood_pm = mean(results$loglhood)
+xi_pm = colMeans(results$xi)
+lk_pm = mean(results$lk)
 
 ## plot
 par(mfrow = c(2,3))
@@ -53,6 +59,12 @@ plot(g_pm, unlist(data$g_true), pch = 16, main = expression(g),
      xlab = 'Truth', ylab = 'Posterior mean', ylim = g.range)
 abline(0, 1, col = 2)
 
+# xi
+xi.range = range(c(data$xi_true, xi_pm))
+plot(data$xi_true, xi_pm, pch = 16, main = expression(xi),
+     xlab = 'Truth', ylab = 'Posterior mean', ylim = xi.range)
+abline(0, 1, col = 2)
+
 # g(w) vs w
 w.range = range(data$w_true, w_pm)
 g.range = range(c(data$g_true, g_pm))
@@ -61,17 +73,15 @@ plot(unlist(data$w_true), unlist(data$g_true), pch = 16,
      col = 2, xlab = 'w', ylab = 'g(w)', xlim = w.range, ylim = g.range)
 points(w_pm, g_pm, pch = 16)
 
-# log likelihood
-loglhood.range = range(c(data$loglhood_true, results$loglhood))
-plot(results$loglhood, type = 'l', col = 'dodgerblue',
-     main = 'Log likelihood',
-     xlab = 'MCMC iterations', ylab = 'Log likelihood',
-     ylim = loglhood.range)
-abline(h = loglhood_pm, col = 1, lwd = 2)
-abline(h = data$loglhood_true, col = 2, lwd = 2)
-par(mfrow = c(1,1))
-
-
+# # log likelihood
+# loglhood.range = range(c(data$loglhood_true, results$loglhood))
+# plot(results$loglhood, type = 'l', col = 'dodgerblue',
+#      main = 'Log likelihood',
+#      xlab = 'MCMC iterations', ylab = 'Log likelihood',
+#      ylim = loglhood.range)
+# abline(h = loglhood_pm, col = 1, lwd = 2)
+# abline(h = data$loglhood_true, col = 2, lwd = 2)
+# par(mfrow = c(1,1))
 
 
 
