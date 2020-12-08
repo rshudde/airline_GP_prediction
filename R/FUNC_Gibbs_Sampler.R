@@ -24,9 +24,7 @@ gibbs_sampler = function(data_gibbs, B = 1000,
   {
     n_nonNA_y = n_nonNA_y + length(time_idx[[i]])
   }
-  n_Knots_gibbs = ifelse(missing(xi_initial), 
-                         max(c(ceiling(n_nonNA_y/2) + 1, 20)),
-                         max(c(length(xi_initial), 20)))
+  n_Knots_gibbs = ifelse(missing(xi_initial), max(c(ceiling(n_nonNA_y/2) + 1, 20)), max(c(length(xi_initial), 20)))
   knots_gibbs = seq(0, 1, length.out = n_Knots_gibbs)
   
   #### fixed hyperparamaters ####
