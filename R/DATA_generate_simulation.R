@@ -14,6 +14,9 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
   if (missing(mu_true)) 
   {
     mu_true = runif(n_datasets, -5, 5)
+    mu_true[1] = abs(mu_true[1])
+    mu_true[1] = 0
+    
     
   }
   if (missing(xi_true))
@@ -22,6 +25,7 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
     n_Knots = 20
     knots = seq(0, 1, length.out = n_Knots)
     xi_true = runif(n_Knots, -10, 10)  #rep(1, n_Knots)
+    # xi_true[1] = abs(xi_true[1])
     # xi_true = abs(runif(n_Knots, -10, 10))  #rep(1, n_Knots)
     
     # B_true = get_matern(lb_true, knots)
