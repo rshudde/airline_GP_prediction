@@ -76,7 +76,6 @@ get_H_matrix = function(w, knots, n_Knots)
            }))
 }
 
-
 # g function from equation 6
 get_g = function(H_mat, xi)
 {
@@ -94,8 +93,8 @@ psi_alpha = function(alpha, y, n_datasets, time_idx, dat,
   for (i in 1:n_datasets)
   {
     w[[i]] = 
-      (as.numeric(Matrix::tcrossprod(dat[[i]], t(beta))) + 1)/2
-    H_mat[[i]] = get_H_matrix(w[[i]], knots, n_Knots)
+      (as.numeric(Matrix::tcrossprod(dat[[i]], t(beta))) + 1)/2 # normalizing data 
+    H_mat[[i]] = get_H_matrix(w[[i]], knots, n_Knots) # construcitg the H matrix
     g[[i]] = as.numeric(Matrix::tcrossprod(H_mat[[i]], t(xi)))
     negloglhood = negloglhood +
       emulator::quad.form.inv(V_mat[[i]],
@@ -222,7 +221,10 @@ get_xi = function(xi_0, sigmaB_2, y, n_datasets, time_idx,
 {
   # step one
   theta = runif(1, 0, 2*pi)
-  xi_prior = samp.WC(knots, lb, 5/2, sigmaB_2)
+  # THIS IS A TEMPORARY HACK
+  # lb_test = min(lb, 1)
+  lb_test = lb
+  xi_prior = samp.WC(knots, lb_test, 5/2, sigmaB_2)
   xi_proposed = cos(theta) * xi_0 + sin(theta) * xi_prior
   
   # step two
@@ -276,11 +278,14 @@ get_xi = function(xi_0, sigmaB_2, y, n_datasets, time_idx,
 get_sigmaB_2 = function(a, b, xi, lb, knots, n_Knots)
 {
   # calculating shape and rate of inv gamma
-  rate_term = 
-    emulator::quad.form.inv(get_matern(lb, knots) + diag(n_Knots), xi)
+  rate_term = emulator::quad.form.inv(get_matern(lb, knots), xi)
+  # M = get_matern(lb, knots)
+  # 
+  # inner_part_one = crossprod(xi, chol2inv(M))
+  # rate_term = inner_part_one %*% xi
   
   # do inverse gamma draw
-  sigmaB_2 = invgamma::rinvgamma(n = 1, shape = a + n_Knots/2,
+  sigmaB_2 = invgamma::rinvgamma(n = 1, shape = a + (n_Knots)/2, # CHANGED THIS
                                  rate = b + rate_term/2)
   
   return(sigmaB_2)
