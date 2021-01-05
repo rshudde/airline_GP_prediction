@@ -44,7 +44,7 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
   }
   if (missing(lk_true)) 
   {
-    lk_true = 2
+    lk_true = 0.5
   }
   if (missing(sigma_2_true)) 
   {
