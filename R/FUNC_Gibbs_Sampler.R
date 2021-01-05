@@ -70,8 +70,8 @@ gibbs_sampler = function(data_gibbs, B = 1000,
   if(missing(sigmaB_2_initial)) sigmaB_2_initial = 0.5
   if(missing(xi_initial)) xi_initial = rep(0.8, n_Knots_gibbs)
   # if(missing(xi_initial)) xi_initial = runif(n_Knots_gibbs, -10, 10)
-  if(missing(lk_initial)) lk_initial = 2
-  if(missing(lb_initial)) lb_initial = 2
+  if(missing(lk_initial)) lk_initial = 0.5
+  if(missing(lb_initial)) lb_initial = 0.2
   
   # mu_initial = numeric(n_datasets)
   # beta_initial = rep(1, n_covariates)
@@ -120,41 +120,41 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     
     
     #### getting mu ####
-    # mu_post[idx, ] = get_mu(y, n_datasets, g_gibbs, V_gibbs, time_idx,
-    #                         sigma_2_mu_gibbs, alpha_mu_gibbs)
+    mu_post[idx, ] = get_mu(y, n_datasets, g_gibbs, V_gibbs, time_idx,
+                            sigma_2_mu_gibbs, alpha_mu_gibbs)
     
-    mu_post[idx, ] = data_gibbs$mu_true
+    # mu_post[idx, ] = data_gibbs$mu_true
     
     
     #### getting beta ####
-    # alpha_gibbs_out = get_alpha(alpha_post[idx-1, ], y, n_datasets, time_idx, X,
-    #                             n_covariates, mu_post[idx, ], xi_post[idx-1, ],
-    #                             V_gibbs, knots_gibbs, n_Knots_gibbs,
-    #                             sigma_normal_prior)
-    # alpha_post[idx, ] = alpha_gibbs_out$alpha
-    # beta_post[idx, ] = alpha_gibbs_out$beta
-    # 
-    # # updating beta related term
-    # w_gibbs = alpha_gibbs_out$w
-    # H_gibbs = alpha_gibbs_out$H_mat
-    # g_gibbs = alpha_gibbs_out$g
+    alpha_gibbs_out = get_alpha(alpha_post[idx-1, ], y, n_datasets, time_idx, X,
+                                n_covariates, mu_post[idx, ], xi_post[idx-1, ],
+                                V_gibbs, knots_gibbs, n_Knots_gibbs,
+                                sigma_normal_prior)
+    alpha_post[idx, ] = alpha_gibbs_out$alpha
+    beta_post[idx, ] = alpha_gibbs_out$beta
+
+    # updating beta related term
+    w_gibbs = alpha_gibbs_out$w
+    H_gibbs = alpha_gibbs_out$H_mat
+    g_gibbs = alpha_gibbs_out$g
     
-    beta_post[idx, ] = data_gibbs$beta_true
+    # beta_post[idx, ] = data_gibbs$beta_true
     
     
     #### getting sigma_2 ####
-    # sigma_2_gibbs_out = get_sigma_2(a_gibbs, b_gibbs, y, n_datasets, n_nonNA_y,
-    #                                 time_idx, mu_post[idx, ], M_gibbs, g_gibbs)
-    # sigma_2_post[idx] = sigma_2_gibbs_out$sigma_2
-    # 
-    # # updating sigma_2 related term
-    # for (i in 1:n_datasets)
-    # {
-    #   K_gibbs[[i]] = get_K_i(sigma_2_post[idx], M_gibbs[[i]])
-    #   V_gibbs[[i]] = get_V_i(sigma_2_post[idx], K_gibbs[[i]])
-    # }
+    sigma_2_gibbs_out = get_sigma_2(a_gibbs, b_gibbs, y, n_datasets, n_nonNA_y,
+                                    time_idx, mu_post[idx, ], M_gibbs, g_gibbs)
+    sigma_2_post[idx] = sigma_2_gibbs_out$sigma_2
 
-    sigma_2_post[idx] = data_gibbs$sigma_2_true
+    # updating sigma_2 related term
+    for (i in 1:n_datasets)
+    {
+      K_gibbs[[i]] = get_K_i(sigma_2_post[idx], M_gibbs[[i]])
+      V_gibbs[[i]] = get_V_i(sigma_2_post[idx], K_gibbs[[i]])
+    }
+
+    # sigma_2_post[idx] = data_gibbs$sigma_2_true
     
     
     #### get l_b ####
@@ -167,10 +167,11 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     
     
     #### getting sigmaB_2 ####
-    sigmaB_2_post[idx] = get_sigmaB_2(a_gibbs, b_gibbs, xi_post[idx - 1, ],
-                                      lb_post[idx], knots_gibbs, n_Knots_gibbs)
+    # sigmaB_2_post[idx] = get_sigmaB_2(a_gibbs, b_gibbs, xi_post[idx - 1, ],
+    #                                   lb_post[idx], knots_gibbs, n_Knots_gibbs)
     
-    
+    sigmaB_2_post[idx] = 5
+      
     #### getting xi ####
     xi_gibbs_out = get_xi(xi_post[idx - 1, ], sigmaB_2_post[idx], y, n_datasets,
                           time_idx, mu_post[idx, ], H_gibbs, V_gibbs,
