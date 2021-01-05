@@ -11,14 +11,14 @@ data = generate_simulation_data(n_datasets = 30, n_time = 10, n_covariates = 6,
 
 # run gibbs sampler
 results = gibbs_sampler(data_gibbs = data, 
-                        B = 10000, 
-                        mu_initial = data$mu_true,
-                        beta_initial = data$beta_true,
-                        sigma_2_initial = data$sigma_2_true,
+                        B = 3000, 
+                        # mu_initial = data$mu_true,
+                        # beta_initial = data$beta_true,
+                        # sigma_2_initial = data$sigma_2_true,
                         xi_initial = data$xi_true,
-                        # xi_initial = runif(length(data$xi_true), -10, 10),
-                        lk_initial = data$lk_true,
-                        lb_initial = data$lb_true,
+                        # xi_initial = runif(length(data$xi_true), -5, 5),
+                        # lk_initial = data$lk_true,
+                        # lb_initial = data$lb_true,
                         burn_in = 0.5,
                         a = 0.1,
                         b = 0.1)
@@ -69,19 +69,20 @@ plot(xi_pm, data$xi_true, pch = 16, main = expression(xi),
 abline(0, 1, col = 2)
 
 # g(w) vs w
-# w.range = range(data$w_true, w_pm)
-# g.range = range(c(data$g_true, g_pm))
-# plot(unlist(data$w_true), unlist(data$g_true), pch = 16, 
-#      main = 'g(w) vs. w',
-#      col = 2, xlab = 'w', ylab = 'g(w)', xlim = w.range, ylim = g.range)
-# points(w_pm, g_pm, pch = 16)
+w.range = range(data$w_true, w_pm)
+g.range = range(c(data$g_true, g_pm))
+plot(unlist(data$w_true), unlist(data$g_true), pch = 16,
+     main = 'g(w) vs. w',
+     col = 2, xlab = 'w', ylab = 'g(w)', xlim = w.range, ylim = g.range)
+points(w_pm, g_pm, pch = 16)
 
 # # log likelihood
+par(mfrow = c(1,1))
 loglhood.range = range(c(data$loglhood_true, results$loglhood))
 plot(results$loglhood, type = 'l', col = 'dodgerblue',
      main = 'Log likelihood',
-     xlab = 'MCMC iterations', ylab = 'Log likelihood',
-     ylim = loglhood.range)
+     xlab = 'MCMC iterations', ylab = 'Log likelihood')
+     # ylim = loglhood.range)
 abline(h = loglhood_pm, col = 1, lwd = 2)
 abline(h = data$loglhood_true, col = 2, lwd = 2)
 par(mfrow = c(1,1))
