@@ -369,226 +369,181 @@ get_sigmaB_2 = function(a, b, xi, lb, knots, n_Knots)
 
 # # TODO this is where we are no longer sure if we are sane 
 # # this is the function to calculate Yi = mu_i - gI
-# vector_differences = function(y, mu_i, g_i)
-# {
-#   Ti = length(y)
-# 
-#   inner = y - rep(mu_i, Ti) - g_i
-#   return(inner)
-# }
+vector_differences = function(y, mu_i, g_i)
+{
+  Ti = length(y)
+
+  inner = y - rep(mu_i, Ti) - g_i
+  return(inner)
+}
 
 
 # # function to calculate acceptance ratio for l_k
-# lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k)
-# {
-#   # indicator function part
-#   if (lk_prime < 0.1 || lk_prime > 1 || l_k < 0.1 ||  l_k > 1)
-#   {
-#     to_return = 0
-#   } else { # calcualtions assuming indicator = 1
-#     # calcualte first term outside of the product
-#     y_noNA = y[1,][!is.na(y[1,])]
-#     term_one = vector_differences(y_noNA, mu[1], g[[1]])
-#     term_one = term_one[!(is.na(term_one))]
-#     
-#     # get the two v terms necessary
-#     M_temp = get_matern(l_k, y_noNA)
-#     M_prime = get_matern(lk_prime, y_noNA)
-#     
-#     V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
-#     V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
-#     
-#     term_two = chol2inv(V_prime) - chol2inv(V_temp)
-#     
-#     # do matrix multiplication
-#     matrix_part = crossprod(term_one, term_two)
-#     matrix_part = matrix_part %*% term_one
-#     
-#     # calculate ratio
-#     ratio = exp(-0.5 * as.numeric(matrix_part))
-#     
-#     for (i in 2:nrow(y))
-#     {
-#       # calcualte proceeding terms in product 
-#       y_noNA = y[i,][!is.na(y[i,])]
-#       
-#       term_one = vector_differences(y_noNA ,  mu[i], g[[i]])
-#       term_one = term_one[!(is.na(term_one))]
-#       
-#       # get two v terms necessary
-#       M_temp = get_matern(l_k, y_noNA )
-#       M_prime = get_matern(lk_prime, y_noNA )
-#       
-#       V_temp = get_V_i(sigma_2, M_temp, get_K_i(sigma_2, M_temp))
-#       V_prime = get_V_i(sigma_2, M_prime, get_K_i(sigma_2, M_prime))
-#       
-#       term_two = chol2inv(V_prime) - chol2inv(V_temp)
-#       
-#       # do matrix multiplication
-#       matrix_part = crossprod(term_one, term_two)
-#       matrix_part = matrix_part %*% term_one
-#       
-#       # calculate ratio
-#       ratio = ratio * exp(-0.5 * as.numeric(matrix_part))
-#     }
-#   
-#     # calculate the minimum for the return value
-#   to_return = min(1, (lk_prime / l_k) * as.numeric(ratio))
-#   }
-#   
-#   return(as.numeric(to_return))
-# }
+lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
+{
+  # indicator function part
+  if (lk_prime < 0.1 || lk_prime > 1 || l_k < 0.1 ||  l_k > 1)
+  {
+    to_return = 0
+  } else { # calcualtions assuming indicator = 1
+    # calcualte first term outside of the product
+    y_noNA = y[1,][!is.na(y[1,])]
+    term_one = y_noNA - rep(mu[1], length(y_noNA)) - g[[1]]
+
+    # get the two v terms necessary
+    M_temp = get_matern(l_k, time[[1]])
+    M_prime = get_matern(lk_prime, time[[1]])
+    
+    K_temp = get_K_i(sigma_2, M_temp)
+    K_prime = get_K_i(sigma_2, M_prime)
+    
+    # FIXED - removed sigma_2 superfluous arguments
+    V_temp = get_V_i(sigma_2, K_temp) 
+    V_prime = get_V_i(sigma_2, K_prime)
+
+    term_two = chol2inv(V_prime) - chol2inv(V_temp)
+
+    # do matrix multiplication
+    matrix_part = crossprod(term_one, term_two)
+    matrix_part = matrix_part %*% term_one
+
+    # calculate ratio
+    ratio = exp(-0.5 * as.numeric(matrix_part))
+
+    for (i in 2:nrow(y))
+    {
+      y_noNA = y[i,][!is.na(y[i,])]
+      
+      # calcualte proceeding terms in product
+      y_noNA = y[i,][!is.na(y[i,])]
+      
+      term_one = y_noNA - rep(mu[i], length(y_noNA)) - g[[i]]
+
+      # get two v terms necessary
+      M_temp = get_matern(l_k, time[[i]] )
+      M_prime = get_matern(lk_prime, time[[i]] )
+      
+      K_temp = get_K_i(sigma_2, M_temp)
+      K_prime = get_K_i(sigma_2, M_prime)
+      
+      # FIXED - removed sigma_2 superfluous arguments
+      V_temp = get_V_i(sigma_2, K_temp) 
+      V_prime = get_V_i(sigma_2, K_prime)
+
+      term_two = chol2inv(V_prime) - chol2inv(V_temp)
+
+      # do matrix multiplication
+      matrix_part = crossprod(term_one, term_two)
+      matrix_part = matrix_part %*% term_one
+
+      # calculate ratio
+      ratio = ratio * exp(-0.5 * as.numeric(matrix_part))
+    }
+
+    # calculate the minimum for the return value
+  to_return = min(1, (lk_prime / l_k) * as.numeric(ratio))
+  }
+
+  return(as.numeric(to_return))
+}
 
 
 # # function for MH sampling of lk
-# get_lk = function(y, mu, g, sigma_2, lk_0)
-# {
-#   # small epsilon 
-#   epsilon = 0.001
-#   mod_diff = 0.01 # mod_diff starts > epsilon to force into loop
-#   lk_t = lk_0 
-# 
-#   while (mod_diff > epsilon)
-#   {
-#     # step two - draw lk_prime 
-#     lk_prime = rexp(1, lk_t)
-#     
-#     # draw the uniform variable 
-#     u_t = runif(1, 0, 1)
-#     
-#     # calculate the acceptance
-#     acceptance = lk_acceptance(y, mu, g, sigma_2, lk_prime, lk_t)
-#     
-#     # update lk_t1 based on acceptance
-#     lk_t1 = ifelse(u_t <= acceptance, lk_prime, lk_t)
-#     
-#     # reacalculate the absolute value of the differences
-#     mod_diff = abs(lk_t1 - lk_t)
-#     
-#     # update lk_k (either it will have stayed the same or updated)
-#     lk_t = lk_t1
-#   }
-#   
-#   return(lk_t1)
-# }
+get_lk = function(y, mu, g, sigma_2, lk_0, time)
+{
+  # small epsilon
+  epsilon = 0.001
+  mod_diff = 0.01 # mod_diff starts > epsilon to force into loop
+  lk_t = lk_0
 
+  while (mod_diff > epsilon)
+  {
+    # step two - draw lk_prime
+    lk_prime = rexp(1, lk_t)
 
-# # function to sample the xi values
-# get_xi = function(xi_0, y, mu, data, beta, knots, sigma_2, l_k, l_b, M, K)
-# {
-#   # step one
-#   theta = runif(1, 0, 2 * pi)
-#   gamma = samp.WC(knots, l_b)
-#   
-#   xi_list = list()
-#   xi_proposed = xi_0 * cos(theta) + gamma * sin(theta)
-# 
-#   # step two
-#   theta_min = theta - 2 * pi
-#   theta_max = theta
-#   
-#   # step three
-#   zeta = runif(1, 0, 1)
-#   
-#   # calculate new and old psi values
-#   psi_old = psi_xi(y, mu, data, xi_0, beta, knots, sigma_2, l_k, M, K)
-#   psi_new = psi_xi(y, mu, data, xi_proposed, beta, knots, sigma_2, l_k, M, K)
-#   acceptance = min(1, exp(psi_old - psi_new))
-#   
-#   # continuation of step 3 - don't return until we get something we accept 
-#   if (acceptance <= zeta)
-#   {
-#     while (acceptance <= zeta )
-#     {
-#       # step a
-#       if (theta < 0)
-#       {
-#         theta_min = theta
-#       } else {
-#         theta_max = theta
-#       }
-#       
-#       # step b 
-#       theta = runif(1, theta_min, theta_max)
-#       
-#       # step c
-#       xi_proposed = xi_0 * cos(theta) + gamma * sin(theta)
-#       
-#       # step d
-#       psi_old = psi_xi(y, mu, data, xi_0, beta, knots, sigma_2, l_k, M, K)
-#       psi_new = psi_xi(y, mu, data, xi_proposed, beta, knots, sigma_2, l_k, M, K)
-#       
-#       # calculate new acceptance
-#       acceptance = min(1, exp(psi_old - psi_new))
-#     }
-#   }
-#   
-#   return(xi_proposed)
-# }
+    # draw the uniform variable
+    u_t = runif(1, 0, 1)
+
+    # calculate the acceptance
+    acceptance = lk_acceptance(y, mu, g, sigma_2, lk_prime, lk_t, time)
+
+    # update lk_t1 based on acceptance
+    lk_t1 = ifelse(u_t <= acceptance, lk_prime, lk_t)
+
+    # reacalculate the absolute value of the differences
+    mod_diff = abs(lk_t1 - lk_t)
+
+    # update lk_k (either it will have stayed the same or updated)
+    lk_t = lk_t1
+  }
+
+  return(lk_t1)
+}
+
 
 
 ## LB functions below
-# lb_acceptance = function(y, lb, lb_prime, xi)
-# {
-#   # print(knots)
-#   # indicator function part
-#   if (lb_prime < 0.1 || lb_prime > 1 || lb < 0.1 ||  lb > 1)
-#   {
-#     to_return = 0
-#   } else { # calcualtions assuming indicator = 1
-#     # calcualte first term outside of the product
-#     term_one = xi
-#     
-#     # stuff we need to calcualte v_i
-#     M_lb = get_matern(lb, xi)
-#     M_lb_prime = get_matern(lb_prime, xi)
-# 
-#     # use tinv to invert M here
-#     term_two = tinv(M_lb) - tinv(M_lb_prime)
-#     
-#     # matrix multiplication
-#     matrix_part = crossprod(term_one, term_two)
-#     matrix_part = matrix_part %*% term_one
-#     ratio = exp(-0.5 * matrix_part)
-#     
-#     # minimum value for eturn 
-#     to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
-#   }
-#   
-#   # return correct type - don't return matrix from matrix multiplication
-#   to_return = as.numeric(to_return)
-#   return(to_return)
-# }
+lb_acceptance = function(y, lb, lb_prime, xi)
+{
+  # print(knots)
+  # indicator function part
+  if (lb_prime < 0.1 || lb_prime > 1 || lb < 0.1 ||  lb > 1)
+  {
+    to_return = 0
+  } else { # calcualtions assuming indicator = 1
+    # calcualte first term outside of the product
+    term_one = xi
+
+    # stuff we need to calcualte v_i
+    M_lb = get_matern(lb, xi)
+    M_lb_prime = get_matern(lb_prime, xi)
+
+    # use tinv to invert M here
+    term_two = tinv(M_lb) - tinv(M_lb_prime)
+
+    # matrix multiplication
+    matrix_part = crossprod(term_one, term_two)
+    matrix_part = matrix_part %*% term_one
+    ratio = exp(-0.5 * matrix_part)
+
+    # minimum value for eturn
+    to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
+  }
+
+  # return correct type - don't return matrix from matrix multiplication
+  to_return = as.numeric(to_return)
+  return(to_return)
+}
 
 
 # function to calculate lb updates
-# get_lb = function(y, lb_0, xi)
-# {
-#   epsilon = 0.001
-#   mod_diff = 0.01 # start mod_diff small to force into loop
-#   lb_t = lb_0
-#   
-#   while (mod_diff > epsilon)
-#   {
-#     # step two - draw lb_prime 
-#     lb_prime = rexp(1, lb_t)
-# 
-#     #  draw uniform valuable
-#     u_t = runif(1, 0, 1)
-#     
-#     # calculate new acceptance 
-#     acceptance = lb_acceptance(y, lb_t, lb_prime, xi)
-# 
-#     # update lb_t1 based on acceptance
-#     lb_t1 = ifelse(u_t <= acceptance, lb_prime, lb_t)
-#     
-#     # c alculate new mod_difference
-#     mod_diff = abs(lb_t1 - lb_t)
-#     
-#     # update the lb_t1 value (it will either chance or not based on lb_t1)
-#     lb_t = lb_t1
-#   }
-#   
-#   return(lb_t1)
-# }
+get_lb = function(y, lb_0, xi)
+{
+  epsilon = 0.001
+  mod_diff = 0.01 # start mod_diff small to force into loop
+  lb_t = lb_0
+
+  while (mod_diff > epsilon)
+  {
+    # step two - draw lb_prime
+    lb_prime = rexp(1, lb_t)
+
+    #  draw uniform valuable
+    u_t = runif(1, 0, 1)
+
+    # calculate new acceptance
+    acceptance = lb_acceptance(y, lb_t, lb_prime, xi)
+
+    # update lb_t1 based on acceptance
+    lb_t1 = ifelse(u_t <= acceptance, lb_prime, lb_t)
+
+    # c alculate new mod_difference
+    mod_diff = abs(lb_t1 - lb_t)
+
+    # update the lb_t1 value (it will either chance or not based on lb_t1)
+    lb_t = lb_t1
+  }
+
+  return(lb_t1)
+}
 
