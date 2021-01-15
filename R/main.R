@@ -6,13 +6,13 @@ source('R/FUNC_Gibbs_Sampler.R')
 source('R/PLOTS_Gibbs_sampler.R')
 
 # generate data
-data = generate_simulation_data(n_datasets = 50, n_time = 10, 
+data = generate_simulation_data(n_datasets = 100, n_time = 10, 
                                 n_covariates = 10, seed = 1)
 
 # run gibbs sampler
 results = gibbs_sampler(data_gibbs = data, B = 10000, 
                         # mu_initial = data$mu_true,
-                        beta_initial = data$beta_true,
+                        # beta_initial = data$beta_true,
                         # sigma_2_initial = data$sigma_2_true,
                         xi_initial = runif(length(data$xi_true), -1, 1),
                         # xi_initial = data$xi_true,
@@ -24,13 +24,16 @@ results = gibbs_sampler(data_gibbs = data, B = 10000,
 mu_pm = colMeans(results$mu)
 beta_pm = colMeans(results$beta)
 sigma_2_pm = mean(results$sigma_2)
-w_pm = colMeans(results$w)
+w_pm = colMeans(results$w) 
 xi_pm = colMeans(results$xi)
 g_pm = colMeans(results$g)
 loglhood_pm = mean(results$loglhood)
+lk_pm = results$lK
+lb_pm = results$lB
 
 ## plot
-par(mfrow = c(2,4))
+par(mfrow = c(3,3))
+
 # mu
 mu.range = range(c(data$mu_true, mu_pm))
 plot(data$mu_true, mu_pm, pch = 16, main = expression(mu),
@@ -83,8 +86,21 @@ plot(results$loglhood, type = 'l', col = 'dodgerblue',
      ylim = loglhood.range)
 abline(h = loglhood_pm, col = 1, lwd = 2)
 abline(h = data$loglhood_true, col = 2, lwd = 2)
-par(mfrow = c(1,1))
 
+#lk plot
+lk.range = range(c(data$lK_true, results$lK))
+plot(results$lK, type = 'l', col = 'dodgerblue',
+     main = expression(l_k),
+     xlab = 'MCMC iterations', ylab = 'MCMC samples',
+     ylim = lk.range)
+abline(h = mean(lk_pm), col = 1, lwd = 2)
+abline(h = data$lK_true, col = 2, lwd = 2)
 
-
-
+#lb plot
+lb.range = range(c(data$lB_true, results$lB))
+plot(results$lB, type = 'l', col = 'dodgerblue',
+     main = expression(l_b),
+     xlab = 'MCMC iterations', ylab = 'MCMC samples',
+     ylim = lb.range)
+abline(h = mean(lb_pm), col = 1, lwd = 2)
+abline(h = data$lB_true, col = 2, lwd = 2)
