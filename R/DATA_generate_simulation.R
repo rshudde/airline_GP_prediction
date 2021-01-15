@@ -13,7 +13,7 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
     alpha[1] = abs(alpha[1]) # force the first beta to be positive 
     beta_true = alpha / sqrt(sum(alpha^2)) # ||beta|| = 1
   }
-  if(missing(sigma_2_true)) sigma_2_true = .5
+  if(missing(sigma_2_true)) sigma_2_true = .25
   if(missing(lK_true)) lK_true = .1
   
   if(missing(sigmaB_2_true)) sigmaB_2_true = 5
