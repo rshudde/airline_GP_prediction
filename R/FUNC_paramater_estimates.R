@@ -276,8 +276,7 @@ get_xi = function(xi_0, sigmaB_2, y, n_datasets, time_idx,
 get_sigmaB_2 = function(a, b, xi, lb, knots, n_Knots)
 {
   # calculating shape and rate of inv gamma
-  rate_term = 
-    (emulator::quad.form.inv(get_matern(lb, knots), xi))/2
+  rate_term = (emulator::quad.form.inv(get_matern(lb, knots), xi))/2
   
   # do inverse gamma draw
   sigmaB_2 = invgamma::rinvgamma(n = 1, 
@@ -452,30 +451,22 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
 get_lk = function(y, mu, g, sigma_2, lk_0, time)
 {
   # small epsilon
-  epsilon = 0.001
-  mod_diff = 0.01 # mod_diff starts > epsilon to force into loop
   lk_t = lk_0
 
-  while (mod_diff > epsilon)
-  {
-    # step two - draw lk_prime
-    lk_prime = rexp(1, lk_t)
+  # step two - draw lk_prime
+  lk_prime = rexp(1, lk_t)
 
-    # draw the uniform variable
-    u_t = runif(1, 0, 1)
+  # draw the uniform variable
+  u_t = runif(1, 0, 1)
 
-    # calculate the acceptance
-    acceptance = lk_acceptance(y, mu, g, sigma_2, lk_prime, lk_t, time)
+  # calculate the acceptance
+  acceptance = lk_acceptance(y, mu, g, sigma_2, lk_prime, lk_t, time)
 
-    # update lk_t1 based on acceptance
-    lk_t1 = ifelse(u_t <= acceptance, lk_prime, lk_t)
+  # update lk_t1 based on acceptance
+  lk_t1 = ifelse(u_t <= acceptance, lk_prime, lk_t)
 
-    # reacalculate the absolute value of the differences
-    mod_diff = abs(lk_t1 - lk_t)
-
-    # update lk_k (either it will have stayed the same or updated)
-    lk_t = lk_t1
-  }
+  # update lk_k (either it will have stayed the same or updated)
+  lk_t = lk_t1
 
   return(lk_t1)
 }
@@ -519,30 +510,19 @@ lb_acceptance = function(y, lb, lb_prime, xi)
 # function to calculate lb updates
 get_lb = function(y, lb_0, xi)
 {
-  epsilon = 0.001
-  mod_diff = 0.01 # start mod_diff small to force into loop
   lb_t = lb_0
 
-  while (mod_diff > epsilon)
-  {
-    # step two - draw lb_prime
-    lb_prime = rexp(1, lb_t)
-
-    #  draw uniform valuable
-    u_t = runif(1, 0, 1)
-
-    # calculate new acceptance
-    acceptance = lb_acceptance(y, lb_t, lb_prime, xi)
-
-    # update lb_t1 based on acceptance
-    lb_t1 = ifelse(u_t <= acceptance, lb_prime, lb_t)
-
-    # c alculate new mod_difference
-    mod_diff = abs(lb_t1 - lb_t)
-
-    # update the lb_t1 value (it will either chance or not based on lb_t1)
-    lb_t = lb_t1
-  }
+  # step two - draw lb_prime
+  lb_prime = rexp(1, lb_t)
+  
+  #  draw uniform valuable
+  u_t = runif(1, 0, 1)
+  
+  # calculate new acceptance
+  acceptance = lb_acceptance(y, lb_t, lb_prime, xi)
+  
+  # update lb_t1 based on acceptance
+  lb_t1 = ifelse(u_t <= acceptance, lb_prime, lb_t)
 
   return(lb_t1)
 }
