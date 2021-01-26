@@ -6,7 +6,7 @@ source('R/FUNC_Gibbs_Sampler.R')
 source('R/PLOTS_Gibbs_sampler.R')
 
 # generate data
-data = generate_simulation_data(n_datasets = 100, n_time = 10, 
+data = generate_simulation_data(n_datasets = 500, n_time = 10, 
                                 n_covariates = 10, seed = 1)
 
 # run gibbs sampler
@@ -24,6 +24,7 @@ results = gibbs_sampler(data_gibbs = data, B = 10000,
 mu_pm = colMeans(results$mu)
 beta_pm = colMeans(results$beta)
 sigma_2_pm = mean(results$sigma_2)
+sigma_2B_pm = mean(results$sigmaB_2)
 w_pm = colMeans(results$w) 
 xi_pm = colMeans(results$xi)
 g_pm = colMeans(results$g)
@@ -32,7 +33,7 @@ lk_pm = results$lK
 lb_pm = results$lB
 
 ## plot
-par(mfrow = c(3,3))
+par(mfrow = c(3,4))
 
 # mu
 mu.range = range(c(data$mu_true, mu_pm))
@@ -54,6 +55,15 @@ plot(results$sigma_2, type = 'l', col = 'dodgerblue',
      ylim = sigma_2.range)
 abline(h = sigma_2_pm, col = 1, lwd = 2)
 abline(h = data$sigma_2_true, col = 2, lwd = 2)
+
+# sigma_2B
+sigma_2_B.range = range(c(data$sigmaB_2_true, results$sigmaB_2))
+plot(results$sigmaB_2, type = 'l', col = 'dodgerblue',
+     main = paste(expression(sigma^2), "B"),
+     xlab = 'MCMC iterations', ylab = 'MCMC samples',
+     ylim = sigma_2_B.range)
+abline(h = sigma_2B_pm, col = 1, lwd = 2)
+abline(h = data$sigmaB_2_true, col = 2, lwd = 2)
 
 # xi
 if(length(data$xi_true)==length(xi_pm)){
