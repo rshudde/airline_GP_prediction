@@ -59,8 +59,8 @@ gibbs_sampler = function(data_gibbs, B = 1000,
   if(missing(sigma_2_initial)) sigma_2_initial = 1
   if(missing(sigmaB_2_initial)) sigmaB_2_initial = 1
   if(missing(xi_initial)) xi_initial = runif(n_Knots_gibbs, -5, 5) #rep(1, n_Knots_gibbs)
-  if(missing(lK_initial)) lK_initial = 0.1
-  if(missing(lB_initial)) lB_initial = 0.1
+  if(missing(lK_initial)) lK_initial = 1
+  if(missing(lB_initial)) lB_initial = 1
   
   # initializing
   mu_post[1, ] = mu_initial
@@ -213,7 +213,7 @@ gibbs_sampler = function(data_gibbs, B = 1000,
   
   return(list(beta = beta_post[(burn_in+2):(B+1), ], 
               mu = mu_post[(burn_in+2):(B+1), ],
-              sigma_2 = sigma_2_post, #sigma_2_post[(burn_in+2):(B+1)], 
+              sigma_2 = sigma_2_post[(burn_in+2):(B+1)], 
               xi = xi_post[(burn_in+2):(B+1), ],
               w = w_post[(burn_in+2):(B+1), ],
               g = g_post[(burn_in+2):(B+1), ],
