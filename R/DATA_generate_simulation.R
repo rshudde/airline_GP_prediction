@@ -6,7 +6,16 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
   set.seed(seed)
   
   # default truth
-  if(missing(mu_true)) mu_true = c(0, runif(n_datasets-1, -5, 5))
+  # if(missing(mu_true)) mu_true = c(0, runif(n_datasets-1, -5, 5))
+  if(missing(mu_true))
+  {
+    mu_true = c(0, runif(n_datasets-1, -5, 5))
+    mu_true = c(1, runif(n_datasets-1, -5, 5))
+  }
+    
+    
+    
+  
   if(missing(beta_true)){
     
     alpha = sample(-10:10, n_covariates, replace = T)
@@ -14,10 +23,10 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
     beta_true = alpha / sqrt(sum(alpha^2)) # ||beta|| = 1
   }
   if(missing(sigma_2_true)) sigma_2_true = .25
-  if(missing(lK_true)) lK_true = .1
+  if(missing(lK_true)) lK_true = .3
   
   if(missing(sigmaB_2_true)) sigmaB_2_true = 5
-  if(missing(lB_true)) lB_true = .05
+  if(missing(lB_true)) lB_true = .3
   if(missing(xi_true)){
     
     n_Knots = 20
