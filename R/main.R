@@ -114,3 +114,37 @@ plot(results$lB, type = 'l', col = 'dodgerblue',
      ylim = lb.range)
 abline(h = mean(lb_pm), col = 1, lwd = 2)
 abline(h = data$lB_true, col = 2, lwd = 2)
+
+
+# g(w) vs w
+w.range = range(data$w_true, w_pm)
+g.range = range(c(data$g_true, g_pm))
+plot(unlist(data$w_true), unlist(data$g_true), pch = 16, 
+     main = 'g(w) vs. w',
+     col = 2, xlab = 'w', ylab = 'g(w)', xlim = w.range, ylim = g.range)
+points(w_pm, g_pm, pch = 16)
+
+
+############
+new_g = matrix(g_pm, ncol = 10, byrow = T)
+g = rowMeans(new_g)
+
+new_add = g + mu_pm
+
+# now get old
+g_new = vector()
+for (i in 1:length(data$g_true))
+{
+        
+}
+old_add = data$g_true + data$mu_true
+
+
+
+
+
+
+
+
+
+
