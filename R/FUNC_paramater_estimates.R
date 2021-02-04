@@ -41,6 +41,10 @@ get_K_i = function(sigma_2, M_i)
 # function to get V
 get_V_i = function(sigma_2, K_i)
 {
+  if (!is.matrix(K_i)) 
+  {
+    stop("K_i needs to be a matrix for get_V_i()")
+  }
   V_i = K_i + sigma_2 * diag(nrow(K_i))
   return(V_i)
 }
@@ -50,12 +54,12 @@ get_V_i = function(sigma_2, K_i)
 get_mu = function(y, n_datasets, g, V_mat, time_idx, sigma_2_mu, alpha_mu)
 {
   mu = rep(NA, n_datasets)
-  for(i in 1:n_datasets){
-    
+  
+  for (i in 1:n_datasets)
+  {
     sigma_2_mu_post_i = 1/(quad.form.inv(V_mat[[i]], rep(1, length(time_idx[[i]]))) +
                              1/sigma_2_mu)
-    alpha_mu_post_i = sigma_2_mu_post_i*
-      (alpha_mu/sigma_2_mu +
+    alpha_mu_post_i = sigma_2_mu_post_i*(alpha_mu/sigma_2_mu +
          quad.3form.inv(V_mat[[i]], y[i,time_idx[[i]]] - g[[i]],
                         rep(1, length(time_idx[[i]]))))
     
@@ -183,7 +187,7 @@ get_sigma_2 = function(a, b, y, n_datasets, n_nonNA_y, time_idx,
 {
   # calculating shape and rate of inv gamma
   rate_term = 0
-  for(i in 1:n_datasets)
+  for (i in 1:n_datasets)
   {
     rate_term = rate_term +
       emulator::quad.form.inv(M_mat[[i]] + diag(length(time_idx[[i]])),
