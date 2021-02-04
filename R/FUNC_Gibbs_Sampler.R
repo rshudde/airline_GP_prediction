@@ -20,15 +20,14 @@ gibbs_sampler = function(data_gibbs, B = 1000,
   n_datasets = length(X)
   n_covariates = ncol(X[[1]])
   n_nonNA_y = 0
-  for(i in 1:n_datasets)
+  for (i in 1:n_datasets)
   {
     n_nonNA_y = n_nonNA_y + length(time_idx[[i]])
   }
   
-  if(missing(xi_initial)){
-    
+  if (missing(xi_initial))
+  {
     n_Knots_gibbs = ceiling(n_nonNA_y/2) + 1
-    
   }else{n_Knots_gibbs = length(xi_initial)}
   # n_Knots_gibbs = ifelse(missing(xi_initial), 
   #                        ceiling(n_nonNA_y/2) + 1,
@@ -42,26 +41,27 @@ gibbs_sampler = function(data_gibbs, B = 1000,
   b_gibbs = b
   
   #### storage ####
-  mu_post = matrix(nrow = B+1, ncol = n_datasets)
-  alpha_post = beta_post = matrix(nrow = B+1, ncol = n_covariates)
-  xi_post = matrix(nrow = B+1, ncol = n_Knots_gibbs)
-  sigmaB_2_post = sigma_2_post = lK_post = lB_post = rep(NA, B+1)
-  w_post = g_post = matrix(nrow = B+1, ncol = n_nonNA_y)
-  loglhood_gibbs = numeric(B+1)
+  mu_post = matrix(nrow = B + 1, ncol = n_datasets)
+  alpha_post = beta_post = matrix(nrow = B + 1, ncol = n_covariates)
+  xi_post = matrix(nrow = B + 1, ncol = n_Knots_gibbs)
+  sigmaB_2_post = sigma_2_post = lK_post = lB_post = rep(NA, B + 1)
+  w_post = g_post = matrix(nrow = B + 1, ncol = n_nonNA_y)
+  loglhood_gibbs = numeric(B + 1)
   
   #### initialize chain ####
-  if(missing(mu_initial)) mu_initial = numeric(n_datasets)
-  if(missing(beta_initial)){
+  if (missing(mu_initial)) mu_initial = numeric(n_datasets)
+  if (missing(beta_initial))
+  {
     
     beta_initial = rep(1, n_covariates)
     beta_initial = beta_initial/sqrt(sum(beta_initial^2))
   }
-  if(missing(sigma_2_initial)) sigma_2_initial = 1
-  if(missing(sigmaB_2_initial)) sigmaB_2_initial = 1
-  if(missing(xi_initial)) xi_initial = runif(n_Knots_gibbs, -5, 5) #rep(1, n_Knots_gibbs)
-  if(missing(lK_initial)) lK_initial = 1
-  if(missing(lB_initial)) lB_initial = 1
-  
+  if (missing(sigma_2_initial)) sigma_2_initial = 1
+  if (missing(sigmaB_2_initial)) sigmaB_2_initial = 1
+  if (missing(xi_initial)) xi_initial = runif(n_Knots_gibbs, -5, 5) #rep(1, n_Knots_gibbs)
+  if (missing(lK_initial)) lK_initial = 1
+  if (missing(lB_initial)) lB_initial = 1
+   
   # initializing
   mu_post[1, ] = mu_initial
   alpha_post[1, ] = beta_initial
@@ -92,8 +92,7 @@ gibbs_sampler = function(data_gibbs, B = 1000,
   ################################################################################################################
   
   #### starting Gibbs ####
-  start = Sys.time()
-  for (idx in 2:(B+1))
+  for (idx in 2:(B + 1))
   {
     start_inner = Sys.time()
     set.seed(idx)
@@ -108,8 +107,8 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     
     
     #### getting beta ####
-    alpha_gibbs_out = get_alpha(alpha_post[idx-1, ], y, n_datasets, time_idx, X,
-                                n_covariates, mu_post[idx, ], xi_post[idx-1, ],
+    alpha_gibbs_out = get_alpha(alpha_post[idx - 1, ], y, n_datasets, time_idx, X,
+                                n_covariates, mu_post[idx, ], xi_post[idx - 1, ],
                                 V_gibbs, knots_gibbs, n_Knots_gibbs,
                                 sigma_normal_prior)
     alpha_post[idx, ] = alpha_gibbs_out$alpha
@@ -146,7 +145,7 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     
     
     #### get l_k ####
-    lK_post[idx] = get_lk(y, mu_post[idx, ], g_gibbs, sigma_2_post[idx - 1], lK_post[idx-1], time_idx)
+    lK_post[idx] = get_lk(y, mu_post[idx, ], g_gibbs, sigma_2_post[idx - 1], lK_post[idx - 1], time_idx)
     
     # lK_post[idx] = data_gibbs$lK_true
     
@@ -160,7 +159,7 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     
     
     #### get l_b ####
-    lB_post[idx] = get_lb(y, lB_post[idx-1], xi_post[idx-1, ])
+    lB_post[idx] = get_lb(y, lB_post[idx - 1], xi_post[idx - 1, ])
     # lB_post[idx] = data_gibbs$lB_true
     
     
@@ -186,7 +185,7 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     
     
     #### get log likelihood ####
-    for(i in 1:n_datasets)
+    for (i in 1:n_datasets)
     {
       loglhood_gibbs[idx] = loglhood_gibbs[idx] -
         as.numeric(determinant(V_gibbs[[i]], log = T)$modulus)/2 -
@@ -211,16 +210,16 @@ gibbs_sampler = function(data_gibbs, B = 1000,
   #### get burnin to remove #### 
   burn_in = floor(B * burn_in)
   
-  return(list(beta = beta_post[(burn_in+2):(B+1), ], 
-              mu = mu_post[(burn_in+2):(B+1), ],
-              sigma_2 = sigma_2_post[(burn_in+2):(B+1)], 
-              xi = xi_post[(burn_in+2):(B+1), ],
-              w = w_post[(burn_in+2):(B+1), ],
-              g = g_post[(burn_in+2):(B+1), ],
-              sigmaB_2 = sigmaB_2_post[(burn_in+2):(B+1)],
-              lB = lB_post[(burn_in+2):(B+1)], 
-              lK = lK_post[(burn_in+2):(B+1)],
-              loglhood = loglhood_gibbs[(burn_in+2):(B+1)]))
+  return(list(beta = beta_post[(burn_in + 2):(B + 1), ], 
+              mu = mu_post[(burn_in + 2):(B + 1), ],
+              sigma_2 = sigma_2_post[(burn_in + 2):(B + 1)], 
+              xi = xi_post[(burn_in + 2):(B + 1), ],
+              w = w_post[(burn_in + 2):(B + 1), ],
+              g = g_post[(burn_in + 2):(B + 1), ],
+              sigmaB_2 = sigmaB_2_post[(burn_in + 2):(B + 1)],
+              lB = lB_post[(burn_in + 2):(B + 1)], 
+              lK = lK_post[(burn_in + 2):(B + 1)],
+              loglhood = loglhood_gibbs[(burn_in + 2):(B + 1)]))
 }
 
 
