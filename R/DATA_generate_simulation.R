@@ -7,28 +7,26 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
   
   # default truth
   # if(missing(mu_true)) mu_true = c(0, runif(n_datasets-1, -5, 5))
-  if(missing(mu_true))
+  if (missing(mu_true))
   {
-    mu_true = c(0, runif(n_datasets-1, -5, 5))
-    mu_true = c(1, runif(n_datasets-1, -5, 5))
+    mu_true = c(0, runif(n_datasets - 1, -5, 5))
+    mu_true = c(5, runif(n_datasets - 1, -5, 5))
   }
     
-    
-    
-  
-  if(missing(beta_true)){
-    
+  if (missing(beta_true))
+  {
+    # alpha = sample(c(-10:-1, 1:10), n_covariates, replace = T)
     alpha = sample(-10:10, n_covariates, replace = T)
     alpha[1] = abs(alpha[1]) # force the first beta to be positive 
     beta_true = alpha / sqrt(sum(alpha^2)) # ||beta|| = 1
   }
-  if(missing(sigma_2_true)) sigma_2_true = .25
-  if(missing(lK_true)) lK_true = .3
+  if (missing(sigma_2_true)) sigma_2_true = .25
+  if (missing(lK_true)) lK_true = .3
   
-  if(missing(sigmaB_2_true)) sigmaB_2_true = 5
-  if(missing(lB_true)) lB_true = .3
-  if(missing(xi_true)){
-    
+  if (missing(sigmaB_2_true)) sigmaB_2_true = 5
+  if (missing(lB_true)) lB_true = .3
+  if (missing(xi_true))
+  {
     n_Knots = 20
     knots = seq(0, 1, length.out = n_Knots)
     B_true = sigmaB_2_true*get_matern(lB_true, knots)
@@ -43,8 +41,8 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
   # to get x variables first
   X = time_idx = vector("list", n_datasets)
   c.X = rep(NA, n_datasets)
-  for(i in 1:n_datasets){
-    
+  for (i in 1:n_datasets)
+  {
     # n_time_obs_i = sample(2:n_time, 1) # sample how many observations we will have
     # time_idx[[i]] = sort(sample(1:n_time, n_time_obs_i)) # get the indices (basically randomly picking which 'days of the week' we observe)
     n_time_obs_i = n_time
