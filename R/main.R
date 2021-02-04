@@ -7,7 +7,7 @@ source('R/PLOTS_Gibbs_sampler.R')
 
 # generate data
 data = generate_simulation_data(n_datasets = 500, n_time = 10, 
-                                n_covariates = 10, seed = 1)
+                                n_covariates = 10, seed = 6)
 
 # run gibbs sampler
 results = gibbs_sampler(data_gibbs = data, B = 10000, 
@@ -66,8 +66,8 @@ abline(h = sigma_2B_pm, col = 1, lwd = 2)
 abline(h = data$sigmaB_2_true, col = 2, lwd = 2)
 
 # xi
-if(length(data$xi_true)==length(xi_pm)){
-        
+if (length(data$xi_true) == length(xi_pm))
+{
         xi.range = range(c(data$xi_true, xi_pm))
         plot(xi_pm, data$xi_true, pch = 16, main = expression(xi),
              xlab = 'Truth', ylab = 'Posterior mean', ylim = xi.range)
@@ -135,9 +135,12 @@ new_add = g + mu_pm
 g_new = vector()
 for (i in 1:length(data$g_true))
 {
-        
+    g_new[i] = mean(data$g_true[[i]])
 }
-old_add = data$g_true + data$mu_true
+old_add = g_new + data$mu_true
+
+par(mfrow = c(1,1))
+plot(old_add, new_add, xlab = "True g + mu", ylab = "Sampled g + mu")
 
 
 
