@@ -139,7 +139,6 @@ for (i in 1:length(data$g_true))
 }
 old_add = g_new + data$mu_true
 
-par(mfrow = c(1,1))
 plot(old_add, new_add, xlab = "True g + mu", ylab = "Sampled g + mu")
 
 
