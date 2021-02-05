@@ -7,7 +7,7 @@ source('R/PLOTS_Gibbs_sampler.R')
 
 # generate data
 data = generate_simulation_data(n_datasets = 500, n_time = 10, 
-                                n_covariates = 10, seed = 6)
+                                n_covariates = 10, seed = 5)
 
 # run gibbs sampler
 results = gibbs_sampler(data_gibbs = data, B = 10000, 
