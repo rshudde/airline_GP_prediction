@@ -102,11 +102,11 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     mu_post[idx, ] = get_mu(y, n_datasets, g_gibbs, V_gibbs, time_idx,
                             sigma_2_mu_gibbs, alpha_mu_gibbs)
     mu_post[idx, 1] = 0
-    
+
     # mu_post[idx, ] = data_gibbs$mu_true
     
     
-    #### getting beta ####
+    # #### getting beta ####
     alpha_gibbs_out = get_alpha(alpha_post[idx - 1, ], y, n_datasets, time_idx, X,
                                 n_covariates, mu_post[idx, ], xi_post[idx - 1, ],
                                 V_gibbs, knots_gibbs, n_Knots_gibbs,
@@ -114,19 +114,20 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     alpha_post[idx, ] = alpha_gibbs_out$alpha
     beta_post[idx, ] = alpha_gibbs_out$beta
 
+
     # updating beta related term
     w_gibbs = alpha_gibbs_out$w
     H_gibbs = alpha_gibbs_out$H_mat
     g_gibbs = alpha_gibbs_out$g
-    
+
     # beta_post[idx, ] = data_gibbs$beta_true
-    # for (i in 1:n_datasets)
-    # {
-    #   w_gibbs[[i]] = (as.numeric(X[[i]] %*% beta_post[idx, ]) + 1)/2
-    #   H_gibbs[[i]] = get_H_matrix(w_gibbs[[i]], knots_gibbs,
-    #                               n_Knots_gibbs)
-    #   g_gibbs[[i]] = get_g(H_gibbs[[i]], xi_post[idx - 1, ])
-    # }
+    for (i in 1:n_datasets)
+    {
+      w_gibbs[[i]] = (as.numeric(X[[i]] %*% beta_post[idx, ]) + 1)/2
+      H_gibbs[[i]] = get_H_matrix(w_gibbs[[i]], knots_gibbs,
+                                  n_Knots_gibbs)
+      g_gibbs[[i]] = get_g(H_gibbs[[i]], xi_post[idx - 1, ])
+    }
 
     
     #### getting sigma_2 ####
@@ -166,23 +167,24 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     #### getting sigmaB_2 ####
     sigmaB_2_post[idx] = get_sigmaB_2(a_gibbs, b_gibbs, xi_post[idx - 1, ],
                                       lB_post[idx], knots_gibbs, n_Knots_gibbs)
-    
-    
+
+
     #### getting xi ####
     xi_gibbs_out = get_xi(xi_post[idx - 1, ], sigmaB_2_post[idx], y, n_datasets,
                           time_idx, mu_post[idx, ], H_gibbs, V_gibbs,
                           lB_post[idx], knots_gibbs)
     xi_post[idx, ] = xi_gibbs_out$xi
-    
+
     # updating xi related term
     g_gibbs = xi_gibbs_out$g
     
+    # for debugging
     # xi_post[idx, ] = data_gibbs$xi_true
     # for (i in 1:n_datasets)
     # {
     #   g_gibbs[[i]] = get_g(H_gibbs[[i]], xi_post[idx, ])
     # }
-    
+
     
     #### get log likelihood ####
     for (i in 1:n_datasets)
