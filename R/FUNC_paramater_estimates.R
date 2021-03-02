@@ -132,7 +132,6 @@ get_alpha = function(alpha_0, y, n_datasets, time_idx, dat, n_covariates,
   if (alpha_proposed[1] <= 0)
   {
     acceptance = 0
-    
   } else
   {
     psi_out_new = psi_alpha(alpha_proposed, y, n_datasets, time_idx, dat,
@@ -163,10 +162,10 @@ get_alpha = function(alpha_0, y, n_datasets, time_idx, dat, n_covariates,
     alpha_proposed = cos(theta) * alpha_0 + sin(theta) * alpha_prior
     
     # new negative loglikelihood
+    # reject if alpha[1] is negative because we want beta[1] to be positive
     if (alpha_proposed[1] <= 0)
     {
       acceptance = 0
-      
     } else
     {
       psi_out_new = psi_alpha(alpha_proposed, y, n_datasets, time_idx, dat,
