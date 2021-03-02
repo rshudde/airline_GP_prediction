@@ -10,14 +10,19 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
   if (missing(mu_true))
   {
     mu_true = c(0, runif(n_datasets - 1, -5, 5))
-    mu_true = c(5, runif(n_datasets - 1, -5, 5))
+    # mu_true = c(5, runif(n_datasets - 1, -5, 5))
   }
     
   if (missing(beta_true))
   {
     # alpha = sample(c(-10:-1, 1:10), n_covariates, replace = T)
     alpha = sample(-10:10, n_covariates, replace = T)
-    alpha[1] = abs(alpha[1]) # force the first beta to be positive 
+    # alpha = sort(abs(alpha)) # commmented out forcing all alphas to be positive
+    
+    # set the max to be alpha[1] and positive
+    max_value = which.max(abs(alpha))
+    alpha = c(abs(alpha[max_value]), alpha[-max_value])
+    
     beta_true = alpha / sqrt(sum(alpha^2)) # ||beta|| = 1
   }
   if (missing(sigma_2_true)) sigma_2_true = .25
@@ -51,6 +56,8 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
     # iid design
     X[[i]] = matrix(rnorm(n_time_obs_i * n_covariates, 0, 1), 
                     n_time_obs_i, n_covariates)
+    
+    X[[i]][,1] = rep(5, nrow(X[[i]]))
     
     c.X[i] = max(apply(X = X[[i]], MARGIN = 1,
                        FUN = function(r){sqrt(sum(r^2))}))
