@@ -10,6 +10,17 @@ gibbs_sampler = function(data_gibbs, B = 1000,
                          a = 10^(-3), b = 10^(-3), alpha_normal_prior = 0,
                          sigma_normal_prior = 1000, burn_in = 0.5)
 {
+  
+  # for testing
+  B = 1000
+  a = 10^(-3)
+  b = 10^(-3)
+  alpha_normal_prior = 0
+  sigma_normal_prior = 1000
+  burn_in = 0.5
+  sigma_2_initial = 1
+  sigmaB_2_initial = 1
+  
   #### data ####
   # get X and y values from the data
   X = data_gibbs$X
@@ -90,7 +101,7 @@ gibbs_sampler = function(data_gibbs, B = 1000,
   
   ################################################################################################################
   ################################################################################################################
-  
+  idx = 2
   #### starting Gibbs ####
   for (idx in 2:(B + 1))
   {
@@ -99,12 +110,10 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     
     
     #### getting mu ####
-    mu_post[idx, ] = get_mu(y, n_datasets, g_gibbs, V_gibbs, time_idx,
+    mu_post[idx, ] = get_mu_c(y, n_datasets, g_gibbs, V_gibbs, time_idx,
                             sigma_2_mu_gibbs, alpha_mu_gibbs)
     mu_post[idx, 1] = 0
-
     # mu_post[idx, ] = data_gibbs$mu_true
-    
     
     # #### getting beta ####
     alpha_gibbs_out = get_alpha(alpha_post[idx - 1, ], y, n_datasets, time_idx, X,
@@ -116,9 +125,9 @@ gibbs_sampler = function(data_gibbs, B = 1000,
 
 
     # updating beta related term
-    w_gibbs = alpha_gibbs_out$w
-    H_gibbs = alpha_gibbs_out$H_mat
-    g_gibbs = alpha_gibbs_out$g
+    w_gibbs = alpha_gibbs_out$w # list of vectors of length n_covairates
+    H_gibbs = alpha_gibbs_out$H_mat # list of matrices of length n_datasets, dim n_covariates x n_Knots_gibbs
+    g_gibbs = alpha_gibbs_out$g # list of vectors of length n_covairates
 
     # beta_post[idx, ] = data_gibbs$beta_true
     for (i in 1:n_datasets)
@@ -131,7 +140,7 @@ gibbs_sampler = function(data_gibbs, B = 1000,
 
     
     #### getting sigma_2 ####
-    sigma_2_gibbs_out = get_sigma_2(a_gibbs, b_gibbs, y, n_datasets, n_nonNA_y,
+    sigma_2_gibbs_out = get_sigma_2_c(a_gibbs, b_gibbs, y, n_datasets, n_nonNA_y,
                                     time_idx, mu_post[idx, ], M_gibbs, g_gibbs)
     sigma_2_post[idx] = sigma_2_gibbs_out$sigma_2
     
