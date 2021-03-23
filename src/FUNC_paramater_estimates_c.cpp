@@ -237,10 +237,77 @@ Rcpp::List get_alpha_c(arma::vec alpha_0, const arma::mat& y, const int n_datase
                              Rcpp::Named("alpha") = alpha_proposed);
 }
   
+// [[Rcpp::export]]
+Rcpp::List rfunc() {
+  Rcpp::Environment invgamma("package:invgamma");
+  Rcpp::Function dinvgamma = invgamma["dinvgamma"];
+  Rcpp::Function rinvgamma = invgamma["rinvgamma"];
+  Rcpp::NumericVector tmp = rinvgamma(5, 1);
+  Rcpp::NumericVector a = dinvgamma(tmp, 1);
+  return Rcpp::List::create(Rcpp::Named("tmp") = tmp,
+                            Rcpp::Named("a") = a);
+}
 
 
+Rcpp::NumericVector rinvgamma(R_xlen_t n,
+                              double shape,
+                              double rate = 1.0) {
+  return 1.0/Rcpp::rgamma(n, shape, rate);
+}
+
+// [[Rcpp::export]]
+Rcpp::List get_sigma_2_c(const float a, const float b, const arma::mat& y, const int n_datasets,
+                                   const int n_nonNA_y, const List time_idx, arma::vec mu, MatList M_mat,
+                                   const List g)
+{
+  float rate_term = 0;
   
+  for (int i = 0; i < n_datasets; i++)
+  {
     
+    // extract matrix we are inverting
+    Rcpp::NumericMatrix M_temp = M_mat[i];
+    arma::mat M = Rcpp::as<arma::mat>(wrap(M_temp));
+    
+    // create diagonal to add to M
+    arma::vec t_temp = time_idx(i);
+    int length = t_temp.n_elem;
+    arma::mat I = arma::eye(length, length);
+
+    arma::mat term_one = arma::inv(M + I);
+
+    // // get term two
+    arma::uvec indices(as<arma::uvec>(wrap(time_idx(i))));
+    // subtract 1 from indices
+    for (int k = 0; k < indices.n_elem; k++)
+    {
+      indices[k] = indices[k] - 1;
+    }
+    arma::mat y_row = y.cols(indices); // get time_idx indices of the matrix
+    arma::rowvec y_temp = y_row.row(i); // get the specific row
+
+    // get y - mu[i]- g[[i]]
+    arma::vec mu_temp = arma::ones<arma::vec>(length) * mu[i];
+    arma::vec g_temp = g(i);
+    arma::rowvec term_two = y_temp - mu_temp.t() - g_temp.t();
+    
+    // arma::rowvec term_three = term_two * term_one;
+    arma::mat term_three = term_two * term_one * term_two.t();
+    rate_term += term_three(0,0);
+    
+  }
+  // Rcpp::NumericVector sigma_2_temp = rinvgamma(1, a + n_nonNA_y/2, b + rate_term/2);
+  Rcpp::NumericVector sigma_2_temp = Rcpp::rgamma(1, a + n_nonNA_y/2, 1/(b + rate_term/2));
+  float sigma_2 = sigma_2_temp[0];
+  
+  // float sigma_2 = 0;
+    
+  return Rcpp::List::create( Rcpp::Named("sigma_2") = 1/sigma_2, 
+                             Rcpp::Named("rate") = rate_term);
+}
+  
+
+
 
       
 
