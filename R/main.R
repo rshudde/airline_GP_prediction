@@ -5,14 +5,26 @@ source('R/DATA_generate_simulation.R')
 source('R/FUNC_Gibbs_Sampler.R')
 source('R/PLOTS_Gibbs_sampler.R')
 
+Rcpp::sourceCpp("src/FUNC_paramater_estimates_c.cpp")
 
 # generate data
 data = generate_simulation_data(n_datasets = 300, n_time = 10, 
                                 n_covariates = 10, seed = 2)
 
+data_gibbs = data 
+B = 5000 
+mu_initial = data$mu_true
+beta_initial = data$beta_true
+sigma_2_initial = data$sigma_2_true
+xi_initial = runif(length(data$xi_true), -1, 1)
+xi_initial = data$xi_true
+lK_initial = data$lK_true
+lB_initial = data$lB_true
+
 # run gibbs sampler
 microbenchmark::microbenchmark(
-results = gibbs_sampler(data_gibbs = data, B = 5000, 
+results = gibbs_sampler(data_gibbs = data, 
+                        B = 5000, 
                         mu_initial = data$mu_true,
                         # beta_initial = data$beta_true,
                         sigma_2_initial = data$sigma_2_true,
