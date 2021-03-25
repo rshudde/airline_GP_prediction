@@ -474,6 +474,30 @@ get_lk = function(y, mu, g, sigma_2, lk_0, time)
   return(lk_t1)
 }
 
+# # function for MH sampling of lk
+get_lk_c = function(y, mu, g, sigma_2, lk_0, time)
+{
+  # small epsilon
+  lk_t = lk_0
+  
+  # step two - draw lk_prime
+  lk_prime = rexp(1, lk_t)
+  
+  # draw the uniform variable
+  u_t = runif(1, 0, 1)
+  
+  # calculate the acceptance
+  acceptance = lk_acceptance_c(y, mu, g, sigma_2, lk_prime, lk_t, time)
+  
+  # update lk_t1 based on acceptance
+  lk_t1 = ifelse(u_t <= acceptance, lk_prime, lk_t)
+  
+  # update lk_k (either it will have stayed the same or updated)
+  lk_t = lk_t1
+  
+  return(lk_t1)
+}
+
 
 
 ## LB functions below
@@ -529,4 +553,25 @@ get_lb = function(y, lb_0, xi)
 
   return(lb_t1)
 }
+
+# function to calculate lb updates
+get_lb_c = function(y, lb_0, xi)
+{
+  lb_t = lb_0
+  
+  # step two - draw lb_prime
+  lb_prime = rexp(1, lb_t)
+  
+  #  draw uniform valuable
+  u_t = runif(1, 0, 1)
+  
+  # calculate new acceptance
+  acceptance = lb_acceptance_c(y, lb_t, lb_prime, xi)
+  
+  # update lb_t1 based on acceptance
+  lb_t1 = ifelse(u_t <= acceptance, lb_prime, lb_t)
+  
+  return(lb_t1)
+}
+
 
