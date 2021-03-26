@@ -63,7 +63,6 @@ gibbs_sampler = function(data_gibbs, B = 1000,
   if (missing(mu_initial)) mu_initial = numeric(n_datasets)
   if (missing(beta_initial))
   {
-    
     beta_initial = rep(1, n_covariates)
     beta_initial = beta_initial/sqrt(sum(beta_initial^2))
   }
@@ -116,7 +115,7 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     # mu_post[idx, ] = data_gibbs$mu_true
     
     # #### getting beta ####
-    alpha_gibbs_out = get_alpha(alpha_post[idx - 1, ], y, n_datasets, time_idx, X,
+    alpha_gibbs_out = get_alpha_c(alpha_post[idx - 1, ], y, n_datasets, time_idx, X,
                                 n_covariates, mu_post[idx, ], xi_post[idx - 1, ],
                                 V_gibbs, knots_gibbs, n_Knots_gibbs,
                                 sigma_normal_prior)
@@ -155,26 +154,27 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     
     
     #### get l_k ####
-    lK_post[idx] = get_lk(y, mu_post[idx, ], g_gibbs, sigma_2_post[idx - 1], lK_post[idx - 1], time_idx)
-    
+    lK_post[idx] = get_lk_c(y, mu_post[idx, ], g_gibbs, sigma_2_post[idx - 1], lK_post[idx - 1], time_idx)
+
+
     # lK_post[idx] = data_gibbs$lK_true
     
     # updating l_k related term
     for (i in 1:n_datasets)
     {
-      M_gibbs[[i]] = get_matern(lK_post[idx], time_idx[[i]])
-      K_gibbs[[i]] = get_K_i(sigma_2_post[idx], M_gibbs[[i]])
-      V_gibbs[[i]] = get_V_i(sigma_2_post[idx], K_gibbs[[i]])
+      M_gibbs[[i]] = get_matern_c(lK_post[idx], time_idx[[i]])
+      K_gibbs[[i]] = get_K_i_c(sigma_2_post[idx], M_gibbs[[i]])
+      V_gibbs[[i]] = get_V_i_c(sigma_2_post[idx], K_gibbs[[i]])
     }
     
     
     #### get l_b ####
-    lB_post[idx] = get_lb(y, lB_post[idx - 1], xi_post[idx - 1, ])
+    lB_post[idx] = get_lb_c(y, lB_post[idx - 1], xi_post[idx - 1, ])
     # lB_post[idx] = data_gibbs$lB_true
     
     
     #### getting sigmaB_2 ####
-    sigmaB_2_post[idx] = get_sigmaB_2(a_gibbs, b_gibbs, xi_post[idx - 1, ],
+    sigmaB_2_post[idx] = get_sigmaB_2_c(a_gibbs, b_gibbs, xi_post[idx - 1, ],
                                       lB_post[idx], knots_gibbs, n_Knots_gibbs)
 
 
@@ -183,6 +183,14 @@ gibbs_sampler = function(data_gibbs, B = 1000,
                           time_idx, mu_post[idx, ], H_gibbs, V_gibbs,
                           lB_post[idx], knots_gibbs)
     xi_post[idx, ] = xi_gibbs_out$xi
+    
+    
+    #### getting xi ####
+    xi_gibbs_out = get_xi_c(xi_post[idx - 1, ], sigmaB_2_post[idx], y, n_datasets,
+                          time_idx, mu_post[idx, ], H_gibbs, V_gibbs,
+                          lB_post[idx], knots_gibbs)
+    old = xi_gibbs_out$xi
+    
 
     # updating xi related term
     g_gibbs = xi_gibbs_out$g
