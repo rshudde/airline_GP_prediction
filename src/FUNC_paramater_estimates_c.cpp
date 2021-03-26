@@ -29,6 +29,50 @@ double numeric_to_arma( const Rcpp::NumericMatrix X ) {
 // }
 
 // [[Rcpp::export]]
+arma::mat inv_chol(arma::mat A){
+  int n = A.n_rows;
+  double nr = A(0,0);
+  // Normalizing the matrix (if required):
+  if(nr!=1){
+    A = A/nr;
+  }
+  arma::rowvec av = A.row(0);
+  arma::colvec avec = av.t();
+  arma::colvec r = avec.tail(n-1);
+  arma::colvec y = zeros(n);
+  arma::mat R = eye(n,n);
+  // Initial values:
+  y(0) = - r(0);
+  double a = - r(0);
+  double b = 1;
+  // Updating b:
+  b = (1 - (a*a))*b;
+  R(0,1) = y(0);
+  R.col(1) = R.col(1)/pow(b,0.5);
+  // Updating other columns:
+  //int k = 0;
+  for(int k = 0; k <= (n-3); k++){
+    arma::colvec rsub = r.head(k+1);
+    arma::colvec rrev = reverse(rsub);
+    arma::colvec ysub = y.head(k+1);
+    arma::colvec yrev = reverse(ysub);
+    // Updating a:
+    a = -(r(k+1) + sum(rrev.t()*ysub))/b;
+    // Updating y:
+    y.head(k+1) = ysub + a*yrev; y(k+1) = a;
+    // Updating b:
+    b = (1 - (a*a))*b;
+    // Updating the columns:
+    arma::colvec ysub2 = y.head(k+2);
+    arma::colvec yrev2 = reverse(ysub2);
+    R.submat(0,k+2,k+1,k+2) = yrev2;
+    R.col(k+2) = R.col(k+2)/pow(b,0.5);
+  }
+  R = R/pow(nr,0.5);
+  return R;
+}
+
+// [[Rcpp::export]]
 arma::vec get_mu_c(const arma::mat& y, const int n_datasets, const List g, MatList V_mat,
                    const List time_idx, const float sigma_2_mu, const float alpha_mu)
 {
@@ -177,8 +221,8 @@ Rcpp::List get_alpha_c(arma::vec alpha_0, const arma::mat& y, const int n_datase
     Rcpp::List psi_out_new = psi_alpha_c(alpha_proposed, y, n_datasets, time_idx, data, mu, xi, V_mat, knots, n_Knots);
     
     // calculate new acceptance value
-    float old_loglike = psi_out_old["psi_out_old$negloglhood"];
-    float new_loglike = psi_out_new["psi_out_old$negloglhood"];
+    float old_loglike = psi_out_old["negloglhood"];
+    float new_loglike = psi_out_new["negloglhood"];
     float value_new = exp(old_loglike - new_loglike);
     acceptance = std::fmin(1.0, value_new);
   }
@@ -218,8 +262,8 @@ Rcpp::List get_alpha_c(arma::vec alpha_0, const arma::mat& y, const int n_datase
       Rcpp::List psi_out_new = psi_alpha_c(alpha_proposed, y, n_datasets, time_idx, data, mu, xi, V_mat, knots, n_Knots);
      
       // calculate new acceptance value
-      float old_loglike = psi_out_old["psi_out_old$negloglhood"];
-      float new_loglike = psi_out_new["psi_out_old$negloglhood"];
+      float old_loglike = psi_out_old["negloglhood"];
+      float new_loglike = psi_out_new["negloglhood"];
       float value_new = exp(old_loglike - new_loglike);
       acceptance = std::fmin(1.0, value_new);
     }
@@ -495,7 +539,133 @@ float lb_acceptance_c(const arma::mat y, const float lb, const float lb_prime, c
   return(to_return);
 }
 
-        
+// [[Rcpp::export]]
+float get_sigmaB_2_c(const float a, const float b, const arma::vec xi, const float lb,
+                     const arma::vec knots, const int n_Knots)
+{
+  // calculating shape and rate of inv gamma
+  arma::mat M = get_matern_c(lb, knots);
+  arma::mat rate_term_temp = xi.t() * arma::inv(M) * xi;
+  float rate_term = rate_term_temp(0, 0)/2;
+  
+  // do inverse gamma draw
+  Rcpp::NumericVector sigmaB_2_temp = Rcpp::rgamma(1, a + n_Knots/2, 1/(b + rate_term));
+  float sigmaB_2 = 1/sigmaB_2_temp[0];
+  
+  return(sigmaB_2);
+}
+       
+// [[Rcpp::export]]
+Rcpp::List psi_xi_c(const arma::vec xi, const arma::mat y, const int n_datasets, 
+                    const List time_idx, const arma::vec mu, const List H_mat, 
+                    const List V_mat)     
+{
+  List g(n_datasets);
+  float negloglhood = 0.0;
+  
+  for (int i = 0; i < n_datasets; i++)
+  {
+    // // extract matrix we are inverting
+    Rcpp::NumericMatrix H_temp = H_mat[i];
+    arma::mat H = Rcpp::as<arma::mat>(wrap(H_temp));
+    g(i) = H * xi;
+    
+    // get the loglikelihood
+    Rcpp::NumericMatrix V_temp = V_mat[i];
+    arma::mat V = Rcpp::as<arma::mat>(wrap(V_temp));
+
+    // get the y term 
+    arma::uvec indices(as<arma::uvec>(wrap(time_idx(i))));
+    // subtract 1 from indices
+    for (int k = 0; k < indices.n_elem; k++)
+    {
+      indices[k] = indices[k] - 1;
+    }
+    
+    arma::mat y_row = y.cols(indices); // get time_idx indices of the matrix
+    arma::rowvec y_temp = y_row.row(i); // get the specific row
+    
+    // get y - mu[i]- g[[i]]
+    arma::vec mu_temp = arma::ones<arma::vec>(y_temp.n_elem) * mu[i];
+    arma::vec g_temp = g(i);
+    arma::rowvec term_two = y_temp - mu_temp.t() - g_temp.t();
+    
+    arma::mat temp_lik = term_two * arma::inv(V) * term_two.t();
+    
+    negloglhood += temp_lik(0,0)/2;
+  }
+  
+  return Rcpp::List::create( Rcpp::Named("negloglhood") = negloglhood, 
+                             Rcpp::Named("g") = g);
+}
+      
+// [[Rcpp::export]]
+Rcpp::List get_xi_backend_c(const arma::vec xi_0, const float sigmaB_2, const arma::mat y, const int n_datasets, 
+                    const List time_idx, const arma::vec mu, const List H_mat, const List V_mat, 
+                    const float lb, const arma::vec knots, const arma::vec xi_prior)
+{
+  // stuff before the while loop, assume wood and chan stuff is already passed in as xi_proposed
+  
+  // step one
+  float theta = (2*M_PI)* arma::randu();
+  arma::vec xi_proposed = std::cos(theta) * xi_0 + std::sin(theta) * xi_prior;
+  
+  // step two
+  float theta_min = theta - 2 * M_PI;
+  float theta_max = theta;
+  
+  // old negative loglikelihood
+  Rcpp::List psi_out_old = psi_xi_c(xi_0, y, n_datasets, time_idx, mu, H_mat, V_mat);
+  
+  // new negative loglikelihood
+  Rcpp::List psi_out_new = psi_xi_c(xi_proposed, y, n_datasets, time_idx, mu, H_mat, V_mat);
+  
+  // calculate new acceptance value
+
+  // calculate new acceptance value
+  float old_loglike = psi_out_old["negloglhood"];
+  float new_loglike = psi_out_new["negloglhood"];
+  float value_new = exp(old_loglike - new_loglike);
+  float acceptance = std::fmin(1.0, value_new);
+  
+  // step 3
+  float zeta = arma::randu();
+  
+  // continuation of step 3 - don't return until we get something we accept 
+  while (acceptance <= zeta)
+  {
+    // step a
+    if (theta < 0)
+    {
+      theta_min = theta;
+    } else {
+      theta_max = theta;
+    }
+    
+    // step b 
+    float a = theta_max - theta_min;
+    float b = theta_min;
+    theta = a*randu() + b;
+    
+    // step c
+    xi_proposed = std::cos(theta) * xi_0 + std::sin(theta) * xi_prior;
+    
+    // new negative loglikelihood
+    Rcpp::List psi_out_new = psi_xi_c(xi_proposed, y, n_datasets, time_idx, mu,H_mat, V_mat);
+    
+    // calculate new acceptance value
+    new_loglike = psi_out_new["negloglhood"];
+    value_new = exp(old_loglike - new_loglike);
+    acceptance = std::fmin(1.0, value_new);  
+  }
+  
+  psi_out_new = psi_xi_c(xi_proposed, y, n_datasets, time_idx, mu, H_mat, V_mat);
+  
+  return Rcpp::List::create(  Rcpp::Named("negloglhood") = psi_out_new["negloglhood"],
+                              Rcpp::Named("xi") = xi_proposed,
+                             Rcpp::Named("g") = psi_out_new["g"]);  
+}
+
 
 // Rcpp::sourceCpp("src/FUNC_paramater_estimates_c.cpp")
 
