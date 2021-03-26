@@ -5,6 +5,7 @@ library(FastGP)
 library(emulator)
 
 
+
 # function to get the individual values for a Matern(5/2) kernel
 get_matern_values = function(l_k, r_mj)
 {
@@ -287,6 +288,20 @@ get_sigmaB_2 = function(a, b, xi, lb, knots, n_Knots)
                                  rate = b + rate_term)
   
   return(sigmaB_2)
+}
+
+# function for MH sampling to get xi values
+get_xi_c = function(xi_0, sigmaB_2, y, n_datasets, time_idx,
+                  mu, H_mat, V_mat, lb, knots)
+{
+  # step one
+  xi_prior = samp.WC(knots, lb, 5/2, sigmaB_2)
+
+  temp = get_xi_backend_c(xi_0, sigmaB_2, y, n_datasets, time_idx,
+                          mu, H_mat, V_mat, lb, knots, xi_prior)
+
+  return(temp)
+  # return(c(psi_out_new, list("xi" = xi_proposed)))
 }
 
 
