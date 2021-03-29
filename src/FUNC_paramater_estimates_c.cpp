@@ -439,7 +439,7 @@ float lk_acceptance_c(const arma::mat& y, const arma::vec mu, const List g, cons
   // indicator function part
   if (lk_prime < 0.1 || lk_prime > 1 || l_k < 0.1 ||  l_k > 1)
   {
-    to_return = 0;
+    to_return = 0.0;
   }
   else
   {
@@ -448,63 +448,61 @@ float lk_acceptance_c(const arma::mat& y, const arma::vec mu, const List g, cons
     arma::vec fill = arma::vec(y_noNA.n_elem);
     fill.fill(mu[0]);
     arma::vec g_fill = g[0];
-    arma::vec term_one = y_noNA - fill - g_fill.t();
+    arma::rowvec term_one = y_noNA - fill.t() - g_fill.t();
 
     // get the two v terms necessary
     arma::vec time_temp = time[0];
     arma::mat M_temp = get_matern_c(l_k, time_temp);
     arma::mat M_prime = get_matern_c(lk_prime, time_temp);
-    
+
     arma::mat K_temp = get_K_i_c(sigma_2, M_temp);
     arma::mat K_prime = get_K_i_c(sigma_2, M_prime);
-    
+
     arma::mat V_temp = get_V_i_c(sigma_2, K_temp);
     arma::mat V_prime = get_V_i_c(sigma_2, K_prime);
-    
+
     arma::mat term_two = arma::inv(V_prime) - arma::inv(V_temp);
-      
+
     // do matrix multiplication
-    arma::mat matrix_part1 = term_one.t() * term_two;
-    arma::mat matrix_part = matrix_part1 * term_one;
-    
+    arma::mat matrix_part1 = term_one * term_two;
+    arma::mat matrix_part = matrix_part1.t() * term_one;
+
     // calculate ratio
     ratio = exp(-0.5 * matrix_part(0,0));
     
     // for loop goes here
     for (int i = 1; i < y.n_rows; i++)
     {
-      arma::rowvec y_noNA = y.row(0); // get the specific row
+      arma::rowvec y_noNA = y.row(i); // get the specific row
       arma::vec fill = arma::vec(y_noNA.n_elem);
-      fill.fill(mu[0]);
-      arma::vec g_fill = g[0];
-      arma::vec term_one = y_noNA - fill - g_fill;
-      
+      fill.fill(mu[i]);
+      arma::vec g_fill = g[i];
+      arma::rowvec term_one = y_noNA - fill.t() - g_fill.t();
+
       // get the two v terms necessary
-      arma::vec time_temp = time[0];
+      arma::vec time_temp = time[i];
       arma::mat M_temp = get_matern_c(l_k, time_temp);
       arma::mat M_prime = get_matern_c(lk_prime, time_temp);
-      
+
       arma::mat K_temp = get_K_i_c(sigma_2, M_temp);
       arma::mat K_prime = get_K_i_c(sigma_2, M_prime);
-      
+
       arma::mat V_temp = get_V_i_c(sigma_2, K_temp);
       arma::mat V_prime = get_V_i_c(sigma_2, K_prime);
-      
+
       arma::mat term_two = arma::inv(V_prime) - arma::inv(V_temp);
-      
+
       // do matrix multiplication
-      arma::mat matrix_part1 = term_one.t() * term_two;
-      arma::mat matrix_part = matrix_part1 * term_one;
-      
+      arma::mat matrix_part1 = term_one * term_two;
+      arma::mat matrix_part = matrix_part1.t() * term_one;
+
       ratio = ratio * exp(-0.5 * matrix_part(0,0));
-        
     }
     
     to_return = std::fmin(1.0, (lk_prime / l_k) * ratio);
   }
   
   return(to_return);
-
 }
 
 // [[Rcpp::export]]
