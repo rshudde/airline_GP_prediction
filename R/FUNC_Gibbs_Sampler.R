@@ -8,19 +8,18 @@ gibbs_sampler = function(data_gibbs, B = 1000,
                          mu_initial, beta_initial, sigma_2_initial, lK_initial,
                          xi_initial, sigmaB_2_initial, lB_initial,
                          a = 10^(-3), b = 10^(-3), alpha_normal_prior = 0,
-                         sigma_normal_prior = 1000, burn_in = 0.5)
+                         sigma_normal_prior = 1000, burn_in = 0.5, cpp = TRUE)
 {
-  
   # for testing
-  B = 1000
-  a = 10^(-3)
-  b = 10^(-3)
-  alpha_normal_prior = 0
-  sigma_normal_prior = 1000
-  burn_in = 0.5
-  sigma_2_initial = 1
-  sigmaB_2_initial = 1
-  
+  # B = 1000
+  # a = 10^(-3)
+  # b = 10^(-3)
+  # alpha_normal_prior = 0
+  # sigma_normal_prior = 1000
+  # burn_in = 0.5
+  # sigma_2_initial = 1
+  # sigmaB_2_initial = 1
+  # 
   #### data ####
   # get X and y values from the data
   X = data_gibbs$X
@@ -112,6 +111,7 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     mu_post[idx, ] = get_mu_c(y, n_datasets, g_gibbs, V_gibbs, time_idx,
                             sigma_2_mu_gibbs, alpha_mu_gibbs)
     mu_post[idx, 1] = 0
+
     # mu_post[idx, ] = data_gibbs$mu_true
     
     # #### getting beta ####
@@ -162,11 +162,10 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     # updating l_k related term
     for (i in 1:n_datasets)
     {
-      M_gibbs[[i]] = get_matern_c(lK_post[idx], time_idx[[i]])
-      K_gibbs[[i]] = get_K_i_c(sigma_2_post[idx], M_gibbs[[i]])
-      V_gibbs[[i]] = get_V_i_c(sigma_2_post[idx], K_gibbs[[i]])
+      M_gibbs[[i]] = get_matern_c(lK_post[idx], time_idx[[i]]) # only c function is fastest here
+      K_gibbs[[i]] = get_K_i(sigma_2_post[idx], M_gibbs[[i]])
+      V_gibbs[[i]] = get_V_i(sigma_2_post[idx], K_gibbs[[i]])
     }
-    
     
     #### get l_b ####
     lB_post[idx] = get_lb_c(y, lB_post[idx - 1], xi_post[idx - 1, ])
@@ -176,13 +175,6 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     #### getting sigmaB_2 ####
     sigmaB_2_post[idx] = get_sigmaB_2_c(a_gibbs, b_gibbs, xi_post[idx - 1, ],
                                       lB_post[idx], knots_gibbs, n_Knots_gibbs)
-
-
-    #### getting xi ####
-    xi_gibbs_out = get_xi(xi_post[idx - 1, ], sigmaB_2_post[idx], y, n_datasets,
-                          time_idx, mu_post[idx, ], H_gibbs, V_gibbs,
-                          lB_post[idx], knots_gibbs)
-    xi_post[idx, ] = xi_gibbs_out$xi
     
     
     #### getting xi ####
@@ -206,11 +198,8 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     #### get log likelihood ####
     for (i in 1:n_datasets)
     {
-      loglhood_gibbs[idx] = loglhood_gibbs[idx] -
-        as.numeric(determinant(V_gibbs[[i]], log = T)$modulus)/2 -
-        (emulator::quad.form.inv(V_gibbs[[i]],
-                                 y[i,time_idx[[i]]] - mu_post[idx, i] -
-                                   g_gibbs[[i]]))/2
+      loglhood_gibbs[idx] = loglhood_gibbs[idx] - as.numeric(determinant(V_gibbs[[i]], log = T)$modulus)/2 -
+        (emulator::quad.form.inv(V_gibbs[[i]], y[i,time_idx[[i]]] - mu_post[idx, i] - g_gibbs[[i]]))/2
     }
     # loglhood_gibbs[idx] = loglhood_gibbs[idx] - xi_gibbs_out$negloglhood
     
@@ -221,7 +210,7 @@ gibbs_sampler = function(data_gibbs, B = 1000,
     
     
     # print statement for time  
-    if (idx %% 1000 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2)))
+    if (idx %% 100 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2)))
   }
   # print(round(Sys.time() - start),2)
   
