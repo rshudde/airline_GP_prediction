@@ -154,7 +154,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     
     
     #### get l_k ####
-    lK_post[idx] = get_lk(y, mu_post[idx, ], g_gibbs, sigma_2_post[idx - 1], lK_post[idx - 1], time_idx)
+    lK_post[idx] = get_lk_c(y, mu_post[idx, ], g_gibbs, sigma_2_post[idx - 1], lK_post[idx - 1], time_idx)
     
     
     # lK_post[idx] = data_gibbs$lK_true
@@ -173,7 +173,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     
     
     #### getting sigmaB_2 ####
-    sigmaB_2_post[idx] = get_sigmaB_2(a_gibbs, b_gibbs, xi_post[idx - 1, ],
+    sigmaB_2_post[idx] = get_sigmaB_2_c(a_gibbs, b_gibbs, xi_post[idx - 1, ],
                                         lB_post[idx], knots_gibbs, n_Knots_gibbs)
     
     
@@ -182,13 +182,6 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
                           time_idx, mu_post[idx, ], H_gibbs, V_gibbs,
                           lB_post[idx], knots_gibbs)
     xi_post[idx, ] = xi_gibbs_out$xi
-    
-    
-    #### getting xi ####
-    xi_gibbs_out = get_xi(xi_post[idx - 1, ], sigmaB_2_post[idx], y, n_datasets,
-                            time_idx, mu_post[idx, ], H_gibbs, V_gibbs,
-                            lB_post[idx], knots_gibbs)
-    old = xi_gibbs_out$xi
     
     
     # updating xi related term
