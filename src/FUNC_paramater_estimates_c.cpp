@@ -122,7 +122,7 @@ arma::vec get_mu_c(const arma::mat& y, const int n_datasets, const List g, MatLi
     float term_seven = term_six(0,0);
 
     float alpha_mu_post_i = sigma_2_mu_post_i*(alpha_mu/sigma_2_mu + term_seven);
-    mu[i] = sigma_2_mu_post_i * (arma::randn()) + alpha_mu_post_i;
+    mu[i] = std::sqrt(sigma_2_mu_post_i) * (arma::randn()) + alpha_mu_post_i;
 
     // std::cout << i << std::endl;
   }
