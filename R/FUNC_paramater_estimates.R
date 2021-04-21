@@ -1,8 +1,5 @@
 # This is a file to start doing paramater estimates for sampling
-library(invgamma)
-library(MASS)
-library(FastGP)
-library(emulator)
+
 
 
 
@@ -58,12 +55,11 @@ get_mu = function(y, n_datasets, g, V_mat, time_idx, sigma_2_mu, alpha_mu)
   
   for (i in 1:n_datasets)
   {
-    sigma_2_mu_post_i = 1/(quad.form.inv(V_mat[[i]], rep(1, length(time_idx[[i]]))) +
-                             1/sigma_2_mu)
+    sigma_2_mu_post_i = 1/(quad.form.inv(V_mat[[i]], rep(1, length(time_idx[[i]]))) + 1/sigma_2_mu)
     alpha_mu_post_i = sigma_2_mu_post_i*(alpha_mu/sigma_2_mu +
          quad.3form.inv(V_mat[[i]], y[i,time_idx[[i]]] - g[[i]],
                         rep(1, length(time_idx[[i]]))))
-    
+
     mu[i] = rnorm(1, alpha_mu_post_i, sqrt(sigma_2_mu_post_i))
   }
   
@@ -94,12 +90,13 @@ psi_alpha = function(alpha, y, n_datasets, time_idx, dat,
                      mu, xi, V_mat, knots, n_Knots)
 {
   beta = alpha/sqrt(sum(alpha^2))
+  # beta = alpha / sum(abs(alpha))
   w = H_mat = g = list()
   negloglhood = 0
   for (i in 1:n_datasets)
   {
-    w[[i]] = 
-      (as.numeric(Matrix::tcrossprod(dat[[i]], t(beta))) + 1)/2
+    w[[i]] = (as.numeric(Matrix::tcrossprod(dat[[i]], t(beta))) + 1)/2
+
     H_mat[[i]] = get_H_matrix(w[[i]], knots, n_Knots)
     g[[i]] = as.numeric(Matrix::tcrossprod(H_mat[[i]], t(xi)))
     negloglhood = negloglhood +
@@ -222,11 +219,28 @@ psi_xi = function(xi, y, n_datasets, time_idx,
 
 # function for MH sampling to get xi values
 get_xi = function(xi_0, sigmaB_2, y, n_datasets, time_idx,
-                  mu, H_mat, V_mat, lb, knots)
+                  mu, H_mat, V_mat, lb, knots, nNeighbour, NNGP = FALSE)
 {
   # step one
   theta = runif(1, 0, 2*pi)
-  xi_prior = samp.WC(knots, lb, 5/2, sigmaB_2)
+  
+  if (!NNGP)
+  {
+    xi_prior = samp.WC(knots, lb, 5/2, sigmaB_2)
+  } else {
+    nknots = length(knots)
+    xi_prior = rep(NA, nknots)
+    xi_prior[1] = rnorm(1, 0, sigmaB_2)
+    for (j in 2:nknots)
+    {
+      b_j = sigmaB_2*get_matern_values(lb, abs(knots[max(1,j - nNeighbour):(j - 1)] - knots[j]))
+      A_j = forwardsolve(sigmaB_2*get_matern_values(lb, as.matrix(dist(knots[max(1,j - nNeighbour):(j - 1)]))),b_j)
+      d_j = sigmaB_2 - sum(A_j*b_j)
+      xi_prior[j] = sum(xi_prior[max(1,j - nNeighbour):(j - 1)]*A_j) +
+        rnorm(1, 0, sqrt(d_j))
+    }
+  }
+  
   xi_proposed = cos(theta) * xi_0 + sin(theta) * xi_prior
   
   # step two
@@ -292,11 +306,27 @@ get_sigmaB_2 = function(a, b, xi, lb, knots, n_Knots)
 
 # function for MH sampling to get xi values
 get_xi_c = function(xi_0, sigmaB_2, y, n_datasets, time_idx,
-                  mu, H_mat, V_mat, lb, knots)
+                  mu, H_mat, V_mat, lb, knots, nNeighbour, NNGP = FALSE)
 {
   # step one
-  xi_prior = samp.WC(knots, lb, 5/2, sigmaB_2)
+  if (!NNGP)
+  {
+    xi_prior = samp.WC(knots, lb, 5/2, sigmaB_2)
+  } else {
+    nknots = length(knots)
+    xi_prior = rep(NA, nknots)
+    xi_prior[1] = rnorm(1, 0, sigmaB_2)
+    for (j in 2:nknots)
+    {
+      b_j = sigmaB_2*get_matern_values(lb, abs(knots[max(1,j - nNeighbour):(j - 1)] - knots[j]))
+      A_j = forwardsolve(sigmaB_2*get_matern_values(lb, as.matrix(dist(knots[max(1,j - nNeighbour):(j - 1)]))),b_j)
+      d_j = sigmaB_2 - sum(A_j*b_j)
+      xi_prior[j] = sum(xi_prior[max(1,j - nNeighbour):(j - 1)]*A_j) +
+        rnorm(1, 0, sqrt(d_j))
+    }
+  }
 
+  # step two
   temp = get_xi_backend_c(xi_0, sigmaB_2, y, n_datasets, time_idx,
                           mu, H_mat, V_mat, lb, knots, xi_prior)
 
@@ -516,7 +546,7 @@ get_lk_c = function(y, mu, g, sigma_2, lk_0, time)
 
 
 ## LB functions below
-lb_acceptance = function(y, lb, lb_prime, xi)
+lb_acceptance = function(y, lb, lb_prime, xi, knots) # depends on lb, lb', g values (this comes from H matrix and xi), v matrix
 {
   # print(knots)
   # indicator function part
@@ -526,13 +556,17 @@ lb_acceptance = function(y, lb, lb_prime, xi)
   } else { # calcualtions assuming indicator = 1
     # calcualte first term outside of the product
     term_one = xi
+    # xi_lb = get_g()
+    # xi_lb_prime = get_g()
 
     # stuff we need to calcualte v_i
-    M_lb = get_matern(lb, xi)
-    M_lb_prime = get_matern(lb_prime, xi)
+    M_lb = get_matern(lb, knots)
+    M_lb_prime = get_matern(lb_prime, knots) # this should be dependent on the knot points, not hte lb 
 
     # use tinv to invert M here
-    term_two = tinv(M_lb) - tinv(M_lb_prime)
+    # term_two = tinv(M_lb) - tinv(M_lb_prime)
+    term_two = chol2inv(M_lb) - chol2inv(M_lb_prime)
+    
 
     # matrix multiplication
     matrix_part = crossprod(term_one, term_two)
@@ -548,9 +582,8 @@ lb_acceptance = function(y, lb, lb_prime, xi)
   return(to_return)
 }
 
-
 # function to calculate lb updates
-get_lb = function(y, lb_0, xi)
+get_lb = function(y, lb_0, xi, knots)
 {
   lb_t = lb_0
 
@@ -561,7 +594,7 @@ get_lb = function(y, lb_0, xi)
   u_t = runif(1, 0, 1)
   
   # calculate new acceptance
-  acceptance = lb_acceptance(y, lb_t, lb_prime, xi)
+  acceptance = lb_acceptance(y, lb_t, lb_prime, xi, knots)
   
   # update lb_t1 based on acceptance
   lb_t1 = ifelse(u_t <= acceptance, lb_prime, lb_t)
@@ -570,7 +603,7 @@ get_lb = function(y, lb_0, xi)
 }
 
 # function to calculate lb updates
-get_lb_c = function(y, lb_0, xi)
+get_lb_c = function(y, lb_0, xi, knots)
 {
   lb_t = lb_0
   
@@ -581,12 +614,10 @@ get_lb_c = function(y, lb_0, xi)
   u_t = runif(1, 0, 1)
   
   # calculate new acceptance
-  acceptance = lb_acceptance_c(y, lb_t, lb_prime, xi)
+  acceptance = lb_acceptance_c(y, lb_t, lb_prime, xi, knots)
   
   # update lb_t1 based on acceptance
   lb_t1 = ifelse(u_t <= acceptance, lb_prime, lb_t)
   
   return(lb_t1)
 }
-
-
