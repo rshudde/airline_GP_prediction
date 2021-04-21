@@ -245,10 +245,10 @@ plot_all = function(results)
   
   
   ############
-  new_g = matrix(g_pm, ncol = 10, byrow = T)
+  new_g = matrix(g_pm, ncol = length(data$g_true), byrow = T)
   g = rowMeans(new_g)
   
-  new_w = matrix(colMeans(results$w), ncol = 10, byrow = T)
+  new_w = matrix(colMeans(results$w), ncol = length(data$g_true), byrow = T)
   w = rowMeans(new_w)
   
   new_add = g + mu_pm
@@ -271,12 +271,12 @@ plot_all = function(results)
   
   # truth
   # g(w) vs w
-  w.range = range(data$w_true, w_pm)
-  g.range = range(c(data$g_true, g_pm))
-  plot(unlist(data$w_true), unlist(data$g_true), pch = 16,
-       main = 'g(w) vs. w',
-       col = 2, xlab = 'w', ylab = 'g(w)', xlim = w.range, ylim = g.range)
-  points(w_pm, g_pm, pch = 16)
+  # w.range = range(data$w_true, w_pm)
+  # g.range = range(c(data$g_true, g_pm))
+  # plot(unlist(data$w_true), unlist(data$g_true), pch = 16,
+  #      main = 'g(w) vs. w',
+  #      col = 2, xlab = 'w', ylab = 'g(w)', xlim = w.range, ylim = g.range)
+  # points(w_pm, g_pm, pch = 16)
   
   
   # res = vector()
