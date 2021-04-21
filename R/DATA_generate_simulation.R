@@ -24,6 +24,8 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
     alpha = c(abs(alpha[max_value]), alpha[-max_value])
     
     beta_true = alpha / sqrt(sum(alpha^2)) # ||beta|| = 1
+    # beta_true = alpha / sum(abs(alpha)) # ||beta|| = 1
+    
   }
   if (missing(sigma_2_true)) sigma_2_true = .25
   if (missing(lK_true)) lK_true = .3
