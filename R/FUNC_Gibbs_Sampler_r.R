@@ -175,7 +175,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     }
     
     #### get l_b ####
-    lB_post[idx] = get_lb_c(y, lB_post[idx - 1], xi_post[idx - 1, ], knots_gibbs)
+    lB_post[idx] = get_lb(y, lB_post[idx - 1], xi_post[idx - 1, ], knots_gibbs)
     # lB_post[idx] = data_gibbs$lB_true
     
     
