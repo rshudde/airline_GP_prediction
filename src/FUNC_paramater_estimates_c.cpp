@@ -572,7 +572,7 @@ float get_sigmaB_2_c(const float a, const float b, const arma::vec xi, const flo
 {
   // calculating shape and rate of inv gamma
   arma::mat M = get_matern_c(lb, knots);
-  arma::mat rate_term_temp = xi.t() * arma::inv(M) * xi;
+  arma::mat rate_term_temp = xi.t() * M.i() * xi;
   float rate_term = rate_term_temp(0, 0)/2;
   
   // do inverse gamma draw
