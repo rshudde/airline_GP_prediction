@@ -29,18 +29,20 @@ Rcpp::sourceCpp("src/FUNC_paramater_estimates_c.cpp")
 # lB_initial = data$lB_true
 # save(results, file = "results.RData")
 
-data = generate_simulation_data(n_datasets = 300, n_time = 20, n_covariates = 10, seed = sample(1:10000, 1))
+data = generate_simulation_data(n_datasets = 30, n_time = 10, n_covariates = 10, seed = 1)
 start = Sys.time()
 results = gibbs_sampler_r(data_gibbs = data, 
-                        B = 1000, 
+                        B = 5000, 
                         # mu_initial = data$mu_true,
                         # beta_initial = data$beta_true,
                         # sigma_2_initial = data$sigma_2_true,
                         xi_initial = runif(length(data$xi_true), -1, 1),
                         # xi_initial = data$xi_true,
                         # lK_initial = data$lK_true,
-                        lB_initial = data$lB_true)
-saveRDS(results, file = "data")
+                        lB_initial = data$lB_true,
+                        NNGP = TRUE,
+                        n_to_store = 200)
+# saveRDS(results, file = "data")
 plot_all(results)
 betas = cbind(colMeans(results$beta), data$beta_true)
 print(betas)
@@ -58,4 +60,25 @@ print(end - start)
 # loglhood_pm = mean(results$loglhood)
 # lk_pm = results$lK
 # lb_pm = results$lB
+
+# data1 = generate_simulation_data(n_datasets = 50, n_time = 20, n_covariates = 10, seed = 1, seed2 = 1)
+# data2 = generate_simulation_data(n_datasets = 50, n_time = 20, n_covariates = 10, seed = 1, seed2 = 2)
+# data3 = generate_simulation_data(n_datasets = 50, n_time = 20, n_covariates = 10, seed = 1, seed2 = 3)
+# 
+# 
+# cbind(data1$beta_true, data2$beta_true, data3$beta_true)
+# cbind(data1$X[[1]][1,1:5], data2$X[[1]][1,1:5], data3$X[[1]][1,1:5])
+# cbind(data1$y[1,1:5], data2$y[1,1:5], data3$y[1,1:5])
+# 
+# cbind(data1$xi_true, data2$xi_true, data3$xi_true)
+
+
+
+
+
+
+
+
+
+
 
