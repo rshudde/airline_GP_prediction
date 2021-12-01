@@ -1,7 +1,7 @@
 # generate data to test on
 generate_simulation_data = function(n_datasets, n_time, n_covariates,
                                     mu_true, beta_true, sigma_2_true, lK_true, 
-                                    xi_true, sigmaB_2_true, lB_true, seed = 1)
+                                    xi_true, sigmaB_2_true, lB_true, seed = 1, seed2 = 1)
 {
   set.seed(seed)
   
@@ -37,7 +37,8 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
     n_Knots = 20
     knots = seq(0, 1, length.out = n_Knots)
     B_true = sigmaB_2_true*get_matern(lB_true, knots)
-    xi_true = as.numeric(mvtnorm::rmvnorm(1, numeric(n_Knots), B_true))
+    xi_true = as.numeric(mvtnorm::rmvnorm(1, numeric(n_Knots), B_true)) # original, don't delete
+    xi_true = knots^2
     
   }else{
     
@@ -46,6 +47,8 @@ generate_simulation_data = function(n_datasets, n_time, n_covariates,
   }
   
   # to get x variables first
+  rm(.Random.seed, envir=globalenv())
+  set.seed(seed2)
   X = time_idx = vector("list", n_datasets)
   c.X = rep(NA, n_datasets)
   for (i in 1:n_datasets)

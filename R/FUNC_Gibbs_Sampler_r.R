@@ -6,7 +6,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
                          xi_initial, sigmaB_2_initial, lB_initial,
                          a = 10^(-3), b = 10^(-3), alpha_normal_prior = 0,
                          sigma_normal_prior = 1000, burn_in = 0.5, cpp = TRUE, 
-                         nNeighbour = 25, NNGP = FALSE)
+                         nNeighbour = 25, NNGP = FALSE, n_to_store = 100)
 {
   # # for testing
   # B = 1000
@@ -23,7 +23,8 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
   # xi_initial = runif(length(data$xi_true), -1, 1)
   # lK_initial = data$lK_true
   # lB_initial = data$lB_true
-  # data_gibbs = data
+  # NNGP = FALSE
+  # n_to_store = 100
 
   #### data ####
   # get X and y values from the data
@@ -34,11 +35,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
   # get the number of datasets, covariates and knots
   n_datasets = length(X)
   n_covariates = ncol(X[[1]])
-  n_nonNA_y = 0
-  for (i in 1:n_datasets)
-  {
-    n_nonNA_y = n_nonNA_y + length(time_idx[[i]])
-  }
+  n_nonNA_y = sum(unlist(lapply(time_idx, length)))
   
   if (missing(xi_initial))
   {
@@ -56,12 +53,13 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
   b_gibbs = b
   
   #### storage ####
-  mu_post = matrix(nrow = B + 1, ncol = n_datasets)
-  alpha_post = beta_post = matrix(nrow = B + 1, ncol = n_covariates)
-  xi_post = matrix(nrow = B + 1, ncol = n_Knots_gibbs)
-  sigmaB_2_post = sigma_2_post = lK_post = lB_post = rep(NA, B + 1)
-  w_post = g_post = matrix(nrow = B + 1, ncol = n_nonNA_y)
-  loglhood_gibbs = numeric(B + 1)
+  mu_post = matrix(nrow = n_to_store, ncol = n_datasets)
+  alpha_post = beta_post = matrix(nrow = n_to_store, ncol = n_covariates)
+  xi_post = matrix(nrow = n_to_store, ncol = n_Knots_gibbs)
+  sigmaB_2_post = sigma_2_post = lK_post = lB_post = rep(NA, n_to_store)
+  w_post = g_post = matrix(nrow = n_to_store, ncol = n_nonNA_y)
+  loglhood_gibbs = numeric(n_to_store)
+  loglhood_gibbs_current = 0
   
   #### initialize chain ####
   if (missing(mu_initial)) mu_initial = numeric(n_datasets)
@@ -73,62 +71,81 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
   if (missing(sigma_2_initial)) sigma_2_initial = 1
   if (missing(sigmaB_2_initial)) sigmaB_2_initial = 1
   if (missing(xi_initial)) xi_initial = runif(n_Knots_gibbs, -5, 5) #rep(1, n_Knots_gibbs)
-  if (missing(lK_initial)) lK_initial = 1
-  if (missing(lB_initial)) lB_initial = 1
+  if (missing(lK_initial)) lK_initial = 0.5
+  if (missing(lB_initial)) lB_initial = 1/length(X)
   
-  # initializing
-  mu_post[1, ] = mu_initial
-  alpha_post[1, ] = beta_initial
-  beta_post[1, ] = beta_initial
-  sigma_2_post[1] = sigma_2_initial
-  xi_post[1, ] = xi_initial # length of knots
-  sigmaB_2_post[1] = sigmaB_2_initial
-  lK_post[1] = lK_initial
-  lB_post[1] = lB_initial
+  ##  initializing for testing
+  # mu_initial = numeric(n_datasets)
+  # beta_initial = rep(1, n_covariates)
+  # beta_initial = beta_initial/sqrt(sum(beta_initial^2))
+  # sigma_2_initial = 1
+  # sigmaB_2_initial = 1
+  # xi_initial = runif(n_Knots_gibbs, -5, 5) #rep(1, n_Knots_gibbs)
+  # lK_initial = 0.5
+  # lB_initial = 0.5
+
   
+  mu_post_current = mu_initial
+  alpha_post_current = beta_initial
+  beta_post_current = beta_initial
+  sigma_2_post_current = sigma_2_initial
+  xi_post_current = xi_initial # length of knots
+  sigmaB_2_post_current = sigmaB_2_initial
+  lK_post_current = lK_initial
+  lB_post_current = lB_initial
   
   ## updating parameter related quantities
   # M, K, V, H matrix
   M_gibbs = K_gibbs = V_gibbs = w_gibbs = H_gibbs = g_gibbs = list()
   for (i in 1:n_datasets)
   {
-    M_gibbs[[i]] = get_matern(lK_post[1], time_idx[[i]])
-    K_gibbs[[i]] = get_K_i(sigma_2_post[1], M_gibbs[[i]])
-    V_gibbs[[i]] = get_V_i(sigma_2_post[1], K_gibbs[[i]])
-    w_gibbs[[i]] = (as.numeric(X[[i]] %*% beta_post[1, ]) + 1)/2
+    M_gibbs[[i]] = get_matern(lK_post_current, time_idx[[i]])
+    K_gibbs[[i]] = get_K_i(sigma_2_post_current, M_gibbs[[i]])
+    V_gibbs[[i]] = get_V_i(sigma_2_post_current, K_gibbs[[i]])
+    w_gibbs[[i]] = (as.numeric(X[[i]] %*% beta_post_current) + 1)/2
     H_gibbs[[i]] = get_H_matrix(w_gibbs[[i]], knots_gibbs, 
                                 n_Knots_gibbs)
-    g_gibbs[[i]] = get_g(H_gibbs[[i]], xi_post[1, ])
+    g_gibbs[[i]] = get_g(H_gibbs[[i]], xi_post_current)
   }
   
   
   ################################################################################################################
   ################################################################################################################
   idx = 2
+  count = 1
+  cutoff = B - n_to_store + 1
   #### starting Gibbs ####
   for (idx in 2:(B + 1))
   {
     start_inner = Sys.time()
     set.seed(idx)
-    
-    
+  
     #### getting mu ####
-    mu_post[idx, ] = get_mu_c(y, n_datasets, g_gibbs, V_gibbs, time_idx,
+    mu_post_current = get_mu_c(y, n_datasets, g_gibbs, V_gibbs, time_idx,
                               sigma_2_mu_gibbs, alpha_mu_gibbs)
-    mu_post[idx, 1] = 0
+    mu_post_current[1] = 0
+    mu_post_current = as.vector(mu_post_current)
+    
+    if (idx > cutoff)
+    {
+      mu_post[count, ] = mu_post_current
+    }
     
     # mu_post[idx, ] = data_gibbs$mu_true
     
     # #### getting beta ####
-    alpha_gibbs_out = get_alpha_c(alpha_post[idx - 1, ], y, n_datasets, time_idx, X,
-                                  n_covariates, mu_post[idx, ], xi_post[idx - 1, ],
+    alpha_gibbs_out = get_alpha_c(alpha_post_current, y, n_datasets, time_idx, X,
+                                  n_covariates, mu_post_current, xi_post_current,
                                   V_gibbs, knots_gibbs, n_Knots_gibbs,
                                   sigma_normal_prior)
-    alpha_post[idx, ] = alpha_gibbs_out$alpha
-    beta_post[idx, ] = alpha_gibbs_out$beta
+    alpha_post_current = alpha_gibbs_out$alpha
+    beta_post_current = alpha_gibbs_out$beta
     
-    
-    
+    if (idx > cutoff)
+    {
+      alpha_post[count, ] = alpha_gibbs_out$alpha
+      beta_post[count, ] = alpha_gibbs_out$beta
+    }
     
     # updating beta related term
     w_gibbs = alpha_gibbs_out$w # list of vectors of length n_covairates
@@ -138,30 +155,43 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     # beta_post[idx, ] = data_gibbs$beta_true
     for (i in 1:n_datasets)
     {
-      w_gibbs[[i]] = (as.numeric(X[[i]] %*% beta_post[idx, ]) + 1)/2
+      w_gibbs[[i]] = (as.numeric(X[[i]] %*% beta_post_current) + 1)/2
       H_gibbs[[i]] = get_H_matrix(w_gibbs[[i]], knots_gibbs,
                                   n_Knots_gibbs)
-      g_gibbs[[i]] = get_g(H_gibbs[[i]], xi_post[idx - 1, ])
+      g_gibbs[[i]] = get_g(H_gibbs[[i]], xi_post_current)
     }
     
     
     #### getting sigma_2 ####
     sigma_2_gibbs_out = get_sigma_2_c(a_gibbs, b_gibbs, y, n_datasets, n_nonNA_y,
-                                      time_idx, mu_post[idx, ], M_gibbs, g_gibbs)
-    sigma_2_post[idx] = sigma_2_gibbs_out$sigma_2
+                                      time_idx, mu_post_current, M_gibbs, g_gibbs)
+    sigma_2_post_current = sigma_2_gibbs_out$sigma_2
+    
+    if (idx > cutoff)
+    {
+      sigma_2_post[count] = sigma_2_gibbs_out$sigma_2
+    }
     
     # sigma_2_post[idx] = data_gibbs$sigma_2_true
     
     # updating sigma_2 related term
     for (i in 1:n_datasets)
     {
-      K_gibbs[[i]] = get_K_i(sigma_2_post[idx], M_gibbs[[i]])
-      V_gibbs[[i]] = get_V_i(sigma_2_post[idx], K_gibbs[[i]])
+      K_gibbs[[i]] = get_K_i(sigma_2_post_current, M_gibbs[[i]])
+      V_gibbs[[i]] = get_V_i(sigma_2_post_current, K_gibbs[[i]])
     }
     
     
     #### get l_k ####
-    lK_post[idx] = get_lk_c(y, mu_post[idx, ], g_gibbs, sigma_2_post[idx - 1], lK_post[idx - 1], time_idx)
+    lK_post_current = get_lk(y = y, mu = mu_post_current, g = g_gibbs, sigma_2 = sigma_2_post_current, 
+                               lk_0 = lK_post_current, time = time_idx)
+    
+    # y = y; mu = mu_post_current; g = g_gibbs; sigma_2 = sigma_2_post_current; lk_0 = lK_post_current; time = time_idx
+    
+    if (idx > cutoff)
+    {
+      lK_post[count] = lK_post_current
+    }
     
     
     # lK_post[idx] = data_gibbs$lK_true
@@ -169,28 +199,43 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     # updating l_k related term
     for (i in 1:n_datasets)
     {
-      M_gibbs[[i]] = get_matern(lK_post[idx], time_idx[[i]]) # only c function is fastest here
-      K_gibbs[[i]] = get_K_i(sigma_2_post[idx], M_gibbs[[i]])
-      V_gibbs[[i]] = get_V_i(sigma_2_post[idx], K_gibbs[[i]])
+      M_gibbs[[i]] = get_matern(lK_post_current, time_idx[[i]]) # only c function is fastest here
+      K_gibbs[[i]] = get_K_i(sigma_2_post_current, M_gibbs[[i]])
+      V_gibbs[[i]] = get_V_i(sigma_2_post_current, K_gibbs[[i]])
     }
     
     #### get l_b ####
-    lB_post[idx] = get_lb(y, lB_post[idx - 1], xi_post[idx - 1, ], knots_gibbs)
+    lB_post_current = get_lb(y, lB_post_current, xi_post_current, knots_gibbs)
     # lB_post[idx] = data_gibbs$lB_true
+    
+    if (idx > cutoff)
+    {
+      lB_post[count] = lB_post_current
+    }
     
     
     #### getting sigmaB_2 ####
-    sigmaB_2_post[idx] = get_sigmaB_2_c(a_gibbs, b_gibbs, xi_post[idx - 1, ],
-                                        lB_post[idx], knots_gibbs, n_Knots_gibbs)
-    if (is.na(sigmaB_2_post[idx])) sigmaB_2_post[idx] = sigmaB_2_post[idx - 1]
+    sigmaB_2_post_temp = get_sigmaB_2_c(a_gibbs, b_gibbs, xi_post_current,
+                                        lB_post_current, knots_gibbs, n_Knots_gibbs)
+    if (!is.na(sigmaB_2_post_temp)) sigmaB_2_post_current = sigmaB_2_post_temp
+    
+    if (idx > cutoff)
+    {
+      sigmaB_2_post[count] = sigmaB_2_post_current
+    }
     
     
     #### getting xi ####
-    xi_gibbs_out = get_xi_c(xi_post[idx - 1, ], sigmaB_2_post[idx], y, n_datasets,
-                            time_idx, mu_post[idx, ], H_gibbs, V_gibbs,
-                            lB_post[idx], knots_gibbs, nNeighbour, NNGP)
-    xi_post[idx,] = xi_gibbs_out$xi
+    xi_gibbs_out = get_xi_c(xi_post_current, sigmaB_2_post_current, y, n_datasets,
+                            time_idx, mu_post_current, H_gibbs, V_gibbs,
+                            lB_post_current, knots_gibbs, nNeighbour, NNGP)
+    xi_post_current = xi_gibbs_out$xi
+
     
+    if (idx > cutoff)
+    {
+      xi_post[count,] = xi_post_current
+    }
     
     # updating xi related term
     g_gibbs = xi_gibbs_out$g
@@ -206,37 +251,47 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     #### get log likelihood ####
     for (i in 1:n_datasets)
     {
-      loglhood_gibbs[idx] = loglhood_gibbs[idx] - as.numeric(determinant(V_gibbs[[i]], log = T)$modulus)/2 -
-        (emulator::quad.form.inv(V_gibbs[[i]], y[i,time_idx[[i]]] - mu_post[idx, i] - g_gibbs[[i]]))/2
+      loglhood_gibbs_current = loglhood_gibbs_current - as.numeric(determinant(V_gibbs[[i]], log = T)$modulus)/2 -
+        (emulator::quad.form.inv(V_gibbs[[i]], y[i,time_idx[[i]]] - mu_post_current[i] - g_gibbs[[i]]))/2
     }
     # loglhood_gibbs[idx] = loglhood_gibbs[idx] - xi_gibbs_out$negloglhood
     
-    
     #### g ####
-    w_post[idx, ] = unlist(w_gibbs)
-    g_post[idx, ] = unlist(g_gibbs)
+    w_post_current = unlist(w_gibbs)
+    g_post_current = unlist(g_gibbs)
     
+    if (idx > cutoff)
+    {
+      loglhood_gibbs[count] = loglhood_gibbs_current
+      w_post[count, ] = w_post_current
+      g_post[count, ] = g_post_current
+      count = count + 1
+    }
     
+    print(paste("GOT TO:", idx))
     # print statement for time  
     if (idx %% 100 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2)))
+    # print(idx)
   }
   # print(round(Sys.time() - start),2)
   
   
   #### get burnin to remove #### 
   burn_in = floor(B * burn_in)
+  thinning = seq(1, n_to_store, by = 2)
   
-  return(list(beta = beta_post[(burn_in + 2):(B + 1), ], 
-              mu = mu_post[(burn_in + 2):(B + 1), ],
-              sigma_2 = sigma_2_post[(burn_in + 2):(B + 1)], 
-              xi = xi_post[(burn_in + 2):(B + 1), ],
-              w = w_post[(burn_in + 2):(B + 1), ],
-              g = g_post[(burn_in + 2):(B + 1), ],
-              sigmaB_2 = sigmaB_2_post[(burn_in + 2):(B + 1)],
-              lB = lB_post[(burn_in + 2):(B + 1)],
-              # lB = lB_post,
-              lK = lK_post[(burn_in + 2):(B + 1)],
-              loglhood = loglhood_gibbs[(burn_in + 2):(B + 1)]))
+  return(list(beta = beta_post[thinning, ],
+              mu = mu_post[thinning, ],
+              sigma_2 = sigma_2_post[thinning],
+              xi = xi_post[thinning, ],
+              w = w_post[thinning, ],
+              g = g_post[thinning, ],
+              sigmaB_2 = sigmaB_2_post[thinning],
+              # lB = lB_post[thinning],
+              lB = lB_post,
+              lK = lK_post[thinning],
+              loglhood = loglhood_gibbs[thinning],
+              knots = knots_gibbs))
 }
 
 

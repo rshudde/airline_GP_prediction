@@ -216,6 +216,14 @@ plot_all = function(results)
        col = 2, xlab = 'w', ylab = 'g(w)', xlim = w.range, ylim = g.range)
   points(w_pm, g_pm, pch = 16)
   
+  # g(w) vs w
+  w.range = range(data$w_true, w_pm)
+  g.range = range(c(data$g_true, g_pm))
+  plot(unlist(data$w_true), unlist(data$g_true), pch = 16,
+       main = 'g(w) vs. w',
+       col = 2, xlab = 'w', ylab = 'g(w)', xlim = w.range, ylim = g.range)
+  points(w_pm, g_pm, pch = 16)
+  
   # log likelihood
   loglhood.range = range(c(data$loglhood_true, results$loglhood))
   plot(results$loglhood, type = 'l', col = 'dodgerblue',
@@ -253,12 +261,13 @@ plot_all = function(results)
   
   new_add = g + mu_pm
   
-  # now get old
+  # now get data stuff
   g_new = vector()
   for (i in 1:length(data$g_true))
   {
     g_new[i] = mean(data$g_true[[i]])
   }
+  
   old_add = g_new + data$mu_true
   
   plot(old_add, new_add, xlab = "True g + mu", ylab = "Sampled g + mu", main = "g  + mu")
