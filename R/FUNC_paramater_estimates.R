@@ -226,7 +226,7 @@ get_xi = function(xi_0, sigmaB_2, y, n_datasets, time_idx,
   
   if (!NNGP)
   {
-    xi_prior = samp.WC(knots, lb, 5/2, sigmaB_2)
+    xi_prior = samp.WC(knots, lb, 5/2, sigmaB_2) 
   } else {
     nknots = length(knots)
     xi_prior = rep(NA, nknots)

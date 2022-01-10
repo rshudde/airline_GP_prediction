@@ -114,6 +114,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
   idx = 2
   count = 1
   cutoff = B - n_to_store + 1
+  loglikelihoodtest = vector(length = B + 1)
   #### starting Gibbs ####
   for (idx in 2:(B + 1))
   {
@@ -268,7 +269,8 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
       count = count + 1
     }
     
-    print(paste("GOT TO:", idx))
+    loglikelihoodtest[idx - 1] = loglhood_gibbs_current
+    # print(paste("GOT TO:", idx))
     # print statement for time  
     if (idx %% 100 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2)))
     # print(idx)
@@ -291,7 +293,8 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
               lB = lB_post,
               lK = lK_post[thinning],
               loglhood = loglhood_gibbs[thinning],
-              knots = knots_gibbs))
+              knots = knots_gibbs,
+              LOGTEST = loglhood_gibbs_current))
 }
 
 

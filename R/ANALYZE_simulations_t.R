@@ -102,7 +102,7 @@ for (idx in 1:length(T_reps))
     #   temp_filename = paste("~/Desktop/Airplane_Paper/RESULTS_TEST/results", n_datasets_rep[idx], "_", i, ".rda", sep = "")
     # }  
     
-    temp_filename = paste("~/Desktop/Airplane_Paper/send_ana/results", T_reps[idx], "_", i, ".rda", sep = "")
+    temp_filename = paste("~/Desktop/sendana/results", T_reps[idx], "_", i, ".rda", sep = "")
     
     data = generate_simulation_data(n_datasets = 100, n_time = T_reps[idx], n_covariates = 15, seed = 1, seed2 = i)
     
@@ -144,34 +144,6 @@ for (idx in 1:length(T_reps))
   }
 }
 
-# idx = 3
-
-# round(colMeans(beta_bias[[idx]]),2)
-# round(mean(sigma_bias[[idx]]),5)
-# 
-# high = colMeans(beta_high[[idx]])
-# low = colMeans(beta_low[[idx]])
-# total = round(cbind(low, high),2)
-# 
-# for (i in 1:nrow(total))
-# {
-#   print(paste("(", total[i,1], ",", total[i, 2], ")", sep = ""))
-# }
-# 
-# print(paste("(", round(mean(sigma_low[[idx]]),2), ",", round(mean(sigma_high[[idx]]),2), ")", sep = ""))
-# 
-# # high = colMeans(g_mu_high[[idx]])
-# # low = colMeans(g_mu_low[[idx]])
-# # print(paste("(", round(mean(low),2), ",", round(mean(high),2), ")", sep = ""))
-# 
-# for (i in 1:15)
-# {
-#   temp = MSE(beta_truth[[idx]][,i], beta[[idx]][,i])
-#   print(round(temp, 2))
-# }
-# 
-# round(MSE(sigma[[idx]], sigma_truth[[idx]]), 7)
-
 
 # which ones to re-do
 for (k in 1:length(T_reps))
@@ -184,30 +156,6 @@ for (k in 1:length(T_reps))
   }
 }
 
-# redo_500 = which(rowMeans(beta[[1]]) == 0)
-# redo_1000 = which(rowMeans(beta[[2]]) == 0)
-# redo_1500 = which(rowMeans(beta[[3]]) == 0)
-# redo_2000 = which(rowMeans(beta[[4]]) == 0)
-# 
-# print(paste(redo_500, collapse = ","))
-# print(paste(redo_1000, collapse = ","))
-# print(paste(redo_1500, collapse = ","))
-# print(paste(redo_2000, collapse = ","))
-
-
-
-
-# if (NNGP & !TEST)
-# {
-#   write_filename = "summary_stats/NNGP/"
-# } else if (!NNGP & !TEST) {
-#   write_filename = "summary_stats/NORMAL/"
-# } else if (NNGP & TEST)
-# {
-#   write_filename = "summary_stats/NNGP_TEST/"
-# } else {
-#   write_filename = "summary_stats/NORMAL_TEST/"
-# }
 
 write_filename = "summary_stats/test_t/"
 
