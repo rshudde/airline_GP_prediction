@@ -216,7 +216,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     
     
     #### getting sigmaB_2 ####
-    sigmaB_2_post_temp = get_sigmaB_2_c(a_gibbs, b_gibbs, xi_post_current,
+    sigmaB_2_post_temp = get_sigmaB_2(a_gibbs, b_gibbs, xi_post_current, # CHANGED FOMR _c
                                         lB_post_current, knots_gibbs, n_Knots_gibbs)
     if (!is.na(sigmaB_2_post_temp)) sigmaB_2_post_current = sigmaB_2_post_temp
     
