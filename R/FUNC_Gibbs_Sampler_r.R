@@ -294,7 +294,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
               lK = lK_post[thinning],
               loglhood = loglhood_gibbs[thinning],
               knots = knots_gibbs,
-              LOGTEST = loglhood_gibbs_current))
+              LOGTEST = loglikelihoodtest))
 }
 
 
