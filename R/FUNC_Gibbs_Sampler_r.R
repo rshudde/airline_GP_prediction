@@ -39,7 +39,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
   
   if (missing(xi_initial))
   {
-    n_Knots_gibbs = ceiling(n_nonNA_y/2) + 1
+    n_Knots_gibbs = ceiling(n_nonNA_y/2) + 1 
   }else{n_Knots_gibbs = length(xi_initial)}
   # n_Knots_gibbs = ifelse(missing(xi_initial), 
   #                        ceiling(n_nonNA_y/2) + 1,
