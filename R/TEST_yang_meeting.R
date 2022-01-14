@@ -23,7 +23,7 @@ results = gibbs_sampler_r(data_gibbs = data, B = 30000,
                           NNGP = FALSE, 
                           n_to_store = 10000)
 save(results, file = "TESTRESULTS.rda")
-
+ 
 
 
 ### 
