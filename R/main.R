@@ -40,7 +40,7 @@ results = gibbs_sampler_r(data_gibbs = data,
                         # xi_initial = data$xi_true,
                         # lK_initial = data$lK_true,
                         lB_initial = data$lB_true,
-                        NNGP = TRUE,
+                        NNGP = FALSE,
                         n_to_store = 200)
 # saveRDS(results, file = "data")
 plot_all(results)

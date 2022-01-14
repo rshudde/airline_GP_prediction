@@ -250,6 +250,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     
     
     #### get log likelihood ####
+    loglhood_gibbs_current = 0
     for (i in 1:n_datasets)
     {
       loglhood_gibbs_current = loglhood_gibbs_current - as.numeric(determinant(V_gibbs[[i]], log = T)$modulus)/2 -
@@ -269,7 +270,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
       count = count + 1
     }
     
-    loglikelihoodtest[idx - 1] = loglhood_gibbs_current
+    loglikelihoodtest[idx] = loglhood_gibbs_current
     # print(paste("GOT TO:", idx))
     # print statement for time  
     if (idx %% 100 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2)))
@@ -294,7 +295,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
               lK = lK_post[thinning],
               loglhood = loglhood_gibbs[thinning],
               knots = knots_gibbs,
-              LOGTEST = loglikelihoodtest))
+              LOGTEST = loglikelihoodtest[-1]))
 }
 
 
