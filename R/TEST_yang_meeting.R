@@ -22,7 +22,7 @@ data = generate_simulation_data(n_datasets = 100, n_time = 80, n_covariates = 15
 #                           burn_in = 0.5,
 #                           NNGP = FALSE,
 #                           n_to_store = 20000)
-# save(results, file = "TESTRESULTS100.rda")
+save(results, file = "TESTRESULTS100.rda")
 
 
 
