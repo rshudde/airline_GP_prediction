@@ -30,7 +30,12 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
   # get X and y values from the data
   X = data_gibbs$X
   y = data_gibbs$y
-  time_idx = data_gibbs$time_idx
+  if (is.null(data_gibbs$time_idx))
+  {
+    time_idx = list()
+    for(i in 1:length(X)) time_idx[[i]] = c(1:nrow(X[[i]]))
+    
+  }
   
   # get the number of datasets, covariates and knots
   n_datasets = length(X)
