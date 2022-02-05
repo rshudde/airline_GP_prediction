@@ -16,12 +16,12 @@ Rcpp::sourceCpp("src/FUNC_paramater_estimates_c.cpp")
 
 
 data = generate_simulation_data(n_datasets = 100, n_time = 80, n_covariates = 15, seed = 1, seed2 = 1)
-# print("GOT DATA")
-# results = gibbs_sampler_r(data_gibbs = data, B = 100000,
-#                           xi_initial = runif(length(data$w_true[[1]]), -1, 1),
-#                           burn_in = 0.5,
-#                           NNGP = FALSE,
-#                           n_to_store = 20000)
+print("GOT DATA")
+results = gibbs_sampler_r(data_gibbs = data, B = 10,
+                          xi_initial = runif(length(data$w_true[[1]]), -1, 1),
+                          burn_in = 0.5,
+                          NNGP = FALSE,
+                          n_to_store = 20000)
 save(results, file = "TESTRESULTS100.rda")
 
 
