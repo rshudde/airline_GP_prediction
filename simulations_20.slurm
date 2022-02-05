@@ -14,9 +14,9 @@
 #SBATCH --array=1-50
 
 ##OPTIONAL JOB SPECIFICATIONS
-#SBATCH --account=132752207705             #Set billing account to 123456
+#SBATCH --account=132744323415             #Set billing account to 123456
 ##SBATCH --mail-type=ALL              #Send email on all job events
-##SBATCH --mail-user=rachaelshudde@tamu.edu    #Send all emails to email_address 
+##SBATCH --mail-user=ananya.rc94@tamu.edu    #Send all emails to email_address 
 #SBATCH --mail-type=END,FAIL,BEGIN
 
 module load GCC/10.2.0
