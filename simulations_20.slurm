@@ -5,7 +5,7 @@
 
 ##NECESSARY JOB SPECIFICATIONS
 #SBATCH --job-name=simulations_output     #Set the job name to "JobExample2"
-#SBATCH --time=1:00:00               #Set the wall clock limit to 6hr and 30min
+#SBATCH --time=4:00:00               #Set the wall clock limit to 6hr and 30min
 #SBATCH --nodes=28                   #Request 1 node
 #SBATCH --ntasks=1         #Request 8 tasks/cores per node
 #SBATCH --ntasks-per-node=1         #Request 8 tasks/cores per node
