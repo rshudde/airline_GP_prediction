@@ -35,11 +35,11 @@ i = 2
 data = read_data(i)
 print("GOT DATA")
 results = gibbs_sampler_r(data_gibbs = data, 
-                          B = 100000,
+                          B = 1000,
                           xi_initial = runif(data$T_val, -1, 1),
                           burn_in = 0.5,
                           NNGP = FALSE,
-                          n_to_store = 20000)
+                          n_to_store = 200)
 save(results, file = "TESTRESULTS100.rda")
 
 data_gibbs = data
