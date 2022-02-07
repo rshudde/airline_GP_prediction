@@ -29,11 +29,11 @@ print(paste("GOT DATA FOR CASE", r))
 
 # run the simluations
 results = gibbs_sampler_r(data_gibbs = data, 
-                          B = 1000,
+                          B = 50000,
                           xi_initial = runif(data$T_val, -1, 1),
                           burn_in = 0.5,
                           NNGP = FALSE,
-                          n_to_store = 200)
+                          n_to_store = 15000)
 
 filename = paste("RESULTS/results_n100_t20_rep", r, ".rda", sep = "")
 save(results, file = filename)

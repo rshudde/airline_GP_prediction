@@ -11,7 +11,7 @@
 #SBATCH --ntasks-per-node=1         #Request 8 tasks/cores per node
 #SBATCH --mem=32G                     #Request 8GB per node 
 #SBATCH --output=output/simulations_output.out      #Send stdout/err to "Example2Out.[jiobID]" 
-#SBATCH --array=1-4
+#SBATCH --array=1-50
 
 ##OPTIONAL JOB SPECIFICATIONS
 #SBATCH --account=132744323415             #Set billing account to 123456

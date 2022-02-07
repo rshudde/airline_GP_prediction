@@ -17,7 +17,7 @@ Rcpp::sourceCpp("src/FUNC_paramater_estimates_c.cpp")
 
 t_vals = c(20,40,60,80)
 
-for(i in 1:3){
+for(i in 1:50){
   data = generate_simulation_data(n_datasets = 100, n_time = 80, n_covariates = 15, seed = 1, seed2 = 1)
   
   
