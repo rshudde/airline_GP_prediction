@@ -10,7 +10,7 @@
 #SBATCH --ntasks=1         #Request 8 tasks/cores per node
 #SBATCH --ntasks-per-node=1         #Request 8 tasks/cores per node
 #SBATCH --mem=32G                     #Request 8GB per node 
-#SBATCH --output=simulations_output.out      #Send stdout/err to "Example2Out.[jobID]" 
+#SBATCH --output=output/simulations_output.out      #Send stdout/err to "Example2Out.[jiobID]" 
 #SBATCH --array=1-4
 
 ##OPTIONAL JOB SPECIFICATIONS
