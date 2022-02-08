@@ -7,7 +7,9 @@ mkdir -p RESULTS
 mkdir -p output
 
 # now create the data
+if find t20 -mindepth 1 -maxdepth 1 | read; then
 nohup R CMD BATCH R/DATA_subset_datasets.R R/DATA_subset_datasets.out &
+fi
 
 # now run all of the datasets for x = 20 to see how this goes yay
 for i in {1..3}; do \
@@ -17,4 +19,3 @@ c="${first}$i ${second}"
 echo "${c}"
 nohup R CMD BATCH --no-save --no-restore "${first}$i ${second}" BLAH.R BLAH.out &
 done
-
