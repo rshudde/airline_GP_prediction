@@ -21,7 +21,7 @@ for(i in 1:50){
   data = generate_simulation_data(n_datasets = 100, n_time = 80, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
   
   for(j in 1:length(t_vals)){
-    set.seed(i)
+    set.seed(i) # seed needs to be set so it's 1-50, otherwise we'll have repeats
     idx = sample(1:80,t_vals[j], replace = FALSE)
     y_new = data$y[ ,idx]
     x_new = lapply(data$X, function(X) X[c(idx), ])
