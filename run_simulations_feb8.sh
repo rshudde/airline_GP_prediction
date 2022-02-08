@@ -6,5 +6,5 @@ first="--args r="
 second=" t=40 B_VAL=50000 STORE_VAL=20000"
 c="${first}$i ${second}"
 echo "${c}"
-nohup R CMD BATCH --no-save --no-restore "${first}$i ${second}" BLAH.R BLAH.out &
+nohup R CMD BATCH --no-save --no-restore "${first}$i ${second}" BLAH.R BLAH40.out &
 done
