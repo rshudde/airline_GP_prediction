@@ -19,7 +19,11 @@
 ##SBATCH --mail-user=ananya.rc94@tamu.edu    #Send all emails to email_address 
 #SBATCH --mail-type=END,FAIL,BEGIN
 
-module load GCC/10.3.0
+module load GCC/11.2.0 
+module load OpenMPI/4.1.1-GCC-11.2.0
 module load R/4.1.0-foss-2021a
 R CMD BATCH --no-save --no-restore simulations_20.R simulations_20_$SLURM_ARRAY_TASK_ID
+R CMD BATCH --no-save --no-restore simulations_40.R simulations_40_$SLURM_ARRAY_TASK_ID
+R CMD BATCH --no-save --no-restore simulations_60.R simulations_60_$SLURM_ARRAY_TASK_ID
+R CMD BATCH --no-save --no-restore simulations_80.R simulations_80_$SLURM_ARRAY_TASK_ID
 
