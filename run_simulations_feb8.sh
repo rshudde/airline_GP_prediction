@@ -5,6 +5,7 @@ mkdir -p t60
 mkdir -p t80
 mkdir -p RESULTS
 mkdir -p output
+echo "made directories"
 
 # now create the data
 if find t20 -mindepth 1 -maxdepth 1 | read; then
