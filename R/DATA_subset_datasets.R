@@ -18,8 +18,7 @@ Rcpp::sourceCpp("src/FUNC_paramater_estimates_c.cpp")
 t_vals = c(20,40,60,80)
 
 for(i in 1:50){
-  data = generate_simulation_data(n_datasets = 100, n_time = 80, n_covariates = 15, seed = 1, seed2 = 1)
-  
+  data = generate_simulation_data(n_datasets = 100, n_time = 80, n_covariates = 15, seed = i, seed2 = i)
   
   for(j in 1:length(t_vals)){
     idx = sample(1:80,t_vals[j], replace = FALSE)
