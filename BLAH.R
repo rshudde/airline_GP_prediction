@@ -50,11 +50,11 @@ print(paste("GOT DATA FOR CASE", t, "/", r, "OF DIMENSION", nrow(data$X[[1]]), "
 
 # run the simluations
 results = gibbs_sampler_r(data_gibbs = data, 
-                          B = 300,
+                          B = B_VAL,
                           xi_initial = runif(data$t_val, -1, 1),
                           burn_in = 0.5,
                           NNGP = FALSE,
-                          n_to_store = 200)
+                          n_to_store = STORE_VAL)
 
 filename = paste("RESULTS/results_n100_t", t, "_rep", r, ".rda", sep = "")
 save(results, file = filename)
