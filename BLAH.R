@@ -50,7 +50,7 @@ print(paste("GOT DATA FOR CASE", t, "/", r, "OF DIMENSION", nrow(data$X[[1]]), "
 
 # run the simluations
 results = gibbs_sampler_r(data_gibbs = data, 
-                          B = 500,
+                          B = 300,
                           xi_initial = runif(data$t_val, -1, 1),
                           burn_in = 0.5,
                           NNGP = FALSE,
