@@ -104,7 +104,7 @@ arma::vec get_mu_c(const arma::mat& y, const int n_datasets, const List g, MatLi
     // get y - g
     arma::uvec indices(as<arma::uvec>(wrap(time_idx(i))));
     // subtract 1 from indices
-    for (int k = 0; k < indices.n_elem; k++)
+    for (arma::uword k = 0; k < indices.n_elem; k++)
     {
       indices[k] = indices[k] - 1;
     }
@@ -135,10 +135,10 @@ arma::vec get_mu_c(const arma::mat& y, const int n_datasets, const List g, MatLi
 arma::mat get_H_matrix_c(arma::vec w, arma::vec knots, int n_Knots)
 {
   arma::mat H(w.n_elem, n_Knots, fill::zeros); // number of rows and columns 
-  for (int i = 0; i < w.n_elem; i++)
+  for (arma::uword i = 0; i < w.n_elem; i++)
   {
     arma::vec temp = 1 - abs((w[i] - knots)*(n_Knots - 1));
-    for (int j = 0; j < temp.n_elem; j++)
+    for (arma::uword j = 0; j < temp.n_elem; j++)
     {
       temp[j] = std::fmax(temp[j], 0.0);
     }
@@ -155,13 +155,13 @@ Rcpp::List psi_alpha_c(arma::vec alpha, const arma::mat& y, const int n_datasets
 {
   // step to get the new beta
   float denomonator = 0.0;
-  for (int i = 0; i < alpha.n_elem; i++)
+  for (arma::uword i = 0; i < alpha.n_elem; i++)
   {
     denomonator += std::pow(alpha[i], 2);
   }
 
   arma::vec beta = arma::zeros<arma::vec>(alpha.n_elem);
-  for (int i = 0; i < alpha.n_elem; i++)
+  for (arma::uword i = 0; i < alpha.n_elem; i++)
   {
     beta[i] = alpha[i]/std::sqrt(denomonator); 
   }
@@ -195,7 +195,7 @@ Rcpp::List psi_alpha_c(arma::vec alpha, const arma::mat& y, const int n_datasets
     // get time indices
     arma::uvec indices(as<arma::uvec>(wrap(time_idx(i))));
     // subtract 1 from indices
-    for (int k = 0; k < indices.n_elem; k++)
+    for (arma::uword k = 0; k < indices.n_elem; k++)
     {
       indices[k] = indices[k] - 1;
     }
@@ -352,7 +352,7 @@ Rcpp::List get_sigma_2_c(const float a, const float b, const arma::mat& y, const
     // // get term two
     arma::uvec indices(as<arma::uvec>(wrap(time_idx(i))));
     // subtract 1 from indices
-    for (int k = 0; k < indices.n_elem; k++)
+    for (arma::uword k = 0; k < indices.n_elem; k++)
     {
       indices[k] = indices[k] - 1;
     }
@@ -392,9 +392,9 @@ arma::mat dist_c(const arma::vec input)
 {
   arma::mat C(input.n_elem, input.n_elem, fill::zeros);
   
-  for (int i = 0; i < input.n_elem; i++)
+  for (arma::uword i = 0; i < input.n_elem; i++)
   {
-    for (int j = 0; j < input.n_elem; j++)
+    for (arma::uword j = 0; j < input.n_elem; j++)
     {
       C(i, j) = abs(input[i] - input[j]);
     }
@@ -412,9 +412,9 @@ arma::mat get_matern_c(const float l_k, const arma::vec time_points)
   // get full matrix
   arma::mat M_i(time_points.n_elem, time_points.n_elem);
   
-  for (int i = 0; i < M_i.n_rows; i++)
+  for (arma::uword i = 0; i < M_i.n_rows; i++)
   {
-    for (int j = 0; j < M_i.n_cols; j++)
+    for (arma::uword j = 0; j < M_i.n_cols; j++)
     {
       M_i(i,j) = get_matern_values_c(l_k, distance_matrix(i,j));
     }
@@ -500,7 +500,7 @@ float lk_acceptance_c(const arma::mat& y, const arma::vec mu, const List g, cons
     ratio = exp(-0.5 * matrix_part(0,0));
     
     // for loop goes here
-    for (int i = 1; i < y.n_rows; i++)
+    for (arma::uword i = 1; i < y.n_rows; i++)
     {
       arma::rowvec y_noNA = y.row(i); // get the specific row
       arma::vec fill = arma::vec(y_noNA.n_elem);
@@ -604,7 +604,7 @@ Rcpp::List psi_xi_c(const arma::vec xi, const arma::mat y, const int n_datasets,
     // get the y term 
     arma::uvec indices(as<arma::uvec>(wrap(time_idx(i))));
     // subtract 1 from indices
-    for (int k = 0; k < indices.n_elem; k++)
+    for (arma::uword k = 0; k < indices.n_elem; k++)
     {
       indices[k] = indices[k] - 1;
     }
