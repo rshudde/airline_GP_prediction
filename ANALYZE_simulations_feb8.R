@@ -11,7 +11,7 @@ source('R/PLOTS_Gibbs_sampler.R')
 Rcpp::sourceCpp('src/FUNC_paramater_estimates_c.cpp')
 
 T_reps = seq(20, 80, by = 20)
-n_datasets_sim = 50
+n_datasets_sim = 100 # how many datasets are being run
 
 beta = list()
 sigma = list()
@@ -81,23 +81,26 @@ for (idx in 1:length(T_reps))
     skip_to_next <- FALSE
     
     # getting the filename for the current .rda file
-    temp_filename = paste("RESULTS/", T_reps[idx], "_", i, ".rda", sep = "")
+    # temp_filename = paste("RESULTS/", T_reps[idx], "_", i, ".rda", sep = "")
+    temp_filename = paste("RESULTS/results_n100_t", T_reps[idx], "_rep", i, ".rda", sep = "")
     
     # reading in the data that the simulation would have read in - reading in csv
-    data = read.csv(paste("t", T_idx[20]))
+    data = generate_simulation_data(n_datasets = 100, n_time = T_reps[i], n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
+    set.seed(i)
+    indices_from_build = sample(1:80,T_reps[i], replace = FALSE)
     
-    # tryCatch(load(temp_filename), error = function(e) { skip_to_next <<- TRUE})
+    tryCatch(load(temp_filename), error = function(e) { skip_to_next <<- TRUE})
     
     if (!skip_to_next)
     {
       beta[[idx]][i,] = colMeans(results$beta)
-      beta_truth[[idx]][i,] = data$beta
+      beta_truth[[idx]][i,] = data$beta_true
       CI = t(colQuantiles(results$beta, probs = c(0.05, 0.95)))
       beta_low[[idx]][i,] = CI[1,] # CI - lower
       beta_high[[idx]][i,] = CI[2,] # CI - higher
       beta_bias[[idx]][i, ] = data$beta - colMeans(results$beta)
       
-      
+
       sigma[[idx]][i] = mean(results$sigma_2)
       sigma_truth[[idx]][i] = data$sigma_2_true
       CI = quantile(results$sigma_2, probs = c(0.05, 0.95))
