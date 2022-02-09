@@ -134,7 +134,7 @@ for (k in 1:length(T_reps))
   redo = which(rowMeans(beta[[k]]) == 0)
   if (length(redo) != 0)
   {
-    print(paste("For t =", T_reps[k]))
+    print(paste("For t =", T_reps[k], "there are", length(redo)))
     print(paste(redo, collapse = ","))
   }
 }
