@@ -17,7 +17,7 @@ wait $BACK_PID
 
 # run the Gibbs samplers (loop over 50)
 for i in {1..50}; do \
-nohup R CMD BATCH --no-save --no-restore "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave" BLAH.R OUTPUT_$Tnum.out &
+nohup R CMD BATCH --no-save --no-restore "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave" main_R_file.R OUTPUT_$Tnum.out &
 echo "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave"
 done
 
