@@ -280,7 +280,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     loglikelihoodtest[idx] = loglhood_gibbs_current
     # print(paste("GOT TO:", idx))
     # print statement for time  
-    if (idx %% 100 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2)))
+    if (idx %% 1500 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2)))
     # print(idx)
   }
   # print(round(Sys.time() - start),2)

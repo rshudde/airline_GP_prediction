@@ -226,8 +226,9 @@ get_xi = function(xi_0, sigmaB_2, y, n_datasets, time_idx,
   
   if (!NNGP)
   {
+    # WC sampler
     xi_prior = samp.WC(knots, lb, 5/2, sigmaB_2) 
-  } else {
+  } else { # non WC sampler
     nknots = length(knots)
     xi_prior = rep(NA, nknots)
     xi_prior[1] = rnorm(1, 0, sigmaB_2)

@@ -29,11 +29,6 @@ for(i in 1:50){
     write.csv(data_new_x, file = paste0("t", t_vals[j], "/X_data_n100_t",t_vals[j],"_rep",i,".csv"), row.names = FALSE)
     write.csv(y_new, file = paste0("t", t_vals[j], "/Y_data_n100_t",t_vals[j],"_rep",i,".csv"),row.names = FALSE)
     
-    # now save all of the data
-    data$idx = idx
-    file_name = paste0("t", t_vals[j], "/ALL_data_n100_t",t_vals[j],"_rep",i,".rda")
-    save(data, file = file_name)
-    
     print(paste("JUST WROTE", i, "/", j))
   }
 }

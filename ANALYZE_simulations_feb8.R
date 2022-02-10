@@ -85,9 +85,9 @@ for (idx in 1:length(T_reps))
     temp_filename = paste("RESULTS/results_n100_t", T_reps[idx], "_rep", i, ".rda", sep = "")
     
     # reading in the data that the simulation would have read in - reading in csv
-    data = generate_simulation_data(n_datasets = 100, n_time = T_reps[i], n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
+    data = generate_simulation_data(n_datasets = 100, n_time = T_reps[idx], n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
     set.seed(i)
-    indices_from_build = sample(1:80,T_reps[i], replace = FALSE)
+    indices_from_build = sample(1:80, T_reps[idx], replace = FALSE)
     
     tryCatch(load(temp_filename), error = function(e) { skip_to_next <<- TRUE})
     
@@ -119,7 +119,7 @@ for (idx in 1:length(T_reps))
       # g_mu_low[[idx]][i,] = CI[1,]
       # g_mu_high[[idx]][i,] = CI[2,]
       # TODO fix this
-      g_mu_truth[[idx]][i,] = unlist(data$g_true) + rep(data$mu_true, each = 10) 
+      g_mu_truth[[idx]][i,] = unlist(data$g_true) + rep(data$mu_true, each = T_reps[idx]) 
       g_mu_bias[[idx]][i,] =  g_mu_truth[[idx]][i,] - g_mu[[idx]][i,]
       
     }
@@ -134,7 +134,7 @@ for (k in 1:length(T_reps))
   redo = which(rowMeans(beta[[k]]) == 0)
   if (length(redo) != 0)
   {
-    print(paste("For t =", T_reps[k]))
+    print(paste("For t =", T_reps[k], "there are", length(redo)))
     print(paste(redo, collapse = ","))
   }
 }
