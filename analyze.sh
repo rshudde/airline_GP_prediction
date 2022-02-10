@@ -1,5 +1,6 @@
 #!/bin/bash
-# delete the single folder 
+# delete the single folder
+Tnum=20 
 rm -r t$Tnum
 
 # do analysis 
