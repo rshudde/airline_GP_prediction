@@ -15,20 +15,32 @@ source('R/FUNC_Gibbs_Sampler.R')
 source('R/FUNC_Gibbs_Sampler_r.R')
 Rcpp::sourceCpp("src/FUNC_paramater_estimates_c.cpp")
 
-t_vals = c(20,40,60,80)
-
-for(i in 1:50){
-  data = generate_simulation_data(n_datasets = 100, n_time = 80, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
-  
-  for(j in 1:length(t_vals)){
-    set.seed(i) # seed needs to be set so it's 1-50, otherwise we'll have repeats
-    idx = sample(1:80,t_vals[j], replace = FALSE)
-    y_new = data$y[ ,idx]
-    x_new = lapply(data$X, function(X) X[c(idx), ])
-    data_new_x= do.call(rbind, x_new)
-    write.csv(data_new_x, file = paste0("t", t_vals[j], "/X_data_n100_t",t_vals[j],"_rep",i,".csv"), row.names = FALSE)
-    write.csv(y_new, file = paste0("t", t_vals[j], "/Y_data_n100_t",t_vals[j],"_rep",i,".csv"),row.names = FALSE)
-    
-    print(paste("JUST WROTE", i, "/", j))
+args=(commandArgs(TRUE))
+if(length(args)==0){
+  print("No arguments supplied.")
+  ##supply default values
+  stop("NO COMMAND LINE ARGUMENTS PASSED FOR R AND T")
+}else{
+  for(i in 1:length(args)){
+    eval(parse(text=args[[i]]))
   }
+}
+
+# t_vals = c(20,40,60,80)
+max_t_val = 100
+
+for (i in 1:50)
+  {
+  data = generate_simulation_data(n_datasets = 100, n_time = max_t_val, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
+  
+  set.seed(i) # seed needs to be set so it's 1-50, otherwise we'll have repeats
+  idx = sample(1:max_t_val, t_vals, replace = FALSE)
+  y_new = data$y[ ,idx]
+  x_new = lapply(data$X, function(X) X[c(idx), ])
+  data_new_x = do.call(rbind, x_new)
+  write.csv(data_new_x, file = paste0("t", t_vals, "/X_data_n100_t",t_vals,"_rep",i,".csv"), row.names = FALSE)
+  write.csv(y_new, file = paste0("t", t_vals, "/Y_data_n100_t",t_vals,"_rep",i,".csv"),row.names = FALSE)
+  
+  print(paste("JUST WROTE", t_vals, "/", i))
+
 }
