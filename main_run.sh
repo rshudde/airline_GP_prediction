@@ -1,8 +1,8 @@
 #!/bin/bash
 
 Tnum=20
-MCMCiterations=50
-nsave=20
+MCMCiterations=50000
+nsave=2000
 
 # create the single folder to store results as well as the output and results files
 mkdir -p t$Tnum
