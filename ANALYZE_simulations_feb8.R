@@ -10,7 +10,18 @@ source('R/FUNC_Gibbs_Sampler_r.R')
 source('R/PLOTS_Gibbs_sampler.R')
 Rcpp::sourceCpp('src/FUNC_paramater_estimates_c.cpp')
 
-T_reps = seq(20, 80, by = 20)
+args=(commandArgs(TRUE))
+if(length(args)==0){
+  print("No arguments supplied.")
+  ##supply default values
+  stop("NO COMMAND LINE ARGUMENTS PASSED FOR R AND T")
+}else{
+  for(i in 1:length(args)){
+    eval(parse(text=args[[i]]))
+  }
+}
+
+
 n_datasets_sim = 100 # how many datasets are being run
 
 beta = list()
