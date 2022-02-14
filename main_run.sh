@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Tnum=60
+Tnum=80
 MCMCiterations=50000
 nsave=2000
 
