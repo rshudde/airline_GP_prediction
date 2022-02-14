@@ -1,6 +1,7 @@
 #!/bin/bash
 
-Tnum=80
+Tnum=100
+NNGP="FALSE"
 MCMCiterations=50000
 nsave=2000
 
