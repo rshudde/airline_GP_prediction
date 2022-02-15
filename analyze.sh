@@ -8,4 +8,5 @@ nohup R CMD BATCH --no-save --no-restore "--args t_vals=$Tnum" ANALYZE_simulatio
 wait $BACK_PID 
 
 # delete the .rda files 
-rm -r RESULTS
+# rm -r RESULTS
+rm -rf RESULTS/results_n100_t$Tnum*
