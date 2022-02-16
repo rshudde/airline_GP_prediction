@@ -29,7 +29,7 @@ if(length(args)==0){
 # t_vals = c(20,40,60,80)
 max_t_val = 100
 
-for (i in 1:50)
+for (i in 1:n_replicates)
   {
   data = generate_simulation_data(n_datasets = 100, n_time = max_t_val, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
   
