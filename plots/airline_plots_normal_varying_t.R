@@ -27,6 +27,7 @@ for (i in t_vals)
 
   # standardize the results
   standardized_beta = apply(as.matrix(abs(betas[[count]]) - abs(betas_truth[[count]])),1, function(x){sqrt(sum(x^2))})/sqrt(ncol(betas_truth[[count]]))
+
   standardized_gmu = apply(as.matrix(gmu[[count]] - gmu_truth[[count]]),1, function(x){sqrt(sum(x^2))})/sqrt(ncol(gmu_truth[[count]]))
   betas[[count]] = standardized_beta
   gmu[[count]] = standardized_gmu
