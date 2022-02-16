@@ -63,7 +63,12 @@ for (i in 1:n_replicates)
   
   # getting the filename for the current .rda file
   # temp_filename = paste("RESULTS/", T_reps[idx], "_", i, ".rda", sep = "")
-  temp_filename = paste("RESULTS/results_n100_t", t_vals, "_rep", i, ".rda", sep = "")
+  if (USE_NNGP)
+  {
+    temp_filename = paste("RESULTS/results_n100_t", t_vals, "_rep", i, "NNGP.rda", sep = "")
+  } else {
+    temp_filename = paste("RESULTS/results_n100_t", t_vals, "_rep", i, ".rda", sep = "")
+  }
   
   # reading in the data that the simulation would have read in - reading in csv
   data = generate_simulation_data(n_datasets = 100, n_time = t_vals, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
@@ -116,7 +121,7 @@ if (length(redo) != 0)
 }
 
 
-write_filename = "output/"
+write_filename = ifelse(USE_NNGP, "outputNNGP/", "output/")
 write.csv(beta, row.names = FALSE, file = paste(write_filename, "beta_", t_vals, ".csv", sep = ""))
 write.csv(beta_truth, row.names = FALSE, file = paste(write_filename, "beta_truth_", t_vals, ".csv", sep = ""))
 write.csv(sigma, row.names = FALSE, file = paste(write_filename, "sigma_", t_vals, ".csv", sep = ""))

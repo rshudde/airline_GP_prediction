@@ -1,15 +1,16 @@
 #!/bin/bash
 
-Tnum=30
-NNGP="FALSE"
+Tnum=10
+NNGP="TRUE"
 n_replicates=50
-MCMCiterations=50000
-nsave=2000
+MCMCiterations=50
+nsave=20
 
 # create the single folder to store results as well as the output and results files
 mkdir -p t$Tnum
 mkdir -p RESULTS
 mkdir -p output
+mkdir -p outputNNGP
 
 # populate the folder if it's not empty
 if ! [ "$(ls -A t$Tnum)" ]; then
@@ -19,7 +20,7 @@ wait $BACK_PID
 
 # run the Gibbs samplers (loop over 50)
 for i in $(seq 1 $n_replicates); do \
-nohup R CMD BATCH --no-save --no-restore "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave" main_R_file.R OUTPUT_$Tnum.out &
+nohup R CMD BATCH --no-save --no-restore "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave USE_NNGP=$NNGP" main_R_file.R OUTPUT_$Tnum.out &
 echo "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave"
 done
 
