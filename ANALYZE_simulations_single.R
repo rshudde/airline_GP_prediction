@@ -25,10 +25,10 @@ if(length(args)==0){
 n_datasets_sim = 100 # how many datasets are being run
 
 # set up size of all initial datasets
-mm = matrix(0, ncol = 15, nrow = 50)
-vv = vector(length = 50)
-ll = matrix(0, nrow = 50, ncol = n_datasets_sim)
-gmu = matrix(0, nrow = 50, ncol = n_datasets_sim*t_vals)
+mm = matrix(0, ncol = 15, nrow = n_replicates)
+vv = vector(length = n_replicates)
+ll = matrix(0, nrow = n_replicates, ncol = n_datasets_sim)
+gmu = matrix(0, nrow = n_replicates, ncol = n_datasets_sim*t_vals)
 
 beta = mm
 sigma = vv
@@ -57,7 +57,7 @@ sigma_bias = vv
 g_mu_bias = gmu
 
 
-for (i in 1:50)
+for (i in 1:n_replicates)
 {
   skip_to_next <- FALSE
   
@@ -121,5 +121,5 @@ write.csv(beta, row.names = FALSE, file = paste(write_filename, "beta_", t_vals,
 write.csv(beta_truth, row.names = FALSE, file = paste(write_filename, "beta_truth_", t_vals, ".csv", sep = ""))
 write.csv(sigma, row.names = FALSE, file = paste(write_filename, "sigma_", t_vals, ".csv", sep = ""))
 write.csv(sigma_truth, row.names = FALSE, file = paste(write_filename, "sigma_truth_", t_vals, ".csv", sep = ""))
-write.csv(g_mu, row.names = FALSE, file = paste(write_filename, "gpmu_", t_vals, ".csv", sep = ""))
+write.csv(g_mu, row.names = FALSE, file = paste(write_filename, "gmu_", t_vals, ".csv", sep = ""))
 write.csv(g_mu_truth, row.names = FALSE, file = paste(write_filename, "gmu_truth_", t_vals, ".csv", sep = ""))
