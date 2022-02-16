@@ -1,9 +1,9 @@
 #!/bin/bash
 
-Tnum=10
+Tnum=20
 NNGP="TRUE"
-n_replicates=50
-MCMCiterations=50000
+n_replicates=80
+MCMCiterations=70000
 nsave=2000
 
 # create the single folder to store results as well as the output and results files
