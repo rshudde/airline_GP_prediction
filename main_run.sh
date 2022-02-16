@@ -11,6 +11,7 @@ mkdir -p t$Tnum
 mkdir -p RESULTS
 mkdir -p output
 mkdir -p outputNNGP
+mkdir -p RESULTSNNGP
 
 # populate the folder if it's not empty
 if ! [ "$(ls -A t$Tnum)" ]; then

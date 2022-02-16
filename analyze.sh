@@ -12,3 +12,9 @@ wait $BACK_PID
 # delete the .rda files 
 # rm -r RESULTS
 rm -rf RESULTS/results_n100_t$Tnum*
+
+if [[ $NNGP -eq "TRUE" ]]; then 
+rm -rf RESULTSNNGP/results_n100_t$Tnum*
+else 
+rm -rf RESULTS/results_n100_t$Tnum*
+fi 

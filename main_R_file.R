@@ -59,7 +59,7 @@ results = gibbs_sampler_r(data_gibbs = data,
 
 if (USE_NNGP)
 {
-  filename = paste("RESULTS/results_n100_t", t, "_rep", r, "_NNGP.rda", sep = "")
+  filename = paste("RESULTSNNGP/results_n100_t", t, "_rep", r, "_NNGP.rda", sep = "")
 } else {
   filename = paste("RESULTS/results_n100_t", t, "_rep", r, ".rda", sep = "")
 }
