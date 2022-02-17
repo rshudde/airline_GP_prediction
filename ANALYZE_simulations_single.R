@@ -65,7 +65,7 @@ for (i in 1:n_replicates)
   # temp_filename = paste("RESULTS/", T_reps[idx], "_", i, ".rda", sep = "")
   if (USE_NNGP)
   {
-    temp_filename = paste("RESULTSNNGP/results_n100_t", t_vals, "_rep", i, "NNGP.rda", sep = "")
+    temp_filename = paste("RESULTSNNGP/results_n100_t", t_vals, "_rep", i, "_NNGP.rda", sep = "")
   } else {
     temp_filename = paste("RESULTS/results_n100_t", t_vals, "_rep", i, ".rda", sep = "")
   }
