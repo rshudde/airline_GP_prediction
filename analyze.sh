@@ -1,9 +1,9 @@
 #!/bin/bash
 # delete the single folder
-Tnum=20
+Tnum=40
 NNGP="TRUE"
 n_replicates=80
-#rm -r t$Tnum
+rm -rf t$Tnum
 
 # do analysis 
 nohup R CMD BATCH --no-save --no-restore "--args t_vals=$Tnum n_replicates=$n_replicates USE_NNGP=$NNGP" ANALYZE_simulations_single.R OUTPUT_analyzing.out &
