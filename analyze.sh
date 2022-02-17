@@ -2,7 +2,7 @@
 # delete the single folder
 Tnum=30
 NNGP="FALSE"
-n_replicates=80
+n_replicates=50
 rm -rf t$Tnum
 
 # do analysis 
