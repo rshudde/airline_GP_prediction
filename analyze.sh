@@ -1,7 +1,7 @@
 #!/bin/bash
 # delete the single folder
-Tnum=20
-NNGP="TRUE"
+Tnum=10
+NNGP="FALSE"
 n_replicates=80
 rm -rf t$Tnum
 
