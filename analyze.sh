@@ -3,7 +3,7 @@
 Tnum=20
 NNGP="TRUE"
 n_replicates=80
-rm -r t$Tnum
+#rm -r t$Tnum
 
 # do analysis 
 nohup R CMD BATCH --no-save --no-restore "--args t_vals=$Tnum n_replicates=$n_replicates USE_NNGP=$NNGP" ANALYZE_simulations_single.R OUTPUT_analyzing.out &
