@@ -3,6 +3,7 @@ library(ggplot2)
 
 #read in the data for beta
 NNGP = FALSE
+n_reps = 50
 betas = list()
 betas_truth = list()
 gmu = list()
@@ -11,6 +12,7 @@ sigma = list()
 sigma_truth = list()
 
 t_vals = c(20, 40, 60, 80, 100)
+# t_vals = c(20, 40)
 count = 1
 for (i in t_vals)
 {
@@ -35,7 +37,7 @@ for (i in t_vals)
 }
 
 #make the violin plots for beta
-t_vals_plots = rep(t_vals, each = 50)
+t_vals_plots = rep(t_vals, each = n_reps)
 beta_mat = data.frame(unlist(betas),t_vals_plots) # column of betas, column of t_values
 gmu_mat = data.frame(unlist(gmu),t_vals_plots) 
 sigma_mat = data.frame(unlist(sigma), t_vals_plots)
@@ -48,6 +50,8 @@ beta_mat$t = as.factor(beta_mat$t)
 gmu_mat$t = as.factor(gmu_mat$t)
 sigma_mat$t = as.factor(sigma_mat$t)
 
+
+## actually creating plots
 beta_plot = ggplot(beta_mat, aes(x = t, y = beta, color = t_vals_plots)) + geom_boxplot(width = 0.5) + ggtitle("Boxplot for beta (normal)")
 
 g_plot = ggplot(gmu_mat, aes(x = t, y = gmu, color = t_vals_plots)) + geom_violin(trim=FALSE) + geom_boxplot(width=0.1) + 
