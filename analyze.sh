@@ -1,6 +1,6 @@
 #!/bin/bash
 # delete the single folder
-Tnum=60
+Tnum=10
 NNGP="FALSE"
 n_replicates=80
 rm -rf t$Tnum
@@ -11,7 +11,7 @@ wait $BACK_PID
 
 # delete the .rda files 
 # rm -r RESULTS
-rm -rf RESULTS/results_n100_t$Tnum*
+# rm -rf RESULTS/results_n100_t$Tnum*
 
 if [[ $NNGP -eq "TRUE" ]]; then
 rm -rf RESULTSNNGP/results_n100_t$Tnum*
