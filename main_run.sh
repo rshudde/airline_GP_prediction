@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Tnum=50
-NNGP="FALSE"
+NNGP="TRUE"
 n_replicates=80
 MCMCiterations=70000
 nsave=2000
