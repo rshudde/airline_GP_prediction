@@ -29,6 +29,7 @@ if(length(args)==0){
   }
 }
 
+USE_NNGP = ifelse(USE_NNGP == "TRUE", TRUE, FALSE)
 # function to read data
 read_data = function(i, t_val){
   X_initial = read.csv(file = paste0("t", t_val, "/X_data_n100_t", t_val, "_rep",i,".csv"), header = T)
@@ -53,8 +54,13 @@ results = gibbs_sampler_r(data_gibbs = data,
                           B = B_VAL,
                           xi_initial = runif(data$t_val, -1, 1),
                           burn_in = 0.5,
-                          NNGP = FALSE,
+                          NNGP = USE_NNGP,
                           n_to_store = STORE_VAL)
 
-filename = paste("RESULTS/results_n100_t", t, "_rep", r, ".rda", sep = "")
+if (USE_NNGP)
+{
+  filename = paste("RESULTSNNGP/results_n100_t", t, "_rep", r, "_NNGP.rda", sep = "")
+} else {
+  filename = paste("RESULTS/results_n100_t", t, "_rep", r, ".rda", sep = "")
+}
 save(results, file = filename)
