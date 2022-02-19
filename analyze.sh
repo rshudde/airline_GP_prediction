@@ -13,7 +13,7 @@ wait $BACK_PID
 # rm -r RESULTS
 # rm -rf RESULTS/results_n100_t$Tnum*
 
-if [[ $NNGP -eq "TRUE" ]]; then
+if [[ $NNGP eq "TRUE" ]]; then
 echo "DELETING NNGP"
 rm -rf RESULTSNNGP/results_n100_t$Tnum*
 else
