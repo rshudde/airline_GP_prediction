@@ -1,6 +1,6 @@
 #!/bin/bash
 # delete the single folder
-Tnum=50
+Tnum=30
 NNGP="FALSE"
 n_replicates=80
 rm -rf t$Tnum
@@ -14,9 +14,9 @@ wait $BACK_PID
 # rm -rf RESULTS/results_n100_t$Tnum*
 
 if [[ $NNGP -eq "TRUE" ]]; then
-echo "DELETING NON_NNGP FOR $Tnum"
-rm -rf RESULTS/results_n100_t$Tnum*
-else
-echo "DELETING NNNGP FOR $Tnum"
+echo "DELETING NNGP TRUE FOR $Tnum"
 rm -rf RESULTSNNGP/results_n100_t$Tnum*
+else
+echo "DELETING NNGO FALSE FOR $Tnum"
+rm -rf RESULTS/results_n100_t$Tnum*
 fi
