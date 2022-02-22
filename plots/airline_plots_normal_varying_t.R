@@ -2,8 +2,8 @@
 library(ggplot2)
 
 #read in the data for beta
-NNGP = FALSE
-n_reps = 50
+NNGP = TRUE
+n_reps = 80
 betas = list()
 betas_truth = list()
 gmu = list()
@@ -11,11 +11,11 @@ gmu_truth = list()
 sigma = list()
 sigma_truth = list()
 
-t_vals = c(20, 40, 60, 80, 100)
+t_vals = c(10, 20,30, 40, 50, 60, 70, 80, 90, 100)
 # t_vals = c(20, 40)
 count = 1
-path = "/Users/rachaelshudde/Desktop/"
-#path = "C:/Users/anany/Desktop/Research/Flight_Delay/test_t/test_t"
+#path = "/Users/rachaelshudde/Desktop/"
+path = "C:/Users/anany/Desktop/Research/Flight_Delay/test_t/"
 
 for (i in t_vals)
 {
@@ -55,17 +55,17 @@ sigma_mat$t = as.factor(sigma_mat$t)
 
 
 ## actually creating plots
-beta_plot = ggplot(beta_mat, aes(x = t, y = beta, fill = t_vals_plots)) + geom_boxplot(width = 0.5) + scale_fill_brewer(palette="Pastel1") +
+beta_plot = ggplot(beta_mat, aes(x = t, y = beta, fill = t_vals_plots)) + geom_boxplot(width = 0.5) +
   ggtitle(paste("Consistancy of function estimation for", expression(beta), "(Full Sampler)")) + theme(plot.title = element_text(hjust = 0.5)) +
-  xlab("Time points") + ylab(paste("||", expression(beta), "||^2")) + guides(fill=guide_legend(title="Time points")) #ylab(paste("L2 norm of ", expression(beta)))
+  xlab("Time points") + ylab(paste("||", expression(beta), "||^2")) + guides(fill=guide_legend(title="Time points"))+ theme_bw() #ylab(paste("L2 norm of ", expression(beta)))
 
-g_plot = ggplot(gmu_mat, aes(x = t, y = gmu, fill = t_vals_plots)) + geom_violin(trim=FALSE) + geom_boxplot(width=0.1) + scale_fill_brewer(palette="Spectral") +
+g_plot = ggplot(gmu_mat, aes(x = t, y = gmu, fill = t_vals_plots)) + geom_violin(trim=FALSE) + geom_boxplot(width=0.1) +
   ggtitle(paste("Consistancy of function estimation for g +", expression(mu), "(Full Sampler)")) + theme(plot.title = element_text(hjust = 0.5)) + 
-  xlab("Time points") + ylab(paste(paste("||", "g + ", expression(mu), "||^2")))+ guides(fill=guide_legend(title="Time points"))
+  xlab("Time points") + ylab(paste(paste("||", "g + ", expression(mu), "||^2")))+ guides(fill=guide_legend(title="Time points"))+ theme_bw()
 
-sigma_plot = ggplot(sigma_mat, aes(x = sigma, fill = t)) + geom_density(trim = TRUE) + scale_fill_brewer(palette="Pastel1") +
+sigma_plot = ggplot(sigma_mat, aes(x = sigma, fill = t)) + geom_density(trim = TRUE) +
   ggtitle(paste("Density plot for", expression(sigma^2), "(Full Sampler)")) +  theme(plot.title = element_text(hjust = 0.5)) + 
-  geom_vline(xintercept = 0.25) + xlab("Time points") +  ylab(expression(Density~of~sigma^{2}))+ guides(fill=guide_legend(title="Time points"))
+  geom_vline(xintercept = 0.25) + xlab("Time points") +  ylab(expression(Density~of~sigma^{2}))+ guides(fill=guide_legend(title="Time points")) + theme_bw()
 
 # display plots
 beta_plot
