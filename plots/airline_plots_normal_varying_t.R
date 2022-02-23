@@ -11,8 +11,8 @@ gmu_truth = list()
 sigma = list()
 sigma_truth = list()
 
-t_vals = c(10, 20,30, 40, 50, 60, 70, 80, 90, 100)
-# t_vals = c(20, 40)
+#t_vals = c(10, 20,30, 40, 50, 60, 70, 80, 90, 100)
+ t_vals = c(20, 40, 60, 80, 100)
 count = 1
 #path = "/Users/rachaelshudde/Desktop/"
 path = "C:/Users/anany/Desktop/Research/Flight_Delay/test_t/"
