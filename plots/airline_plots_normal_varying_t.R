@@ -57,14 +57,14 @@ sigma_mat$t = factor(sigma_mat$t, levels = unique(gmu_mat$t))
 ## actually creating plots
 beta_plot = ggplot(beta_mat, aes(x = t, y = beta, color = t)) + geom_boxplot(width = 0.5) +
   ggtitle(expression("Consistancy of function estimation for"~beta~"(NNGP Sampler)")) +
-  xlab("Time points") + ylab(expression("||"~beta~"||"^{2})) + 
+  xlab("Time points") + ylab ("Norm Distance") + 
   guides(color=guide_legend(title="Time points"))+ theme_bw() + 
-  theme(plot.title = element_text(hjust = 0.5)) 
+  theme(plot.title = element_text(hjust = 0.5))   #ylab(expression("||"~beta~"||"^{2}))
 
 g_plot = ggplot(gmu_mat, aes(x = t, y = gmu, color = t)) + geom_violin(trim=FALSE) + 
   geom_boxplot(width=0.1) + ggtitle(expression("Consistancy of function estimation for g +"~mu~"(NNGP Sampler)")) +
-  xlab("Time points") + ylab(expression("||"~g + mu~"||"^{2}))+
-  guides(color=guide_legend(title="Time points"))+ theme_bw() +theme(plot.title = element_text(hjust = 0.5)) 
+  xlab("Time points") + ylab ("Norm Distance")+
+  guides(color=guide_legend(title="Time points"))+ theme_bw() +theme(plot.title = element_text(hjust = 0.5))  #ylab(expression("||"~g + mu~"||"^{2}))
 
 sigma_plot = ggplot(sigma_mat, aes(x = sigma, color = t)) + geom_density(trim = TRUE) +
   ggtitle(expression("Density plot for"~sigma^{2}~"(NNGP Sampler)")) +  
