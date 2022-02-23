@@ -49,23 +49,23 @@ colnames(beta_mat) = c("beta", "t")
 colnames(gmu_mat) = c("gmu", "t")
 colnames(sigma_mat) = c("sigma", "t")
 
-beta_mat$t = as.factor(beta_mat$t)
-gmu_mat$t = as.factor(gmu_mat$t)
-sigma_mat$t = as.factor(sigma_mat$t)
+beta_mat$t = factor(beta_mat$t, levels = unique(gmu_mat$t))
+gmu_mat$t = factor(gmu_mat$t, levels = unique(gmu_mat$t))
+sigma_mat$t = factor(sigma_mat$t, levels = unique(gmu_mat$t))
 
 
 ## actually creating plots
-beta_plot = ggplot(beta_mat, aes(x = t, y = beta, fill = t_vals_plots)) + geom_boxplot(width = 0.5) +
+beta_plot = ggplot(beta_mat, aes(x = t, y = beta, color = t)) + geom_boxplot(width = 0.5) +
   ggtitle(paste("Consistancy of function estimation for", expression(beta), "(Full Sampler)")) + theme(plot.title = element_text(hjust = 0.5)) +
-  xlab("Time points") + ylab(paste("||", expression(beta), "||^2")) + guides(fill=guide_legend(title="Time points"))+ theme_bw() #ylab(paste("L2 norm of ", expression(beta)))
+  xlab("Time points") + ylab(paste("||", expression(beta), "||^2")) + guides(color=guide_legend(title="Time points"))+ theme_bw() #ylab(paste("L2 norm of ", expression(beta)))
 
-g_plot = ggplot(gmu_mat, aes(x = t, y = gmu, fill = t_vals_plots)) + geom_violin(trim=FALSE) + geom_boxplot(width=0.1) +
+g_plot = ggplot(gmu_mat, aes(x = t, y = gmu, color = t)) + geom_violin(trim=FALSE) + geom_boxplot(width=0.1) +
   ggtitle(paste("Consistancy of function estimation for g +", expression(mu), "(Full Sampler)")) + theme(plot.title = element_text(hjust = 0.5)) + 
-  xlab("Time points") + ylab(paste(paste("||", "g + ", expression(mu), "||^2")))+ guides(fill=guide_legend(title="Time points"))+ theme_bw()
+  xlab("Time points") + ylab(paste(paste("||", "g + ", expression(mu), "||^2")))+ guides(color=guide_legend(title="Time points"))+ theme_bw() + scale_fill_discrete()
 
-sigma_plot = ggplot(sigma_mat, aes(x = sigma, fill = t)) + geom_density(trim = TRUE) +
+sigma_plot = ggplot(sigma_mat, aes(x = sigma, color = t)) + geom_density(trim = TRUE) +scale_fill_discrete() +
   ggtitle(paste("Density plot for", expression(sigma^2), "(Full Sampler)")) +  theme(plot.title = element_text(hjust = 0.5)) + 
-  geom_vline(xintercept = 0.25) + xlab("Time points") +  ylab(expression(Density~of~sigma^{2}))+ guides(fill=guide_legend(title="Time points")) + theme_bw()
+  geom_vline(xintercept = 0.25) + xlab("Time points") +  ylab(expression(Density~of~sigma^{2}))+ guides(color=guide_legend(title="Time points")) + theme_bw()
 
 # display plots
 beta_plot
