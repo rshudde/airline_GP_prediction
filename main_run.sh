@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Tnum=100
+Tnum=10
 NNGP="FALSE"
 n_replicates=10
 MCMCiterations=4000
