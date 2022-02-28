@@ -57,6 +57,7 @@ results = gibbs_sampler_r(data_gibbs = data,
                           NNGP = USE_NNGP,
                           n_to_store = STORE_VAL)
 
+
 if (USE_NNGP)
 {
   filename = paste("RESULTSNNGP/results_n100_t", t, "_rep", r, "_NNGP.rda", sep = "")
