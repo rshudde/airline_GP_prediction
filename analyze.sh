@@ -1,8 +1,8 @@
 #!/bin/bash
 # delete the single folder
-Tnum=90
+Tnum=10
 NNGP="FALSE"
-n_replicates=80
+n_replicates=10
 rm -rf t$Tnum
 
 # do analysis 

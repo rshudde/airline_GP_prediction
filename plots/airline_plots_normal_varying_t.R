@@ -2,7 +2,9 @@
 library(ggplot2)
 
 #read in the data for beta
-NNGP = TRUE
+t_vals = 10
+count = 1
+NNGP = FALSE
 n_reps = 80
 betas = list()
 betas_truth = list()
@@ -10,12 +12,11 @@ gmu = list()
 gmu_truth = list()
 sigma = list()
 sigma_truth = list()
+time = vector(length = length(t_vals))
 
-#t_vals = c(10, 20,30, 40, 50, 60, 70, 80, 90, 100)
- t_vals = c(20, 40, 60, 80, 100)
-count = 1
-#path = "/Users/rachaelshudde/Desktop/"
-path = "C:/Users/anany/Desktop/Research/Flight_Delay/test_t/"
+
+path = "/Users/rachaelshudde/Desktop/"
+# path = "C:/Users/anany/Desktop/Research/Flight_Delay/test_t/"
 
 for (i in t_vals)
 {
@@ -29,6 +30,8 @@ for (i in t_vals)
   
   sigma[[count]] = read.csv(paste(path, outputfile, "/sigma_", i, ".csv", sep = ""))
   sigma_truth[[count]] = read.csv(paste(path, outputfile, "/sigma_truth_", i, ".csv", sep = ""))
+  
+  time[count] = read.csv(paste(path, outputfile, "/timing_", i, ".csv", sep = ""))
 
   # standardize the results
   standardized_beta = apply(as.matrix(abs(betas[[count]]) - abs(betas_truth[[count]])),1, function(x){sqrt(sum(x^2))})/sqrt(ncol(betas_truth[[count]]))
@@ -59,7 +62,7 @@ sigma_mat$t = factor(sigma_mat$t, levels = unique(gmu_mat$t))
 
 ## actually creating plots
 
-if(NNGP== TRUE){
+if(NNGP == TRUE){
   beta_NNGP = ggplot(beta_mat, aes(x = t, y = beta, color = t)) + geom_boxplot(width = 0.5) +
     ggtitle(expression("Consistancy of function estimation for"~beta~"(NNGP Sampler)")) +
     xlab("Time points") + ylab ("Norm Distance") + 
