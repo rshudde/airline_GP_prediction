@@ -2,8 +2,8 @@
 library(ggplot2)
 
 #read in the data for beta
-NNGP = FALSE
-n_reps = 50
+NNGP = TRUE
+n_reps = 80
 betas = list()
 betas_truth = list()
 gmu = list()
@@ -11,21 +11,24 @@ gmu_truth = list()
 sigma = list()
 sigma_truth = list()
 
-t_vals = c(20, 40, 60, 80, 100)
-# t_vals = c(20, 40)
+#t_vals = c(10, 20,30, 40, 50, 60, 70, 80, 90, 100)
+ t_vals = c(20, 40, 60, 80, 100)
 count = 1
+#path = "/Users/rachaelshudde/Desktop/"
+path = "C:/Users/anany/Desktop/Research/Flight_Delay/test_t/"
+
 for (i in t_vals)
 {
   outputfile = ifelse(NNGP, "outputNNGP", "output")
-
-  betas[[count]] = read.csv(paste("/Users/rachaelshudde/Desktop/", outputfile, "/beta_", i, ".csv", sep = ""))
-  betas_truth[[count]] = read.csv(paste("/Users/rachaelshudde/Desktop/", outputfile, "/beta_truth_", i, ".csv", sep = ""))
+ 
+  betas[[count]] = read.csv(paste(path, outputfile, "/beta_", i, ".csv", sep = ""))
+  betas_truth[[count]] = read.csv(paste(path, outputfile, "/beta_truth_", i, ".csv", sep = ""))
   
-  gmu[[count]] = read.csv(paste("/Users/rachaelshudde/Desktop/", outputfile, "/gmu_", i, ".csv", sep = ""))
-  gmu_truth[[count]] = read.csv(paste("/Users/rachaelshudde/Desktop/", outputfile, "/gmu_truth_", i, ".csv", sep = ""))
+  gmu[[count]] = read.csv(paste(path, outputfile, "/gmu_", i, ".csv", sep = ""))
+  gmu_truth[[count]] = read.csv(paste(path, outputfile, "/gmu_truth_", i, ".csv", sep = ""))
   
-  sigma[[count]] = read.csv(paste("/Users/rachaelshudde/Desktop/", outputfile, "/sigma_", i, ".csv", sep = ""))
-  sigma_truth[[count]] = read.csv(paste("/Users/rachaelshudde/Desktop/", outputfile, "/sigma_truth_", i, ".csv", sep = ""))
+  sigma[[count]] = read.csv(paste(path, outputfile, "/sigma_", i, ".csv", sep = ""))
+  sigma_truth[[count]] = read.csv(paste(path, outputfile, "/sigma_truth_", i, ".csv", sep = ""))
 
   # standardize the results
   standardized_beta = apply(as.matrix(abs(betas[[count]]) - abs(betas_truth[[count]])),1, function(x){sqrt(sum(x^2))})/sqrt(ncol(betas_truth[[count]]))
@@ -37,7 +40,7 @@ for (i in t_vals)
 }
 
 #make the violin plots for beta
-t_vals_plots = rep(t_vals, each = n_reps)
+t_vals_plots = as.character(rep(t_vals, each = n_reps))
 beta_mat = data.frame(unlist(betas),t_vals_plots) # column of betas, column of t_values
 gmu_mat = data.frame(unlist(gmu),t_vals_plots) 
 sigma_mat = data.frame(unlist(sigma), t_vals_plots)
@@ -46,24 +49,65 @@ colnames(beta_mat) = c("beta", "t")
 colnames(gmu_mat) = c("gmu", "t")
 colnames(sigma_mat) = c("sigma", "t")
 
-beta_mat$t = as.factor(beta_mat$t)
-gmu_mat$t = as.factor(gmu_mat$t)
-sigma_mat$t = as.factor(sigma_mat$t)
+beta_mat$t = factor(beta_mat$t, levels = unique(gmu_mat$t))
+gmu_mat$t = factor(gmu_mat$t, levels = unique(gmu_mat$t))
+sigma_mat$t = factor(sigma_mat$t, levels = unique(gmu_mat$t))
+
+# #create lable
+# lable = ifelse(NNGP,"NNGP", "Full")
 
 
 ## actually creating plots
-beta_plot = ggplot(beta_mat, aes(x = t, y = beta, color = t_vals_plots)) + geom_boxplot(width = 0.5) + ggtitle("Boxplot for beta (normal)")
 
-g_plot = ggplot(gmu_mat, aes(x = t, y = gmu, color = t_vals_plots)) + geom_violin(trim=FALSE) + geom_boxplot(width=0.1) + 
-  ggtitle("Violin plot for g + mu (normal)") + ylab(paste("g + ", expression(mu)))
+if(NNGP== TRUE){
+  beta_NNGP = ggplot(beta_mat, aes(x = t, y = beta, color = t)) + geom_boxplot(width = 0.5) +
+    ggtitle(expression("Consistancy of function estimation for"~beta~"(NNGP Sampler)")) +
+    xlab("Time points") + ylab ("Norm Distance") + 
+    guides(color=guide_legend(title="Time points"))+ theme_bw() + 
+    theme(plot.title = element_text(hjust = 0.5))   #ylab(expression("||"~beta~"||"^{2}))
+  
+  gmu_NNGP = ggplot(gmu_mat, aes(x = t, y = gmu, color = t)) + geom_violin(trim=FALSE) + 
+    geom_boxplot(width=0.1) + ggtitle(expression("Consistancy of function estimation for g +"~mu~"(NNGP Sampler)")) +
+    xlab("Time points") + ylab ("Norm Distance")+
+    guides(color=guide_legend(title="Time points"))+ theme_bw() +theme(plot.title = element_text(hjust = 0.5))  #ylab(expression("||"~g + mu~"||"^{2}))
+  
+  sigma_NNGP = ggplot(sigma_mat, aes(x = sigma, color = t)) + geom_density(trim = TRUE) +
+    ggtitle(expression("Density plot for"~sigma^{2}~"(NNGP Sampler)")) +  
+    geom_vline(xintercept = 0.25) + xlab("Time points") +  
+    ylab(expression(Density~of~sigma^{2}))+ guides(color=guide_legend(title="Time points")) + theme_bw()+
+    theme(plot.title = element_text(hjust = 0.5)) 
+  # display plots
+  beta_NNGP
+  g_NNGP
+  sigma_NNGP
+  
+  
+}else{
+  beta_full = ggplot(beta_mat, aes(x = t, y = beta, color = t)) + geom_boxplot(width = 0.5) +
+    ggtitle(expression("Consistancy of function estimation for"~beta~"(Full Sampler)")) +
+    xlab("Time points") + ylab ("Norm Distance") + 
+    guides(color=guide_legend(title="Time points"))+ theme_bw() + 
+    theme(plot.title = element_text(hjust = 0.5))   #ylab(expression("||"~beta~"||"^{2}))
+  
+  gmu_full = ggplot(gmu_mat, aes(x = t, y = gmu, color = t)) + geom_violin(trim=FALSE) + 
+    geom_boxplot(width=0.1) + ggtitle(expression("Consistancy of function estimation for g +"~mu~"(Full Sampler)")) +
+    xlab("Time points") + ylab ("Norm Distance")+
+    guides(color=guide_legend(title="Time points"))+ theme_bw() +theme(plot.title = element_text(hjust = 0.5))  #ylab(expression("||"~g + mu~"||"^{2}))
+  
+  sigma_full = ggplot(sigma_mat, aes(x = sigma, color = t)) + geom_density(trim = TRUE) +
+    ggtitle(expression("Density plot for"~sigma^{2}~"(Full Sampler)")) +  
+    geom_vline(xintercept = 0.25) + xlab("Time points") +  
+    ylab(expression(Density~of~sigma^{2}))+ guides(color=guide_legend(title="Time points")) + theme_bw()+
+    theme(plot.title = element_text(hjust = 0.5)) 
+  
+  
+  # display plots
+  beta_full
+  g_full
+  sigma_full
+  
+}
 
-sigma_plot = ggplot(sigma_mat, aes(x = sigma, color = t)) + geom_density(trim = TRUE) + ggtitle("Density plot for sigma (normal)") + 
-  geom_vline(xintercept = 0.25) + xlab(expression(sigma^2))
-
-# display plots
-beta_plot
-g_plot
-sigma_plot
 
 
 

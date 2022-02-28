@@ -1,4 +1,5 @@
 # This is a file to start doing paramater estimates for sampling mu
+library(lubridate)
 
 # functin to do Gibbs sampling 
 gibbs_sampler_r = function(data_gibbs, B = 1000, 
@@ -122,10 +123,11 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
   count = 1
   cutoff = B - n_to_store + 1
   loglikelihoodtest = vector(length = B + 1)
+  start_outer = proc.time()
+  start_inner = proc.time()
   #### starting Gibbs ####
   for (idx in 2:(B + 1))
   {
-    start_inner = Sys.time()
     set.seed(idx)
   
     #### getting mu ####
@@ -280,15 +282,26 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     loglikelihoodtest[idx] = loglhood_gibbs_current
     # print(paste("GOT TO:", idx))
     # print statement for time  
-    if (idx %% 1500 == 0) print(paste("iteration:", idx, "in", round(Sys.time() - start_inner, 2)))
+
+    if (idx %% 2000 == 0) 
+    {
+      end_inner = proc.time()
+      time_inner = round(as.numeric(end_inner[3] - start_inner[3]),2)
+      print(paste("iteration:", idx, "in", seconds_to_period(time_inner)))
+      start_inner = proc.time()
+    }
+      
+      
     # print(idx)
   }
   # print(round(Sys.time() - start),2)
-  
+  end_outer = proc.time()
   
   #### get burnin to remove #### 
   burn_in = floor(B * burn_in)
   thinning = seq(1, n_to_store, by = 2)
+  time = as.numeric(end_outer[3] - start_outer[3])
+  print(paste("TOTAL TIME", seconds_to_period(time)))
   
   return(list(beta = beta_post[thinning, ],
               mu = mu_post[thinning, ],
@@ -302,7 +315,8 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
               lK = lK_post[thinning],
               loglhood = loglhood_gibbs[thinning],
               knots = knots_gibbs,
-              LOGTEST = loglikelihoodtest[-1]))
+              LOGTEST = loglikelihoodtest[-1], 
+              time = time))
 }
 
 
