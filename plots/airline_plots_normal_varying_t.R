@@ -4,7 +4,7 @@ library(ggplot2)
 #read in the data for beta
 t_vals = 10
 count = 1
-NNGP = TRUE
+NNGP = FALSE
 n_reps = 80
 betas = list()
 betas_truth = list()
@@ -31,7 +31,7 @@ for (i in t_vals)
   sigma[[count]] = read.csv(paste(path, outputfile, "/sigma_", i, ".csv", sep = ""))
   sigma_truth[[count]] = read.csv(paste(path, outputfile, "/sigma_truth_", i, ".csv", sep = ""))
   
-  time[count] = read.csv(paste(path, outputfile, "/timing", i, ".csv", sep = ""))
+  time[count] = read.csv(paste(path, outputfile, "/timing_", i, ".csv", sep = ""))
 
   # standardize the results
   standardized_beta = apply(as.matrix(abs(betas[[count]]) - abs(betas_truth[[count]])),1, function(x){sqrt(sum(x^2))})/sqrt(ncol(betas_truth[[count]]))
