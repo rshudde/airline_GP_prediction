@@ -132,4 +132,4 @@ write.csv(sigma, row.names = FALSE, file = paste(write_filename, "sigma_", t_val
 write.csv(sigma_truth, row.names = FALSE, file = paste(write_filename, "sigma_truth_", t_vals, ".csv", sep = ""))
 write.csv(g_mu, row.names = FALSE, file = paste(write_filename, "gmu_", t_vals, ".csv", sep = ""))
 write.csv(g_mu_truth, row.names = FALSE, file = paste(write_filename, "gmu_truth_", t_vals, ".csv", sep = ""))
-write.csv(timing, row.names = FALSE, file = paste(write_filename, "timing", t_vals, ".csv", sep = ""))
+write.csv(timing, row.names = FALSE, file = paste(write_filename, "timing_", t_vals, ".csv", sep = ""))
