@@ -26,15 +26,12 @@ if(length(args)==0){
   }
 }
 
-# t_vals = c(20,40,60,80)
-max_t_val = 100
-
 for (i in 1:n_replicates)
   {
-  data = generate_simulation_data(n_datasets = 100, n_time = max_t_val, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
+  data = generate_simulation_data(n_datasets = 100, n_time = num_flights, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
   
   set.seed(i) # seed needs to be set so it's 1-50, otherwise we'll have repeats
-  idx = sample(1:max_t_val, t_vals, replace = FALSE)
+  idx = sample(1:num_flights, t_vals, replace = FALSE)
   y_new = data$y[ ,idx]
   x_new = lapply(data$X, function(X) X[c(idx), ])
   data_new_x = do.call(rbind, x_new)

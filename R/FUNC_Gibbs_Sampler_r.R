@@ -283,7 +283,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     # print(paste("GOT TO:", idx))
     # print statement for time  
 
-    if (idx %% 2000 == 0) 
+    if (idx %% 100 == 0) 
     {
       end_inner = proc.time()
       time_inner = round(as.numeric(end_inner[3] - start_inner[3]),2)
