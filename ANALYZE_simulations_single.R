@@ -56,6 +56,8 @@ beta_bias = mm
 sigma_bias = vv
 g_mu_bias = gmu
 
+timing = vector(length = n_replicates)
+
 
 for (i in 1:n_replicates)
 {
@@ -106,6 +108,8 @@ for (i in 1:n_replicates)
     g_mu_truth[i,] = unlist(data$g_true) + rep(data$mu_true, each = t_vals) 
     g_mu_bias[i,] =  g_mu_truth[i,] - g_mu[i,]
     
+    timing[i] = results$time
+    
   }
   print(paste(t_vals, "/", i))
 }
@@ -128,3 +132,4 @@ write.csv(sigma, row.names = FALSE, file = paste(write_filename, "sigma_", t_val
 write.csv(sigma_truth, row.names = FALSE, file = paste(write_filename, "sigma_truth_", t_vals, ".csv", sep = ""))
 write.csv(g_mu, row.names = FALSE, file = paste(write_filename, "gmu_", t_vals, ".csv", sep = ""))
 write.csv(g_mu_truth, row.names = FALSE, file = paste(write_filename, "gmu_truth_", t_vals, ".csv", sep = ""))
+write.csv(timing, row.names = FALSE, file = paste(write_filename, "timing", t_vals, ".csv", sep = ""))
