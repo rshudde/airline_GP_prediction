@@ -3,7 +3,7 @@
 Tnum=20
 NNGP="FALSE"
 n_replicates=10
-MCMCiterations=5000
+MCMCiterations=4000
 nsave=2000
 
 # create the single folder to store results as well as the output and results files
