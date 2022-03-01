@@ -38,6 +38,6 @@ for (i in 1:n_replicates)
   write.csv(data_new_x, file = paste0("t", t_vals, "/X_data_n100_t",t_vals,"_rep",i,".csv"), row.names = FALSE)
   write.csv(y_new, file = paste0("t", t_vals, "/Y_data_n100_t",t_vals,"_rep",i,".csv"),row.names = FALSE)
   
-  print(paste("JUST WROTE", t_vals, "/", i, "Where data is of shape nrow:", nrow(x_new), "ncol:", ncol(x_new)))
+  print(paste("JUST WROTE", t_vals, "/", i, "Where data is of shape nrow:", nrow(x_new[[1]]), "ncol:", ncol(x_new[[1]])))
 
 }
