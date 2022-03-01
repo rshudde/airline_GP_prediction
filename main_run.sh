@@ -5,7 +5,7 @@ NNGP="FALSE"
 n_replicates=50
 num_flights=1000
 max_T=300
-MCMCiterations=4000
+MCMCiterations=50000
 nsave=2000
 
 # create the single folder to store results as well as the output and results files
