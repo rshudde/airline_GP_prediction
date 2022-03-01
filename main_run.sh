@@ -1,9 +1,10 @@
 #!/bin/bash
 
 Tnum=10
-NNGP="FALSE"
-n_replicates=50
-num_flights=50
+NNGP="TRUE"
+n_replicates=5
+num_flights=1000
+max_T=300
 MCMCiterations=4000
 nsave=2000
 
@@ -16,7 +17,7 @@ mkdir -p RESULTSNNGP
 
 # populate the folder if it's not empty
 if ! [ "$(ls -A t$Tnum)" ]; then
-	nohup R CMD BATCH --no-save --no-restore "--args t_vals=$Tnum n_replicates=$n_replicates --num_flights=$num_flights" R/DATA_subset_datasets.R OUTPUT_creating_data_second.out &
+	nohup R CMD BATCH --no-save --no-restore "--args t_vals=$Tnum n_replicates=$n_replicates --num_flights=$num_flights --ma_T=$max_T" R/DATA_subset_datasets.R OUTPUT_creating_data.out &
 fi
 wait $BACK_PID 
 
