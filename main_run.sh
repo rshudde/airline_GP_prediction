@@ -17,7 +17,7 @@ mkdir -p RESULTSNNGP
 
 # populate the folder if it's not empty
 if ! [ "$(ls -A t$Tnum)" ]; then
-	nohup R CMD BATCH --no-save --no-restore "--args t_vals=$Tnum n_replicates=$n_replicates --num_flights=$num_flights --max_T=$max_T" R/DATA_subset_datasets.R OUTPUT_creating_data.out &
+	nohup R CMD BATCH --no-save --no-restore "--args t_vals=$Tnum n_replicates=$n_replicates num_flights=$num_flights max_T=$max_T" R/DATA_subset_datasets.R OUTPUT_creating_data.out &
 fi
 wait $BACK_PID 
 
