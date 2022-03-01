@@ -1,9 +1,12 @@
 #!/bin/bash
 # delete the single folder
+
 Tnum=10
-NNGP="FALSE"
-n_replicates=10
-num_flights=50
+NNGP="TRUE"
+n_replicates=5
+num_flights=1000
+max_T=300
+MCMCiterations=4000
 rm -rf t$Tnum
 
 # do analysis 
