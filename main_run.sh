@@ -1,8 +1,8 @@
 #!/bin/bash
 
 Tnum=100
-NNGP="TRUE"
-n_replicates=5
+NNGP="FALSE"
+n_replicates=50
 num_flights=1000
 max_T=300
 MCMCiterations=4000
@@ -21,11 +21,11 @@ if ! [ "$(ls -A t$Tnum)" ]; then
 fi
 wait $BACK_PID 
 
-# # run the Gibbs samplers (loop over 50)
-# for i in $(seq 1 $n_replicates); do \
-# nohup R CMD BATCH --no-save --no-restore "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave USE_NNGP=$NNGP" main_R_file.R OUTPUT_$Tnum$NNGP.out &
-# echo "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave USE_NNGP=$NNGP"
-# done
+# run the Gibbs samplers (loop over 50)
+for i in $(seq 1 $n_replicates); do \
+nohup R CMD BATCH --no-save --no-restore "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave USE_NNGP=$NNGP" main_R_file.R OUTPUT_$Tnum$NNGP.out &
+echo "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave USE_NNGP=$NNGP"
+done
 
 
 

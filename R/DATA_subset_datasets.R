@@ -28,9 +28,8 @@ if(length(args)==0){
 
 for (i in 1:n_replicates)
   {
-  data = generate_simulation_data(n_datasets = num_flights, n_time = max_T, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
-  
   set.seed(i) # seed needs to be set so it's 1-50, otherwise we'll have repeats
+  data = generate_simulation_data(n_datasets = num_flights, n_time = max_T, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
   idx = sample(1:t_vals, t_vals, replace = FALSE)
   y_new = data$y[ ,idx]
   x_new = lapply(data$X, function(X) X[c(idx), ])
