@@ -1,9 +1,9 @@
 #!/bin/bash
 
-Tnum=250
+# Tnum=250
 NNGP="FALSE"
 n_replicates=50
-num_flights=1000
+num_flights=500
 max_T=300
 MCMCiterations=50000
 nsave=2000
@@ -22,10 +22,10 @@ fi
 wait $BACK_PID 
 
 # run the Gibbs samplers (loop over 50)
-for i in $(seq 1 $n_replicates); do \
-nohup R CMD BATCH --no-save --no-restore "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave USE_NNGP=$NNGP" main_R_file.R OUTPUT_$Tnum$NNGP.out &
-echo "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave USE_NNGP=$NNGP"
-done
+# for i in $(seq 1 $n_replicates); do \
+# nohup R CMD BATCH --no-save --no-restore "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave USE_NNGP=$NNGP" main_R_file.R OUTPUT_$Tnum$NNGP.out &
+# echo "--args r=$i t=$Tnum B_VAL=$MCMCiterations STORE_VAL=$nsave USE_NNGP=$NNGP"
+# done
 
 
 
