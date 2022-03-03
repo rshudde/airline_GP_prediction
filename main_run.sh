@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Tnum=250
+Tnum=100
 NNGP="FALSE"
 n_replicates=50
 num_flights=500
