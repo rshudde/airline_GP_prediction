@@ -4,45 +4,50 @@ library(stats)
 library(recipes)
 library(caret)
 folder = "/Users/rachaelshudde/Desktop/Data/AirlineData/"
-jan18 = read.csv(paste(folder, "January2018.csv", sep = ""))
-feb18 = read.csv(paste(folder, "February2018.csv", sep = ""))
-march18 = read.csv(paste(folder, "March2018.csv", sep = ""))
-april18 = read.csv(paste(folder, "April2018.csv", sep = ""))
-may18 = read.csv(paste(folder, "May2018.csv", sep = ""))
-june18 = read.csv(paste(folder, "June2018.csv", sep = ""))
-july18 = read.csv(paste(folder, "July2018.csv", sep = ""))
-
-aug = read.csv(paste(folder, "August2019.csv", sep = ""))
-sep = read.csv(paste(folder, "September2019.csv", sep = ""))
-oct = read.csv(paste(folder, "October2019.csv", sep = ""))
-nov = read.csv(paste(folder, "November2019.csv", sep = ""))
-dec = read.csv(paste(folder, "December2019.csv", sep = ""))
-
-selected_columns = c("Month", "DayOfWeek", "Marketing_Airline_Network", "FlightDate",
-                     "Tail_Number", "Flight_Number_Operating_Airline", "Origin", "Dest", "CRSDepTime",
-                     "CRSArrTime", "AirTime", "Distance", "DestState", "OriginState", "DepDelay")
-
-# combined = rbind(jan18, feb18, march18, april18, may18, june18, july18, aug, sep, oct, nov, dec)
-combined = rbind(jan18, june18, sep, oct, dec)
-rm(jan18)
-rm(feb18)
-rm(march18)
-rm(april18)
-rm(may18)
-rm(june18)
-rm(july18)
-rm(aug)
-rm(sep)
-rm(oct)
-rm(nov)
-rm(dec)
+# jan18 = read.csv(paste(folder, "January2018.csv", sep = ""))
+# feb18 = read.csv(paste(folder, "February2018.csv", sep = ""))
+# march18 = read.csv(paste(folder, "March2018.csv", sep = ""))
+# april18 = read.csv(paste(folder, "April2018.csv", sep = ""))
+# may18 = read.csv(paste(folder, "May2018.csv", sep = ""))
+# june18 = read.csv(paste(folder, "June2018.csv", sep = ""))
+# july18 = read.csv(paste(folder, "July2018.csv", sep = ""))
+# aug18 = read.csv(paste(folder, "August2018.csv", sep = ""))
+# sep18 = read.csv(paste(folder, "September2018.csv", sep = ""))
+# oct18 = read.csv(paste(folder, "October2018.csv", sep = ""))
+# nov18 = read.csv(paste(folder, "November2018.csv", sep = ""))
+# dec18 = read.csv(paste(folder, "December2018.csv", sep = ""))
+# 
+# selected_columns = c("Month", "DayOfWeek", "Marketing_Airline_Network", "FlightDate",
+#                      "Tail_Number", "Flight_Number_Operating_Airline", "Origin", "Dest", "CRSDepTime",
+#                      "CRSArrTime", "AirTime", "Distance", "DestState", "OriginState", "DepDelay")
+# 
+# combined = rbind(jan18, feb18, march18, april18, may18, june18, july18, aug18, sep18, oct18, nov18, dec18)
+# # combined = rbind(jan18, june18, sep, oct, dec)
+# rm(jan18)
+# rm(feb18)
+# rm(march18)
+# rm(april18)
+# rm(may18)
+# rm(june18)
+# rm(july18)
+# rm(aug18)
+# rm(sep18)
+# rm(oct18)
+# rm(nov18)
+# rm(dec18)
+save(combined, file = "combineddata.rda")
 X_dec = combined[, selected_columns]
 idx = which(abs(X_dec$DepDelay) > 120)
+print(paste("Initial data is of dimension ", nrow(X_dec), "rows and", ncol(X_dec), "columns")) 
 X_dec = X_dec[-idx,]
+print(paste("Data after removing large delays is of dimension ", nrow(X_dec), "rows and", ncol(X_dec), 
+            "columns, removing", length(idx), "rows")) 
 
 data = X_dec
 data = data[complete.cases(data), ] # remove data with missing covariates
-
+print(paste("Data after removing incomplete cases is of dimension ", nrow(data), "rows and", ncol(data), 
+            "columns, removing", nrow(X_dec) - nrow(data), "rows")) 
+temp = nrow(data)
 # REMOVE THE LESS FREQUENT AIRLINES / DEPARTURES / ORIGINS
 origin_sort = as.data.frame(sort(table(data$Origin), decreasing = TRUE))[-c(1:15),]
 new_origin_list = origin_sort$Var1
@@ -53,6 +58,8 @@ new_dest_list = deset_sort$Var1
 data = data[-(which(data$Dest %in% new_dest_list)), ]
 
 data = droplevels(data)
+print(paste("Data after removing infrequent airlines cases is of dimension ", nrow(data), "rows and", ncol(data), 
+            "columns, removing", temp - nrow(data), "rows")) 
 
 # now update arrival / departure time to be factors
 data$Month = as.factor(data$Month)
@@ -134,11 +141,11 @@ over_missing_75 = which(percent_missing > 75)
 over_missing_80 = which(percent_missing > 85)
 over_missing_90 = which(percent_missing > 90)
 
-print(length(over_missing_30))
-print(length(over_missing_50))
-print(length(over_missing_75))
-print(length(over_missing_80))
-print(length(over_missing_90))
+print(paste("Number of flights missing 30% of observations", length(over_missing_30)))
+print(paste("Number of flights missing 50% of observations", length(over_missing_50)))
+print(paste("Number of flights missing 75% of observations", length(over_missing_75)))
+print(paste("Number of flights missing 80% of observations", length(over_missing_80)))
+print(paste("Number of flights missing 90% of observations", length(over_missing_90)))
 
 old_Z = Z
 Z = Z[-over_missing_75, ]
@@ -149,7 +156,7 @@ unique_flights = unique(rownames(Z))
 
 X_dec = data # may need to update
 X_dec$ID = paste(X_dec$Marketing_Airline_Network, X_dec$Flight_Number_Operating_Airline, X_dec$Origin, X_dec$Dest, sep = "")
-rm(data)
+# rm(data)
 # ## try to get rid of srme of this
 # na_count <- rowSums(is.na(Z))
 # table(na_count)
@@ -205,6 +212,8 @@ for (i in 1:length(X_list))
   X_list[[i]] = X_list[[i]]/c.X
 }
   
+save(X_list, file = "X_list.rda")
+save(Z, file = "Z_list.rda")
 # keep distance continuous 
 # Z transform
 
@@ -214,16 +223,21 @@ source('R/FUNC_paramater_estimates.R')
 source('R/DATA_generate_simulation.R')
 source('R/FUNC_Gibbs_Sampler.R')
 source('R/FUNC_Gibbs_Sampler_r.R')
-source('R/PLOTS_Gibbs_Sampler.R')
-Rcpp::sourceCpp("src/FUNC_paramater_estimates_c.cpp")
+source('R/PLOTS_Gibbs_sampler.R')
+Rcpp::sourceCpp('src/FUNC_paramater_estimates_c.cpp')
 
 beta_names = colnames(X_list[[1]])
 time_idx = apply(Z, 1, function(x) which(!is.na(x)))
 start = 1
-end = 20
+end = 10
 data_actual = list(y = Z[start:end,], X = X_list[start:end], time_idx = time_idx[start:end])
-# data_gibbs = data_actual; B = 1000; n_to_store = 500
-results = gibbs_sampler_r(data_gibbs = data_actual, B = 10000, n_to_store = 5000)
+# data_gibbs = data_actual; B = 100; n_to_store = 50; runif(ncol(data_actual$X[[1]]), -1, 1)
+results = gibbs_sampler_r(data_gibbs = data_actual, 
+                          B = 100,
+                          xi_initial = runif(ncol(data_actual$X[[1]]), -1, 1),
+                          burn_in = 0.5,
+                          NNGP = TRUE,
+                          n_to_store = 50)
 
 save(results)
 # get posterior g samples
