@@ -37,7 +37,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     for(i in 1:length(X)) time_idx[[i]] = c(1:nrow(X[[i]]))
     
   } else {
-    time_idx = data_gibs$time_idx
+    time_idx = data_gibbs$time_idx
   }
   
   # get the number of datasets, covariates and knots
