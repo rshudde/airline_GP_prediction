@@ -22,7 +22,7 @@ if(length(args)==0){
 }
 # t_vals = 20
 
-n_datasets_sim = 100 # how many flights are being observed
+n_datasets_sim = num_flights # how many flights are being observed
 
 # set up size of all initial datasets
 mm = matrix(0, ncol = 15, nrow = n_replicates)

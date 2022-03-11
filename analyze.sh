@@ -1,12 +1,16 @@
 #!/bin/bash
 # delete the single folder
+
 Tnum=10
-NNGP="FALSE"
-n_replicates=10
+NNGP="TRUE"
+n_replicates=5
+num_flights=1000
+max_T=300
+MCMCiterations=4000
 rm -rf t$Tnum
 
 # do analysis 
-nohup R CMD BATCH --no-save --no-restore "--args t_vals=$Tnum n_replicates=$n_replicates USE_NNGP=$NNGP" ANALYZE_simulations_single.R OUTPUT_analyzing.out &
+nohup R CMD BATCH --no-save --no-restore "--args t_vals=$Tnum n_replicates=$n_replicates USE_NNGP=$NNGP --num_flights=$num_flights" ANALYZE_simulations_single.R OUTPUT_analyzing.out &
 wait $BACK_PID 
 
 # delete the .rda files 
