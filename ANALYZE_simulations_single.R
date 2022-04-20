@@ -9,19 +9,20 @@ source('R/FUNC_Gibbs_Sampler.R')
 source('R/FUNC_Gibbs_Sampler_r.R')
 source('R/PLOTS_Gibbs_sampler.R')
 # Rcpp::sourceCpp('src/FUNC_paramater_estimates_c.cpp')
+write.csv(redo, "test.csv")
 
 args=(commandArgs(TRUE))
 if(length(args)==0){
   print("No arguments supplied.")
   ##supply default values
-  stop("NO COMMAND LINE ARGUMENTS PASSED FOR R AND T")
+  stop("NO COMMAND LINE ARGUMENTS PASSED")
 }else{
   for(i in 1:length(args)){
     eval(parse(text=args[[i]]))
   }
 }
-# t_vals = 20
 
+# t_vals=10; n_replicates = 5; USE_NNGP = "TRUE"; num_flights = 50
 n_datasets_sim = num_flights # how many flights are being observed
 
 # set up size of all initial datasets
@@ -73,7 +74,7 @@ for (i in 1:n_replicates)
   }
   
   # reading in the data that the simulation would have read in - reading in csv
-  data = generate_simulation_data(n_datasets = 100, n_time = t_vals, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
+  data = generate_simulation_data(n_datasets = num_flights, n_time = t_vals, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
   
   tryCatch(load(temp_filename), error = function(e) { skip_to_next <<- TRUE})
   
@@ -117,6 +118,7 @@ for (i in 1:n_replicates)
 
 
 # which ones to re-do
+write_filename = ifelse(USE_NNGP, "outputNNGP/", "output/")
 redo = which(rowMeans(beta) == 0)
 if (length(redo) != 0)
 {
@@ -125,7 +127,6 @@ if (length(redo) != 0)
 }
 
 
-write_filename = ifelse(USE_NNGP, "outputNNGP/", "output/")
 write.csv(beta, row.names = FALSE, file = paste(write_filename, "beta_", t_vals, ".csv", sep = ""))
 write.csv(beta_truth, row.names = FALSE, file = paste(write_filename, "beta_truth_", t_vals, ".csv", sep = ""))
 write.csv(sigma, row.names = FALSE, file = paste(write_filename, "sigma_", t_vals, ".csv", sep = ""))

@@ -2,8 +2,6 @@ rm(list = ls())
 library(invgamma)
 library(MASS)
 library(nlme)
-library(invgamma)
-library(MASS)
 library(FastGP)
 library(emulator)
 

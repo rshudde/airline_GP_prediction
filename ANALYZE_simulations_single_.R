@@ -12,23 +12,21 @@ source('R/PLOTS_Gibbs_sampler.R')
 
 args=(commandArgs(TRUE))
 if(length(args)==0){
-  print("No arguments supplied.")
-  ##supply default values
-  stop("NO COMMAND LINE ARGUMENTS PASSED FOR R AND T")
+  stop("NO COMMAND LINE ARGUMENTS PASSED")
 }else{
   for(i in 1:length(args)){
     eval(parse(text=args[[i]]))
   }
 }
-# t_vals = 20
 
-n_datasets_sim = 100 # how many datasets are being run
+# t_vals=10; n_replicates = 5; USE_NNGP = "TRUE"; num_flights = 50
+n_datasets_sim = num_flights # how many flights are being observed
 
 # set up size of all initial datasets
-mm = matrix(0, ncol = 15, nrow = 50)
-vv = vector(length = 50)
-ll = matrix(0, nrow = 50, ncol = n_datasets_sim)
-gmu = matrix(0, nrow = 50, ncol = n_datasets_sim*t_vals)
+mm = matrix(0, ncol = 15, nrow = n_replicates)
+vv = vector(length = n_replicates)
+ll = matrix(0, nrow = n_replicates, ncol = n_datasets_sim)
+gmu = matrix(0, nrow = n_replicates, ncol = n_datasets_sim*t_vals)
 
 beta = mm
 sigma = vv
@@ -56,17 +54,24 @@ beta_bias = mm
 sigma_bias = vv
 g_mu_bias = gmu
 
+timing = vector(length = n_replicates)
 
-for (i in 1:50)
+
+for (i in 1:n_replicates)
 {
   skip_to_next <- FALSE
   
   # getting the filename for the current .rda file
   # temp_filename = paste("RESULTS/", T_reps[idx], "_", i, ".rda", sep = "")
-  temp_filename = paste("RESULTS/results_n100_t", t_vals, "_rep", i, ".rda", sep = "")
+  if (USE_NNGP)
+  {
+    temp_filename = paste("RESULTSNNGP/results_n100_t", t_vals, "_rep", i, "_NNGP.rda", sep = "")
+  } else {
+    temp_filename = paste("RESULTS/results_n100_t", t_vals, "_rep", i, ".rda", sep = "")
+  }
   
   # reading in the data that the simulation would have read in - reading in csv
-  data = generate_simulation_data(n_datasets = 100, n_time = t_vals, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
+  data = generate_simulation_data(n_datasets = num_flights, n_time = t_vals, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
   
   tryCatch(load(temp_filename), error = function(e) { skip_to_next <<- TRUE})
   
@@ -101,6 +106,8 @@ for (i in 1:50)
     g_mu_truth[i,] = unlist(data$g_true) + rep(data$mu_true, each = t_vals) 
     g_mu_bias[i,] =  g_mu_truth[i,] - g_mu[i,]
     
+    timing[i] = results$time
+    
   }
   print(paste(t_vals, "/", i))
 }
@@ -108,6 +115,7 @@ for (i in 1:50)
 
 
 # which ones to re-do
+write_filename = ifelse(USE_NNGP, "outputNNGP/", "output/")
 redo = which(rowMeans(beta) == 0)
 if (length(redo) != 0)
 {
@@ -116,10 +124,10 @@ if (length(redo) != 0)
 }
 
 
-write_filename = "output/"
 write.csv(beta, row.names = FALSE, file = paste(write_filename, "beta_", t_vals, ".csv", sep = ""))
 write.csv(beta_truth, row.names = FALSE, file = paste(write_filename, "beta_truth_", t_vals, ".csv", sep = ""))
 write.csv(sigma, row.names = FALSE, file = paste(write_filename, "sigma_", t_vals, ".csv", sep = ""))
 write.csv(sigma_truth, row.names = FALSE, file = paste(write_filename, "sigma_truth_", t_vals, ".csv", sep = ""))
-write.csv(g_mu, row.names = FALSE, file = paste(write_filename, "gpmu_", t_vals, ".csv", sep = ""))
+write.csv(g_mu, row.names = FALSE, file = paste(write_filename, "gmu_", t_vals, ".csv", sep = ""))
 write.csv(g_mu_truth, row.names = FALSE, file = paste(write_filename, "gmu_truth_", t_vals, ".csv", sep = ""))
+write.csv(timing, row.names = FALSE, file = paste(write_filename, "timing_", t_vals, ".csv", sep = ""))
