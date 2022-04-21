@@ -30,6 +30,7 @@ if(length(args)==0){
 }
 
 USE_NNGP = ifelse(USE_NNGP == "TRUE", TRUE, FALSE)
+neighbor_size = floor(neighbor_size)
 # function to read data
 read_data = function(i, t_val){
   X_initial = read.csv(file = paste0("t", t_val, "/X_data_n100_t", t_val, "_rep",i,".csv"), header = T)
@@ -55,6 +56,7 @@ results = gibbs_sampler_r(data_gibbs = data,
                           xi_initial = runif(data$t_val, -1, 1),
                           burn_in = 0.5,
                           NNGP = USE_NNGP,
+                          nNeighbour = neighbor_size,
                           n_to_store = STORE_VAL)
 
 
