@@ -7,7 +7,7 @@ n_replicates=50
 num_flights=100
 max_T=100
 MCMCiterations=50000
-rm -rf t$Tnum
+# rm -rf t$Tnum
 
 # do analysis 
 nohup R CMD BATCH --no-save --no-restore "--args t_vals=$Tnum n_replicates=$n_replicates USE_NNGP=$NNGP num_flights=$num_flights" ANALYZE_simulations_single_.R OUTPUT_analyzing.out &
