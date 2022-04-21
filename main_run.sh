@@ -1,7 +1,7 @@
 #!/bin/bash
 
-Tnum=20
-NNGP="TRUE"
+Tnum=100
+NNGP="FALSE"
 n_replicates=50
 num_flights=100
 max_T=100
