@@ -1,12 +1,12 @@
 #!/bin/bash
 
-Tnum=10
-NNGP="TRUE"
-n_replicates=5
-num_flights=50
-max_T=30
-MCMCiterations=50
-nsave=20
+Tnum=20
+NNGP="FALSE"
+n_replicates=50
+num_flights=100
+max_T=100
+MCMCiterations=50000
+nsave=2000
 
 # create the single folder to store results as well as the output and results files
 mkdir -p t$Tnum
