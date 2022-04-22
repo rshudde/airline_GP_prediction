@@ -1,8 +1,8 @@
 #!/bin/bash
 # delete the single folder
 
-Tnum=40
-NNGP="FALSE"
+Tnum=20
+NNGP="TRUE"
 n_replicates=50
 num_flights=100
 max_T=100
