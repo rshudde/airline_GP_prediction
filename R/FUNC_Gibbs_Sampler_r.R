@@ -4,10 +4,10 @@ library(lubridate)
 # functin to do Gibbs sampling 
 gibbs_sampler_r = function(data_gibbs, B = 1000, 
                          mu_initial, beta_initial, sigma_2_initial, lK_initial,
-                         xi_initial, sigmaB_2_initial, lB_initial,
+                         xi_initial, sigmaB_2_initial, lB_initial, nNeighbour,
                          a = 10^(-3), b = 10^(-3), alpha_normal_prior = 0,
                          sigma_normal_prior = 1000, burn_in = 0.5, cpp = TRUE, 
-                         nNeighbour = 25, NNGP = FALSE, n_to_store = 100)
+                         NNGP = FALSE, n_to_store = 100)
 {
   # # for testing
   # B = 1000
