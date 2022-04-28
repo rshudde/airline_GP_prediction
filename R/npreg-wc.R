@@ -1,5 +1,5 @@
-
-source('npreg.R')
+rm(list = ls())
+source('R/npreg.R')
 library(doParallel)
 
 ## A monotone function (as in Maatouk & Bay)
@@ -16,7 +16,7 @@ sig.true = .2
 # f2 = function(x){5*((x-0.5)^2)}
 
 # generating the data
-R = 10
+R = 100
 doParallel::registerDoParallel(cores = 18)
 WCGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopar% {
   
@@ -45,5 +45,6 @@ WCGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopa
   c(sqrt(mean((fpost.summ[1,]-f.true)^2)), mean(fpost.coverage), mean(MCMCout$time.per.iter))
 }
 
-save(WCGP100, file = 'WCGP100.RData')
+print(head(WCGP100))
+# save(WCGP100, file = 'TIMING/WCGP100.RData')
 

@@ -1,5 +1,6 @@
-
-source('npreg.R')
+rm(list = ls())
+source('R/npreg.R')
+library(matrixcalc)
 library(doParallel)
 
 ## A monotone function (as in Maatouk & Bay)
@@ -16,34 +17,30 @@ sig.true = .2
 # f2 = function(x){5*((x-0.5)^2)}
 
 # generating the data
-R = 10
+R = 100
 doParallel::registerDoParallel(cores = 18)
 exactGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopar% {
-  
+
   set.seed(r)
   yObs = f1_x + rnorm(nObs, 0, sig.true)
-  
-  MCMCout = exactGP.sampler(y = yObs, x = xObs, nu.fix = 5/2, l.fix = 1,
-                            print.at = 100, mcmc = 100, brn = 400
-  )
-  
+
+  MCMCout = exactGP.sampler(y = yObs, x = xObs, nu.fix = 5/2, l.fix = 1, print.at = 100, mcmc = 100, brn = 400)
+
   # summaries
   MBmat = t(mapply(i = 1:length(x.seq),
-                   FUN = function(i){
-                     
-                     pmax(1 - abs((x.seq[i] - MCMCout$knots)*MCMCout$nknots), 0)
-                     
-                   }))
+
+                   FUN = function(i){pmax(1 - abs((x.seq[i] - MCMCout$knots)*MCMCout$nknots), 0)}))
   fpost = MBmat%*%MCMCout$xi
   fpost.summ = rbind(rowMeans(fpost),
                      apply(fpost, 1,
                            function(v){quantile(x = v, probs = c(0.025, 0.975))}))
   fpost.coverage = as.numeric((fpost.summ[2,]<=f.true)&(fpost.summ[3,]>=f.true))
-  
+
   print(r)
-  
+
   c(sqrt(mean((fpost.summ[1,]-f.true)^2)), mean(fpost.coverage), mean(MCMCout$time.per.iter))
 }
 
-save(exactGP100, file = 'exactGP100.RData')
+print(head(exactGP100))
+save(exactGP100, file = 'TIMING/exactGP100.RData')
 

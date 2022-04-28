@@ -1,7 +1,8 @@
-
+rm(list = ls())
 # source codes and libraries:
 require(Rcpp)
-source("all_functions.R")
+library(matrixcalc)
+source("R/all_functions.R")
 # sourceCpp("inv_chol.cpp")
 Rcpp::sourceCpp('src/inv_chol.cpp')
 
@@ -35,7 +36,9 @@ exactGP.sampler = function(y, x, N, mcmc = 1000, brn = 4000, thin = 1,
   if(missing(sig2.fix) && missing(sig2.in)) sig2.in = 1
   
   Kmat = round(covmat(my_knots, nu.in, l.in), 5)
+  Kmat = Kmat + diag(10e-3, nrow = nrow(Kmat))
   Linv = round(inv_chol(Kmat), 5)
+         
   if(missing(xi.fix) && missing(xi.in)){
     
     xi.in = as.numeric(mvtnorm::rmvnorm(n = 1, mean = numeric(N+1),
@@ -55,14 +58,13 @@ exactGP.sampler = function(y, x, N, mcmc = 1000, brn = 4000, thin = 1,
   # frac.seq[1:brn] = exp(seq(log(0.5), log(1), length.out = brn))
   
   for(i in 1:em){
-    
     set.seed(i)
     
     ptm.start_i = proc.time()
     
     # sampling from nu or l
     if(!missing(nu.fix) & missing(l.fix)){
-      
+      print('1')
       l.proposed = exp(log(l.in) + rnorm(1, 0, sd.proposal.l))
       dproposed.l = dunif(l.proposed, range.l[1], range.l[2])
       if(dproposed.l>0){
@@ -85,7 +87,7 @@ exactGP.sampler = function(y, x, N, mcmc = 1000, brn = 4000, thin = 1,
       }
       
     }else if(missing(nu.fix) & !missing(l.fix)){
-      
+      print('2')
       nu.proposed = exp(log(nu.in) + rnorm(1, 0, sd.proposal.nu))
       dproposed.nu = dunif(nu.proposed, range.nu[1], range.nu[2])
       if(dproposed.nu>0){
@@ -108,7 +110,7 @@ exactGP.sampler = function(y, x, N, mcmc = 1000, brn = 4000, thin = 1,
       }
       
     }else if(missing(nu.fix) & missing(l.fix)){
-      
+      print('3')
       l.proposed = exp(log(l.in) + rnorm(1, 0, sd.proposal.l))
       nu.proposed = exp(log(nu.in) + rnorm(1, 0, sd.proposal.nu))
       dproposed.l = dunif(l.proposed, range.l[1], range.l[2])
@@ -140,14 +142,13 @@ exactGP.sampler = function(y, x, N, mcmc = 1000, brn = 4000, thin = 1,
     # sampling \tau^2:
     if(missing(tau2.fix)) tau2.in = invgamma::rinvgamma(n = 1, shape = (N+1)/2,
                                                         rate = sum((Matrix::crossprod(Linv, xi.in))^2)/2)
-    
     # sampling \sigma^2:
     if(missing(sig2.fix)) sig2.in = invgamma::rinvgamma(n = 1, shape = n/2,
                                                         rate = sum((y - as.numeric(X%*%xi.in))^2)/2)
     
     # sampling Xi:
     if(missing(xi.fix)){
-      
+    
       # Sigma.xipost = round(solve(Matrix::crossprod(X)/sig2.in +
       #                              Matrix::tcrossprod(Linv)/tau2.in), 5)
       a = round(Matrix::crossprod(X)/sig2.in, 5)
@@ -458,6 +459,8 @@ NNGP.sampler = function(y, x, N, nNeighbour = 30, mcmc = 1000, brn = 4000, thin 
                          
                          Kmat_X = covmat(my_knots[max(1,X-nNeighbour):X],
                                          nu.in, l.in)
+                         Kmat_X = Kmat_X + diag(10e-5, nrow = nrow(Kmat_X))
+                      
                          Linv_X = inv_chol(Kmat_X[1:min(nNeighbour,X-1),
                                                   1:min(nNeighbour,X-1)])
                          v_X = Matrix::crossprod(Linv_X, Kmat_X[1:min(nNeighbour,X-1),

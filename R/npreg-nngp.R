@@ -1,4 +1,5 @@
-source('npreg.R')
+rm(list = ls())
+source('R/npreg.R')
 library(doParallel)
 
 ## A monotone function (as in Maatouk & Bay)
@@ -15,7 +16,7 @@ sig.true = .2
 # f2 = function(x){5*((x-0.5)^2)}
 
 # generating the data
-R = 10
+R = 100
 doParallel::registerDoParallel(cores = 18)
 NNGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopar% {
   
@@ -23,8 +24,7 @@ NNGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopa
   yObs = f1_x + rnorm(nObs, 0, sig.true)
   
   MCMCout = NNGP.sampler(y = yObs, x = xObs, nu.fix = 5/2, l.fix = 1,
-                         print.at = 100, mcmc = 100, brn = 400
-  )
+                         print.at = 100, mcmc = 100, brn = 400)
   
   # summaries
   MBmat = t(mapply(i = 1:length(x.seq),
@@ -44,5 +44,6 @@ NNGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopa
   c(sqrt(mean((fpost.summ[1,]-f.true)^2)), mean(fpost.coverage), mean(MCMCout$time.per.iter))
 }
 
-save(NNGP100, file = 'NNGP100.RData')
+print(head(NNGP100))
+# save(NNGP100, file = 'TIMING/NNGP100.RData')
 
