@@ -14,6 +14,8 @@ if(length(args)==0){
 
 R = num_replications
 nObs = num_observations
+mcmc = num_mcmc
+burnin = num_burnin
 
 ## A monotone function (as in Maatouk & Bay)
 f1 = function(x){log(20*x + 1)}
@@ -36,7 +38,7 @@ WCGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopa
   yObs = f1_x + rnorm(nObs, 0, sig.true)
   
   MCMCout = WCGP.sampler(y = yObs, x = xObs, nu.fix = 5/2, l.fix = 1,
-                            print.at = 100, mcmc = 100, brn = 400
+                            print.at = 1000, mcmc = mcmc, brn = burnin
   )
   
   # summaries
