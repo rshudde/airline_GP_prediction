@@ -59,5 +59,5 @@ WCGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopa
 }
 
 print(head(WCGP100))
-save(WCGP100, file = 'R/sandy_code/TIMING/WCGP100.RData')
+save(WCGP100, file = 'TIMING/WCGP100.RData')
 

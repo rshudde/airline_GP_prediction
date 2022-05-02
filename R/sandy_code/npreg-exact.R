@@ -53,5 +53,5 @@ exactGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %d
 }
 
 print(head(exactGP100))
-save(exactGP100, file = 'R/sandy_code/TIMING/exactGP100.RData')
+save(exactGP100, file = 'TIMING/exactGP100.RData')
 

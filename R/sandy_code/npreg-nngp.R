@@ -59,5 +59,5 @@ NNGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopa
 }
 
 print(head(NNGP100))
-save(NNGP100, file = 'R/sandy_code/TIMING/NNGP100.RData')
+save(NNGP100, file = 'TIMING/NNGP100.RData')
 
