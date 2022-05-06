@@ -59,5 +59,5 @@ NNGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopa
 }
 
 print(head(NNGP100))
-filename = paste('TIMING/NNGP', R, '.Rdata', sep = "")
+filename = paste('TIMING/NNGP', nObs, '.Rdata', sep = "")
 save(NNGP100, file = filename)

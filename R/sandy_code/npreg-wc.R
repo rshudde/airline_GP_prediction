@@ -57,6 +57,6 @@ WCGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopa
 }
 
 print(head(WCGP100))
-filename = paste('TIMING/WCGP', R, '.Rdata', sep = "")
+filename = paste('TIMING/WCGP', nObs, '.Rdata', sep = "")
 save(WCGP100, file = filename)
 

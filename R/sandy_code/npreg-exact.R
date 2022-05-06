@@ -56,5 +56,5 @@ exactGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %d
 }
 
 print(head(exactGP100))
-filename = paste('TIMING/exactGP', R, '.Rdata', sep = "")
+filename = paste('TIMING/exactGP', nObs, '.Rdata', sep = "")
 save(exactGP100, file = filename)
