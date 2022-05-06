@@ -43,15 +43,11 @@ WCGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopa
   
   # summaries
   MBmat = t(mapply(i = 1:length(x.seq),
-                   FUN = function(i){
-                     
-                     pmax(1 - abs((x.seq[i] - MCMCout$knots)*MCMCout$nknots), 0)
-                     
-                   }))
+                   FUN = function(i){pmax(1 - abs((x.seq[i] - MCMCout$knots)*MCMCout$nknots), 0)}))
+  
   fpost = MBmat%*%MCMCout$xi
-  fpost.summ = rbind(rowMeans(fpost),
-                     apply(fpost, 1,
-                           function(v){quantile(x = v, probs = c(0.025, 0.975))}))
+  
+  fpost.summ = rbind(rowMeans(fpost), apply(fpost, 1, function(v){quantile(x = v, probs = c(0.025, 0.975))}))
   fpost.coverage = as.numeric((fpost.summ[2,]<=f.true)&(fpost.summ[3,]>=f.true))
   
   print(r)
@@ -61,5 +57,6 @@ WCGP100 = foreach::foreach(r = 1:R, .combine = 'rbind', .multicombine = T) %dopa
 }
 
 print(head(WCGP100))
-save(WCGP100, file = 'TIMING/WCGP100.RData')
+filename = paste('TIMING/WCGP', R, '.Rdata', sep = "")
+save(WCGP100, file = filename)
 
