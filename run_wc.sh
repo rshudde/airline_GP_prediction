@@ -1,6 +1,6 @@
 #!/bin/bash
 
-num_observations=300
+num_observations=500
 num_replications=20
 num_burnin=$num_observations-$num_observations/4
 num_mcmc=5000
