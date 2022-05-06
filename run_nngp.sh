@@ -1,7 +1,7 @@
 #!/bin/bash
 
-num_observations=1000
-num_replications=50
+num_observations=800
+num_replication=20
 num_burnin=500
 num_mcmc=1000
 
