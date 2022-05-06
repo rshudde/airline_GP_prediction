@@ -1,8 +1,8 @@
 #!/bin/bash
 
-num_observations=800
-num_replication=20
-num_burnin=500
+num_observations=500
+num_replications=20
+num_burnin=400
 num_mcmc=1000
 
 # do analysis 
