@@ -18,7 +18,7 @@ load("Z_list.rda")
 # start gibbs sampler
 beta_names = colnames(X_list[[1]])
 time_idx = apply(Z, 1, function(x) which(!is.na(x)))
-start = 1
+start = 10
 end = length(X_list)
 data_actual = list(y = Z[start:end,], X = X_list[start:end], time_idx = time_idx[start:end])
 results = gibbs_sampler_r(data_gibbs = data_actual, 
