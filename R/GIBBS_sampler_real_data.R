@@ -18,11 +18,11 @@ load("Z_list.rda")
 # start gibbs sampler
 beta_names = colnames(X_list[[1]])
 time_idx = apply(Z, 1, function(x) which(!is.na(x)))
-start = 10
+start = 1
 end = length(X_list)
 data_actual = list(y = Z[start:end,], X = X_list[start:end], time_idx = time_idx[start:end])
 results = gibbs_sampler_r(data_gibbs = data_actual, 
-                          B = 1,
+                          B = 10,
                           xi_initial = runif(ncol(data_actual$X[[1]]), -1, 1),
                           burn_in = 0.5,
                           NNGP = TRUE,
@@ -31,6 +31,8 @@ results = gibbs_sampler_r(data_gibbs = data_actual,
 # data_gibbs = data_actual; B = 100; n_to_store = 50; runif(ncol(data_actual$X[[1]]), -1, 1)
 save(results, file = "REAL_DATA_GIBBS.rda")
 
+
+##############################
 
 ##############################3 
 # get posterior g samples
