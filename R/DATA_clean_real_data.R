@@ -46,11 +46,11 @@ print(paste("Data after removing incomplete cases is of dimension ", nrow(data),
             "columns, removing", nrow(X_dec) - nrow(data), "rows")) 
 temp = nrow(data)
 # REMOVE THE LESS FREQUENT AIRLINES / DEPARTURES / ORIGINS
-origin_sort = as.data.frame(sort(table(data$Origin), decreasing = TRUE))[-c(1:15),]
+origin_sort = as.data.frame(sort(table(data$Origin), decreasing = TRUE))[-c(1:10),]
 new_origin_list = origin_sort$Var1
 data = data[-(which(data$Origin %in% new_origin_list)), ]
 
-deset_sort = as.data.frame(sort(table(data$Dest), decreasing = TRUE))[-c(1:15),]
+deset_sort = as.data.frame(sort(table(data$Dest), decreasing = TRUE))[-c(1:10),]
 new_dest_list = deset_sort$Var1
 data = data[-(which(data$Dest %in% new_dest_list)), ]
 
@@ -147,7 +147,7 @@ print(paste("Number of flights missing 80% of observations", length(over_missing
 print(paste("Number of flights missing 90% of observations", length(over_missing_90)))
 
 old_Z = Z
-Z = Z[-over_missing_75, ]
+Z = Z[-over_missing_90, ]
 unique_flights = unique(rownames(Z))
 
 # if a flight takes over 2 hours, assume it is "not observed"
@@ -196,8 +196,7 @@ for (i in unique_flights)
   done = as.matrix(done)
 
   # get c_max 
-  c_X[i] = max(apply(X = done, MARGIN = 1,
-                     FUN = function(r){sqrt(sum(r^2))}))
+  c_X[i] = max(apply(X = done, MARGIN = 1, FUN = function(r){sqrt(sum(r^2))}))
   
   X_list[[count]] = done
   count = count + 1
