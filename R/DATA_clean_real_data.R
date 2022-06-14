@@ -147,7 +147,7 @@ print(paste("Number of flights with 80% of observations", length(over_missing_80
 print(paste("Number of flights with 90% of observations", length(over_missing_90)))
 
 old_Z = Z
-Z = Z[over_missing_80, ]
+Z = Z[over_missing_90, ]
 unique_flights = unique(rownames(Z))
 
 # if a flight takes over 2 hours, assume it is "not observed"
@@ -216,6 +216,8 @@ for (i in 1:length(X_list))
   
 save(X_list, file = "X_list.rda")
 save(Z, file = "Z_list.rda")
+
+print(paste("Number of flights: ", length(X)))
 # keep distance continuous 
 # Z transform
 
