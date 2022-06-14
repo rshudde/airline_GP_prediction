@@ -32,6 +32,7 @@ selected_columns = c("Month", "DayOfWeek", "Marketing_Airline_Network", "FlightD
                      "Tail_Number", "Flight_Number_Operating_Airline", "Origin", "Dest", "CRSDepTime",
                      "CRSArrTime", "AirTime", "Distance", "DestState", "OriginState", "DepDelay")
 
+
 ################# clean data
 X_dec = combined[, selected_columns]
 idx = which(abs(X_dec$DepDelay) > 120)
@@ -81,7 +82,6 @@ Y = Y %>% group_by(num, date, airline, origin, dest) %>% summarize(delay = mean(
 Y = data.frame(Y)
 head(Y)
 
-
 #################  take log of delay and remove any delays over 2 hours 
 adjustment = abs(min(Y$delay)) + 1
 temp = Y$delay + adjustment
@@ -129,8 +129,8 @@ rownames(Z) = unique(Y$unique_flights)
 # save(Z,file = "Z_matrix_redone.Rda")
 
 print(dim(Z))
-percent_missing = apply(Z, 1, function(row) sum(is.na(row)) / length(row)*100)
-hist(percent_missing, main = "Percent of days a flight is not flown", xlab = "Percent Missing")
+percent_missing = apply(Z, 1, function(row) sum(!is.na(row)) / length(row)*100)
+# hist(percent_missing, main = "Percent of days a flight is not flown", xlab = "Percent Missing")
 summary(percent_missing)
 
 # remove flights which didn't fly
@@ -140,14 +140,14 @@ over_missing_75 = which(percent_missing > 75)
 over_missing_80 = which(percent_missing > 85)
 over_missing_90 = which(percent_missing > 90)
 
-print(paste("Number of flights missing 30% of observations", length(over_missing_30)))
-print(paste("Number of flights missing 50% of observations", length(over_missing_50)))
-print(paste("Number of flights missing 75% of observations", length(over_missing_75)))
-print(paste("Number of flights missing 80% of observations", length(over_missing_80)))
-print(paste("Number of flights missing 90% of observations", length(over_missing_90)))
+print(paste("Number of flights with 30% of observations", length(over_missing_30)))
+print(paste("Number of flights with 50% of observations", length(over_missing_50)))
+print(paste("Number of flights with 75% of observations", length(over_missing_75)))
+print(paste("Number of flights with 80% of observations", length(over_missing_80)))
+print(paste("Number of flights with 90% of observations", length(over_missing_90)))
 
 old_Z = Z
-Z = Z[-over_missing_90, ]
+Z = Z[over_missing_80, ]
 unique_flights = unique(rownames(Z))
 
 # if a flight takes over 2 hours, assume it is "not observed"
@@ -176,6 +176,10 @@ for (i in unique_flights)
   rownames(temp) = temp$date
   temp$date = NULL
   temp$Flight_Number_Operating_Airline = NULL
+  
+  # new for dimension reduction
+  temp$OriginState = NULL
+  temp$DestState = NULL
   # temp[1:10, 1:ncol(temp)]
   
   temp = temp[complete.cases(temp), ]
