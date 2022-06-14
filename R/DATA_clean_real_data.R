@@ -139,15 +139,17 @@ over_missing_50 = which(percent_missing > 50) # reasonable
 over_missing_75 = which(percent_missing > 75)
 over_missing_80 = which(percent_missing > 85)
 over_missing_90 = which(percent_missing > 90)
+over_missing_95 = which(percent_missing > 95)
 
 print(paste("Number of flights with 30% of observations", length(over_missing_30)))
 print(paste("Number of flights with 50% of observations", length(over_missing_50)))
 print(paste("Number of flights with 75% of observations", length(over_missing_75)))
 print(paste("Number of flights with 80% of observations", length(over_missing_80)))
 print(paste("Number of flights with 90% of observations", length(over_missing_90)))
+print(paste("Number of flights with 95% of observations", length(over_missing_95)))
 
 old_Z = Z
-Z = Z[over_missing_90, ]
+Z = Z[over_missing_95, ]
 unique_flights = unique(rownames(Z))
 
 # if a flight takes over 2 hours, assume it is "not observed"
@@ -217,7 +219,7 @@ for (i in 1:length(X_list))
 save(X_list, file = "X_list.rda")
 save(Z, file = "Z_list.rda")
 
-print(paste("Number of flights: ", length(X)))
+print(paste("Number of flights: ", length(X_list)))
 # keep distance continuous 
 # Z transform
 
