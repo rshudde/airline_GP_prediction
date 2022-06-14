@@ -22,12 +22,12 @@ start = 1
 end = length(X_list)
 data_actual = list(y = Z[start:end,], X = X_list[start:end], time_idx = time_idx[start:end])
 results = gibbs_sampler_r(data_gibbs = data_actual, 
-                          B = 10,
+                          B = 5000,
                           xi_initial = runif(ncol(data_actual$X[[1]]), -1, 1),
                           burn_in = 0.5,
                           NNGP = TRUE,
                           nNeighbour = 20,
-                          n_to_store = 50)
+                          n_to_store = 3500)
 # data_gibbs = data_actual; B = 100; n_to_store = 50; runif(ncol(data_actual$X[[1]]), -1, 1)
 save(results, file = "REAL_DATA_GIBBS.rda")
 
