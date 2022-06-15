@@ -12,8 +12,8 @@ source('R/PLOTS_Gibbs_sampler.R')
 Rcpp::sourceCpp('src/FUNC_paramater_estimates_c.cpp')
 
 # load in the data
-load("X_list.rda")
-load("Z_list.rda")
+load("/Users/rachaelshudde/Desktop/X_list.rda")
+load("/Users/rachaelshudde/Desktop/Z_list.rda")
 
 # start gibbs sampler
 beta_names = colnames(X_list[[1]])
