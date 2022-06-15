@@ -292,7 +292,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     }
       
       
-    # print(idx)
+    print(idx)
   }
   # print(round(Sys.time() - start),2)
   end_outer = proc.time()
