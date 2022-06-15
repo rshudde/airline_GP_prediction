@@ -27,7 +27,7 @@ results = gibbs_sampler_r(data_gibbs = data_actual,
                           burn_in = 0.5,
                           NNGP = TRUE,
                           nNeighbour = 20,
-                          n_to_store = 3500)
+                          n_to_store = 18000)
 # data_gibbs = data_actual; B = 100; n_to_store = 50; runif(ncol(data_actual$X[[1]]), -1, 1)
 save(results, file = "REAL_DATA_GIBBS.rda")
 
