@@ -47,7 +47,7 @@ print(paste("Data after removing incomplete cases is of dimension ", nrow(data),
             "columns, removing", nrow(X_dec) - nrow(data), "rows")) 
 temp = nrow(data)
 # REMOVE THE LESS FREQUENT AIRLINES / DEPARTURES / ORIGINS
-num_origins = 5
+num_origins = 8
 origin_sort = as.data.frame(sort(table(data$Origin), decreasing = TRUE))[-c(1:num_origins),]
 new_origin_list = origin_sort$Var1
 data = data[-(which(data$Origin %in% new_origin_list)), ]
