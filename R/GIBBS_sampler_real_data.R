@@ -15,6 +15,8 @@ Rcpp::sourceCpp('src/FUNC_paramater_estimates_c.cpp')
 # load("/Users/rachaelshudde/Desktop/X_list.rda")
 # load("/Users/rachaelshudde/Desktop/Z_list.rda")
 
+load("X_list.rda")
+load("Z_list.rda")
 # start gibbs sampler
 beta_names = colnames(X_list[[1]])
 time_idx = apply(Z, 1, function(x) which(!is.na(x)))
