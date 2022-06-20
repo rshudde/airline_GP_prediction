@@ -131,7 +131,6 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     set.seed(idx)
   
     #### getting mu ####
-    print(paste("THIS IS: ", mu_post_current))
     mu_post_current = get_mu_c(y, n_datasets, g_gibbs, V_gibbs, time_idx,
                               sigma_2_mu_gibbs, alpha_mu_gibbs)
     mu_post_current[1] = 0
@@ -174,6 +173,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     
     
     #### getting sigma_2 ####
+    print(paste("THIS IS: ", sigma_2_gibbs_out))
     sigma_2_gibbs_out = get_sigma_2_c(a_gibbs, b_gibbs, y, n_datasets, n_nonNA_y,
                                       time_idx, mu_post_current, M_gibbs, g_gibbs)
     sigma_2_post_current = sigma_2_gibbs_out$sigma_2
