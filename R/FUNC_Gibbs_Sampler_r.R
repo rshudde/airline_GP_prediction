@@ -131,6 +131,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     set.seed(idx)
   
     #### getting mu ####
+    print(mu_post_current)
     mu_post_current = get_mu_c(y, n_datasets, g_gibbs, V_gibbs, time_idx,
                               sigma_2_mu_gibbs, alpha_mu_gibbs)
     mu_post_current[1] = 0
