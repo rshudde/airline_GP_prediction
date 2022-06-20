@@ -173,7 +173,6 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     
     
     #### getting sigma_2 ####
-    print(paste("THIS IS: ", sigma_2_post_current))
     sigma_2_gibbs_out = get_sigma_2_c(a_gibbs, b_gibbs, y, n_datasets, n_nonNA_y,
                                       time_idx, mu_post_current, M_gibbs, g_gibbs)
     sigma_2_post_current = sigma_2_gibbs_out$sigma_2
@@ -199,7 +198,9 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     save(g_gibbs, file="g_gibbs.rda")
     save(sigma_2_post_current, file="sigma.rda")
     save(lK_post_current, file = "lk.rda")
-    save(time, file = "time.rda")
+    save(time, file = "time_idx.rda")
+    print(paste("THIS IS ITERATION", idx, "|", sigma_2_post_current))
+    
     lK_post_current = get_lk(y = y, mu = mu_post_current, g = g_gibbs, sigma_2 = sigma_2_post_current, 
                                lk_0 = lK_post_current, time = time_idx)
     
@@ -299,7 +300,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     }
       
       
-    print(paste(idx, "|", lK_post_current))
+    # print(paste(idx, "|", lK_post_current))
   }
   # print(round(Sys.time() - start),2)
   end_outer = proc.time()
