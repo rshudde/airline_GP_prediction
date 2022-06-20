@@ -173,7 +173,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     
     
     #### getting sigma_2 ####
-    print(paste("THIS IS: ", sigma_2_gibbs_out))
+    print(paste("THIS IS: ", sigma_2_post_current))
     sigma_2_gibbs_out = get_sigma_2_c(a_gibbs, b_gibbs, y, n_datasets, n_nonNA_y,
                                       time_idx, mu_post_current, M_gibbs, g_gibbs)
     sigma_2_post_current = sigma_2_gibbs_out$sigma_2
