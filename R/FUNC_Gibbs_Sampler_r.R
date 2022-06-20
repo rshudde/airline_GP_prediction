@@ -128,7 +128,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
   #### starting Gibbs ####
   for (idx in 2:(B + 1))
   {
-    # set.seed(idx)
+    set.seed(idx)
   
     #### getting mu ####
     mu_post_current = get_mu_c(y, n_datasets, g_gibbs, V_gibbs, time_idx,
@@ -193,7 +193,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     
     
     #### get l_k ####
-    lK_post_current = get_lk(y = y, mu = mu_post_current, g = g_gibbs, sigma_2 = sigma_2_post_current, 
+    lK_post_current = get_lk_c(y = y, mu = mu_post_current, g = g_gibbs, sigma_2 = sigma_2_post_current, 
                                lk_0 = lK_post_current, time = time_idx)
     
     # y = y; mu = mu_post_current; g = g_gibbs; sigma_2 = sigma_2_post_current; lk_0 = lK_post_current; time = time_idx
