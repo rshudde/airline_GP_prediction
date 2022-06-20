@@ -12,11 +12,17 @@ source('R/PLOTS_Gibbs_sampler.R')
 Rcpp::sourceCpp('src/FUNC_paramater_estimates_c.cpp')
 
 # load in the data
-# load("/Users/rachaelshudde/Desktop/X_list.rda")
-# load("/Users/rachaelshudde/Desktop/Z_list.rda")
+local = FALSE
+if (local)
+{
+  load("/Users/rachaelshudde/Desktop/X_list.rda")
+  load("/Users/rachaelshudde/Desktop/Z_list.rda")
+} else {
+  load("X_list.rda")
+  load("Z_list.rda")
+}
 
-load("X_list.rda")
-load("Z_list.rda")
+
 # start gibbs sampler
 beta_names = colnames(X_list[[1]])
 time_idx = apply(Z, 1, function(x) which(!is.na(x)))
@@ -30,7 +36,7 @@ results = gibbs_sampler_r(data_gibbs = data_actual,
                           NNGP = TRUE,
                           nNeighbour = 20,
                           n_to_store = 18000)
-# data_gibbs = data_actual; B = 100; n_to_store = 50; runif(ncol(data_actual$X[[1]]), -1, 1)
+# data_gibbs = data_actual; B = 40; n_to_store = 50; runif(ncol(data_actual$X[[1]]), -1, 1)
 save(results, file = "REAL_DATA_GIBBS.rda")
 
 

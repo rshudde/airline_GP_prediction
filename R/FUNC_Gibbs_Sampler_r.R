@@ -193,7 +193,13 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     
     
     #### get l_k ####
-    lK_post_current = get_lk_c(y = y, mu = mu_post_current, g = g_gibbs, sigma_2 = sigma_2_post_current, 
+    save(y, file="y.rda")
+    save(mu_post_current, file="m.rda")
+    save(g_gibbs, file="g_gibbs.rda")
+    save(sigma_2_post_current, file="sigma.rda")
+    save(lK_post_current, file = "lk.rda")
+    save(time, file = "time.rda")
+    lK_post_current = get_lk(y = y, mu = mu_post_current, g = g_gibbs, sigma_2 = sigma_2_post_current, 
                                lk_0 = lK_post_current, time = time_idx)
     
     # y = y; mu = mu_post_current; g = g_gibbs; sigma_2 = sigma_2_post_current; lk_0 = lK_post_current; time = time_idx
@@ -292,7 +298,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     }
       
       
-    print(idx)
+    print(paste(idx, "|", lK_post_current))
   }
   # print(round(Sys.time() - start),2)
   end_outer = proc.time()
