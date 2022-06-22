@@ -432,7 +432,7 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
   # indicator function part
   if (lk_prime < 0.1 || lk_prime > 1 || l_k < 0.1 ||  l_k > 1)
   {
-    to_return = 0
+    to_return = 0.0001
   } else { # calcualtions assuming indicator = 1
     # calcualte first term outside of the product
     y_noNA = y[1,][!is.na(y[1,])]
