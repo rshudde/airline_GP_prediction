@@ -1,5 +1,5 @@
 # This is a file to start doing paramater estimates for sampling
-
+library(truncnorm)
 
 
 
@@ -491,7 +491,11 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
     }
 
     # calculate the minimum for the return value
-  to_return = min(1, (lk_prime / l_k) * as.numeric(ratio))
+    numerator_const = pnorm((1 - l_k)/0.2) - pnorm((.1 - l_k)/0.2)
+    denomonator_const = pnorm((1 - lk_prime)/0.2) - pnorm((.1 - lk_prime)/0.2)
+    to_return = min(1, (numerator_const / denomonator_const) * as.numeric(ratio))
+    
+    # to_return = min(1, (lk_prime / l_k) * as.numeric(ratio))
   }
 
   return(as.numeric(to_return))
@@ -504,8 +508,9 @@ get_lk = function(y, mu, g, sigma_2, lk_0, time)
   # small epsilon
   lk_t = lk_0
 
-  # step two - draw lk_prime
+  # step two - draw lk_prime - current proposal density
   lk_prime = rexp(1, lk_t)
+  lk_prime = rtruncnorm(1, mean = lk_0, sd = 0.2, a = 0.1, b = 1)
 
   # draw the uniform variable
   u_t = runif(1, 0, 1)
@@ -529,7 +534,8 @@ get_lk_c = function(y, mu, g, sigma_2, lk_0, time)
   lk_t = lk_0
   
   # step two - draw lk_prime
-  lk_prime = rexp(1, lk_t)
+  # lk_prime = rexp(1, lk_t)
+  lk_prime = runif(1, .1, 1)
   
   # draw the uniform variable
   u_t = runif(1, 0, 1)
@@ -579,7 +585,10 @@ lb_acceptance = function(y, lb, lb_prime, xi, knots) # depends on lb, lb', g val
     ratio = exp(-0.5 * (matrix_part + new_term_determinant))
 
     # minimum value for eturn
-    to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
+    numerator_const = pnorm((1 - lb)/0.2) - pnorm((.1 - lb)/0.2)
+    denomonator_const = pnorm((1 - lb_prime)/0.2) - pnorm((.1 - lb_prime)/0.2)
+    to_return = min(1, (numerator_const / denomonator_const) * as.numeric(ratio))
+    # to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
   }
 
   # return correct type - don't return matrix from matrix multiplication
@@ -593,7 +602,8 @@ get_lb = function(y, lb_0, xi, knots)
   lb_t = lb_0
 
   # step two - draw lb_prime
-  lb_prime = rexp(1, lb_t)
+  # lb_prime = rexp(1, lb_t)
+  lb_prime = rtruncnorm(1, mean = lb_0, sd = 0.2, a = 0.1, b = 1)
   
   #  draw uniform valuable
   u_t = runif(1, 0, 1)
