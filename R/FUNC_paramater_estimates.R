@@ -574,7 +574,9 @@ lb_acceptance = function(y, lb, lb_prime, xi, knots) # depends on lb, lb', g val
     # matrix multiplication
     matrix_part = crossprod(term_one, term_two)
     matrix_part = matrix_part %*% term_one
-    ratio = exp(-0.5 * matrix_part)
+    
+    new_term_determinant = log(det(M_lb_prime + diag(nrow(M_lb_prime))) / det(M_lb + diag(nrow(M_lb))))
+    ratio = exp(-0.5 * (matrix_part + new_term_determinant))
 
     # minimum value for eturn
     to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
