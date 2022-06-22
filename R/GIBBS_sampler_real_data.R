@@ -41,6 +41,16 @@ save(results, file = "REAL_DATA_GIBBS.rda")
 
 
 ##############################
+load("/Users/rachaelshudde/Desktop/y.rda")
+load("/Users/rachaelshudde/Desktop/m.rda")
+load("/Users/rachaelshudde/Desktop/g_gibbs.rda")
+load("/Users/rachaelshudde/Desktop/sigma.rda") # ok
+load("/Users/rachaelshudde/Desktop/lk.rda")
+load("/Users/rachaelshudde/Desktop/time.rda")
+
+lK_post_current = get_lk(y = y, mu = mu_post_current, g = g_gibbs, sigma_2 = sigma_2_post_current, 
+                         lk_0 = lK_post_current, time = time_idx)
+
 
 ##############################3 
 # get posterior g samples
