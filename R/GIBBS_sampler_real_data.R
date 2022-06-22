@@ -30,7 +30,7 @@ start = 1
 end = length(X_list)
 data_actual = list(y = Z[start:end,], X = X_list[start:end], time_idx = time_idx[start:end])
 results = gibbs_sampler_r(data_gibbs = data_actual, 
-                          B = 40,
+                          B = 1000,
                           xi_initial = runif(ncol(data_actual$X[[1]]), -1, 1),
                           burn_in = 0.5,
                           NNGP = TRUE,
