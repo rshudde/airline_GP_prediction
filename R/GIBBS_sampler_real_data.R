@@ -37,19 +37,19 @@ results = gibbs_sampler_r(data_gibbs = data_actual,
                           nNeighbour = 20,
                           n_to_store = 18000)
 # data_gibbs = data_actual; B = 40; n_to_store = 50; runif(ncol(data_actual$X[[1]]), -1, 1)
-save(results, file = "REAL_DATA_GIBBS.rda")
+save(results, file = "REAL_DATA_GIBBS_EXPOENTIAL.rda")
 
 
 ##############################
-load("/Users/rachaelshudde/Desktop/y.rda")
-load("/Users/rachaelshudde/Desktop/m.rda")
-load("/Users/rachaelshudde/Desktop/g_gibbs.rda")
-load("/Users/rachaelshudde/Desktop/sigma.rda") # ok
-load("/Users/rachaelshudde/Desktop/lk.rda")
-load("/Users/rachaelshudde/Desktop/time.rda")
-
-lK_post_current = get_lk(y = y, mu = mu_post_current, g = g_gibbs, sigma_2 = sigma_2_post_current, 
-                         lk_0 = lK_post_current, time = time_idx)
+# load("/Users/rachaelshudde/Desktop/y.rda")
+# load("/Users/rachaelshudde/Desktop/m.rda")
+# load("/Users/rachaelshudde/Desktop/g_gibbs.rda")
+# load("/Users/rachaelshudde/Desktop/sigma.rda") # ok
+# load("/Users/rachaelshudde/Desktop/lk.rda")
+# load("/Users/rachaelshudde/Desktop/time.rda")
+# 
+# lK_post_current = get_lk(y = y, mu = mu_post_current, g = g_gibbs, sigma_2 = sigma_2_post_current, 
+#                          lk_0 = lK_post_current, time = time_idx)
 
 
 ##############################3 
