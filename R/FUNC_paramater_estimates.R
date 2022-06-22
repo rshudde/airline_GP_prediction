@@ -456,7 +456,8 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
     matrix_part = matrix_part %*% term_one
 
     # calculate ratio
-    ratio = exp(-0.5 * as.numeric(matrix_part))
+    new_term_determinant = log(det(M_prime + diag(nrow(M_temp))) / det(M_temp + diag(nrow(M_temp))))
+    ratio = exp(-0.5 * (as.numeric(matrix_part) + new_term_determinant))
 
     for (i in 2:nrow(y))
     {
@@ -485,7 +486,8 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
       matrix_part = matrix_part %*% term_one
 
       # calculate ratio
-      ratio = ratio * exp(-0.5 * as.numeric(matrix_part))
+      new_term_determinant = log(det(M_prime + diag(nrow(M_temp))) / det(M_temp + diag(nrow(M_temp))))
+      ratio = exp(-0.5 * (as.numeric(matrix_part) + new_term_determinant))
     }
 
     # calculate the minimum for the return value
