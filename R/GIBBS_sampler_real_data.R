@@ -37,7 +37,7 @@ results = gibbs_sampler_r(data_gibbs = data_actual,
                           nNeighbour = 20,
                           n_to_store = 800)
 # data_gibbs = data_actual; B = 40; n_to_store = 50; runif(ncol(data_actual$X[[1]]), -1, 1)
-save(results, file = "REAL_DATA_GIBBS_EXPOENTIAL.rda")
+save(results, file = "REAL_DATA_GIBBS_TRUNCATED.rda")
 
 
 ##############################
