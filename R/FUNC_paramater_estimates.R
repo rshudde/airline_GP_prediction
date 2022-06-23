@@ -588,6 +588,7 @@ lb_acceptance = function(y, lb, lb_prime, xi, knots) # depends on lb, lb', g val
     numerator_const = pnorm((1 - lb)/0.2) - pnorm((.1 - lb)/0.2)
     denomonator_const = pnorm((1 - lb_prime)/0.2) - pnorm((.1 - lb_prime)/0.2)
     to_return = min(1, (numerator_const / denomonator_const) * as.numeric(ratio))
+    print(to_return)
     # to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
   }
 
