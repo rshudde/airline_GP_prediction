@@ -80,7 +80,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
   if (missing(sigmaB_2_initial)) sigmaB_2_initial = 1
   if (missing(xi_initial)) xi_initial = runif(n_Knots_gibbs, -5, 5) #rep(1, n_Knots_gibbs)
   if (missing(lK_initial)) lK_initial = 0.5
-  if (missing(lB_initial)) lB_initial = 1/length(X)
+  if (missing(lB_initial)) lB_initial = 0.2
   
   ##  initializing for testing
   # mu_initial = numeric(n_datasets)
