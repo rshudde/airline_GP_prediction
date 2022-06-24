@@ -430,7 +430,8 @@ vector_differences = function(y, mu_i, g_i)
 lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
 {
   # indicator function part
-  if (lk_prime < 0.1 || lk_prime > 1 || l_k < 0.1 ||  l_k > 1)
+  maximum = 2.5
+  if (lk_prime < 0.1 || lk_prime > maximum || l_k < 0.1 ||  l_k > maximum)
   {
     to_return = 0.0001
   } else { # calcualtions assuming indicator = 1
@@ -491,8 +492,8 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
     }
 
     # calculate the minimum for the return value
-    numerator_const = pnorm((1 - l_k)/0.2) - pnorm((.1 - l_k)/0.2)
-    denomonator_const = pnorm((1 - lk_prime)/0.2) - pnorm((.1 - lk_prime)/0.2)
+    numerator_const = pnorm((maximum - l_k)/0.2) - pnorm((.1 - l_k)/0.2)
+    denomonator_const = pnorm((maximum - lk_prime)/0.2) - pnorm((.1 - lk_prime)/0.2)
     to_return = min(1, (numerator_const / denomonator_const) * as.numeric(ratio))
     
     # to_return = min(1, (lk_prime / l_k) * as.numeric(ratio))
@@ -505,12 +506,12 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
 # # function for MH sampling of lk
 get_lk = function(y, mu, g, sigma_2, lk_0, time)
 {
+  maximum = 2.5
   # small epsilon
   lk_t = lk_0
 
   # step two - draw lk_prime - current proposal density
-  lk_prime = rexp(1, lk_t)
-  lk_prime = rtruncnorm(1, mean = lk_0, sd = 0.2, a = 0.1, b = 1)
+  lk_prime = rtruncnorm(1, mean = lk_0, sd = 0.2, a = 0.1, b = maximum)
 
   # draw the uniform variable
   u_t = runif(1, 0, 1)
@@ -558,8 +559,10 @@ get_lk_c = function(y, mu, g, sigma_2, lk_0, time)
 lb_acceptance = function(y, lb, lb_prime, xi, knots) # depends on lb, lb', g values (this comes from H matrix and xi), v matrix
 {
   # print(knots)
+  maximum = 2.5
+  
   # indicator function part
-  if (lb_prime < 0.1 || lb_prime > 1 || lb < 0.1 ||  lb > 1)
+  if (lb_prime < 0.1 || lb_prime > maximum || lb < 0.1 ||  lb > maximum)
   {
     to_return = 0
   } else { # calcualtions assuming indicator = 1
@@ -585,8 +588,8 @@ lb_acceptance = function(y, lb, lb_prime, xi, knots) # depends on lb, lb', g val
     ratio = exp(-0.5 * (matrix_part + new_term_determinant))
 
     # minimum value for eturn
-    numerator_const = pnorm((1 - lb)/0.2) - pnorm((.1 - lb)/0.2)
-    denomonator_const = pnorm((1 - lb_prime)/0.2) - pnorm((.1 - lb_prime)/0.2)
+    numerator_const = pnorm((maximum - lb)/0.2) - pnorm((.1 - lb)/0.2)
+    denomonator_const = pnorm((maximum - lb_prime)/0.2) - pnorm((.1 - lb_prime)/0.2)
     to_return = min(1, (numerator_const / denomonator_const) * as.numeric(ratio))
     print(to_return)
     # to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
@@ -600,11 +603,12 @@ lb_acceptance = function(y, lb, lb_prime, xi, knots) # depends on lb, lb', g val
 # function to calculate lb updates
 get_lb = function(y, lb_0, xi, knots)
 {
+  maximum = 2.5
   lb_t = lb_0
 
   # step two - draw lb_prime
   # lb_prime = rexp(1, lb_t)
-  lb_prime = rtruncnorm(1, mean = lb_0, sd = 0.2, a = 0.1, b = 1)
+  lb_prime = rtruncnorm(1, mean = lb_0, sd = 0.2, a = 0.1, b = maximum)
   
   #  draw uniform valuable
   u_t = runif(1, 0, 1)
