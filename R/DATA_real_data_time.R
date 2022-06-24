@@ -1,19 +1,8 @@
 rm(list = ls())
-library(dplyr)
-library(stats)
-library(recipes)
-library(caret)
-source('R/FUNC_woodchan_samples.R')
-source('R/FUNC_paramater_estimates.R')
-source('R/DATA_generate_simulation.R')
-source('R/FUNC_Gibbs_Sampler.R')
-source('R/FUNC_Gibbs_Sampler_r.R')
-source('R/PLOTS_Gibbs_sampler.R')
-Rcpp::sourceCpp('src/FUNC_paramater_estimates_c.cpp')
 
 # file
-iter = 5000
-load("/Users/rachaelshudde/Desktop/REAL_DATA_GIBBS.rda")
+iter = 1000
+load("/Users/rachaelshudde/Desktop/REAL_DATA_GIBBS_TRUNCATED.rda")
 print(results$time)
 
 time_in_seconds = results$time
