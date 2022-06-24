@@ -30,12 +30,12 @@ start = 1
 end = length(X_list)
 data_actual = list(y = Z[start:end,], X = X_list[start:end], time_idx = time_idx[start:end])
 results = gibbs_sampler_r(data_gibbs = data_actual, 
-                          B = 1000,
+                          B = 300,
                           xi_initial = runif(ncol(data_actual$X[[1]]), -1, 1),
                           burn_in = 0.5,
                           NNGP = TRUE,
                           nNeighbour = 20,
-                          n_to_store = 800)
+                          n_to_store = 200)
 # data_gibbs = data_actual; B = 40; n_to_store = 50; runif(ncol(data_actual$X[[1]]), -1, 1)
 save(results, file = "REAL_DATA_GIBBS_TRUNCATED.rda")
 
