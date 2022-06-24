@@ -1,7 +1,7 @@
 rm(list = ls())
 
 # file
-iter = 1000
+iter = 300
 load("/Users/rachaelshudde/Desktop/REAL_DATA_GIBBS_TRUNCATED.rda")
 print(results$time)
 
