@@ -492,8 +492,8 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
     }
 
     # calculate the minimum for the return value
-    numerator_const = pnorm((maximum - l_k)/0.2) - pnorm((.1 - l_k)/0.2)
-    denomonator_const = pnorm((maximum - lk_prime)/0.2) - pnorm((.1 - lk_prime)/0.2)
+    numerator_const = pnorm((maximum - l_k)/0.7) - pnorm((.1 - l_k)/0.7)
+    denomonator_const = pnorm((maximum - lk_prime)/0.7) - pnorm((.1 - lk_prime)/0.7)
     to_return = min(1, (numerator_const / denomonator_const) * as.numeric(ratio))
     
     # to_return = min(1, (lk_prime / l_k) * as.numeric(ratio))
@@ -511,7 +511,7 @@ get_lk = function(y, mu, g, sigma_2, lk_0, time)
   lk_t = lk_0
 
   # step two - draw lk_prime - current proposal density
-  lk_prime = rtruncnorm(1, mean = lk_0, sd = 0.2, a = 0.1, b = maximum)
+  lk_prime = rtruncnorm(1, mean = lk_0, sd = 0.7, a = 0.1, b = maximum)
 
   # draw the uniform variable
   u_t = runif(1, 0, 1)
@@ -588,8 +588,8 @@ lb_acceptance = function(y, lb, lb_prime, xi, knots) # depends on lb, lb', g val
     ratio = exp(-0.5 * (matrix_part + new_term_determinant))
 
     # minimum value for eturn
-    numerator_const = pnorm((maximum - lb)/0.2) - pnorm((.1 - lb)/0.2)
-    denomonator_const = pnorm((maximum - lb_prime)/0.2) - pnorm((.1 - lb_prime)/0.2)
+    numerator_const = pnorm((maximum - lb)/0.7) - pnorm((.1 - lb)/0.7)
+    denomonator_const = pnorm((maximum - lb_prime)/0.7) - pnorm((.1 - lb_prime)/0.7)
     to_return = min(1, (numerator_const / denomonator_const) * as.numeric(ratio))
     print(to_return)
     # to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
@@ -608,7 +608,7 @@ get_lb = function(y, lb_0, xi, knots)
 
   # step two - draw lb_prime
   # lb_prime = rexp(1, lb_t)
-  lb_prime = rtruncnorm(1, mean = lb_0, sd = 0.2, a = 0.1, b = maximum)
+  lb_prime = rtruncnorm(1, mean = lb_0, sd = 0.7, a = 0.1, b = maximum)
   
   #  draw uniform valuable
   u_t = runif(1, 0, 1)
