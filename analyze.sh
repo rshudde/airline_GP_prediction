@@ -2,7 +2,7 @@
 # delete the single folder
 
 Tnum=100
-NNGP="TRUE"
+NNGP="FALSE"
 n_replicates=50
 num_flights=100
 max_T=100
