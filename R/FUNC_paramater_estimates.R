@@ -559,7 +559,7 @@ get_lk_c = function(y, mu, g, sigma_2, lk_0, time)
 lb_acceptance = function(y, lb, lb_prime, xi, knots) # depends on lb, lb', g values (this comes from H matrix and xi), v matrix
 {
   # print(knots)
-  maximum = 2.5
+  maximum = 1
   
   # indicator function part
   if (lb_prime < 0.1 || lb_prime > maximum || lb < 0.1 ||  lb > maximum)
@@ -602,7 +602,7 @@ lb_acceptance = function(y, lb, lb_prime, xi, knots) # depends on lb, lb', g val
 # function to calculate lb updates
 get_lb = function(y, lb_0, xi, knots)
 {
-  maximum = 2.5
+  maximum = 1
   lb_t = lb_0
 
   # step two - draw lb_prime
