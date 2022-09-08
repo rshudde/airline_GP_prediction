@@ -430,7 +430,7 @@ vector_differences = function(y, mu_i, g_i)
 lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
 {
   # indicator function part
-  maximum = 2.5
+  maximum = 1
   if (lk_prime < 0.1 || lk_prime > maximum || l_k < 0.1 ||  l_k > maximum)
   {
     to_return = 0.0001
@@ -492,8 +492,9 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
     }
 
     # calculate the minimum for the return value
-    numerator_const = pnorm((maximum - l_k)/0.7) - pnorm((.1 - l_k)/0.7)
-    denomonator_const = pnorm((maximum - lk_prime)/0.7) - pnorm((.1 - lk_prime)/0.7)
+    sd = (maximum - .1) / 3 
+    numerator_const = pnorm((maximum - l_k)/sd) - pnorm((.1 - l_k)/sd)
+    denomonator_const = pnorm((maximum - lk_prime)/sd) - pnorm((.1 - lk_prime)/sd)
     to_return = min(1, (numerator_const / denomonator_const) * as.numeric(ratio))
     
     # to_return = min(1, (lk_prime / l_k) * as.numeric(ratio))
@@ -506,12 +507,13 @@ lk_acceptance = function(y, mu, g, sigma_2, lk_prime, l_k, time)
 # # function for MH sampling of lk
 get_lk = function(y, mu, g, sigma_2, lk_0, time)
 {
-  maximum = 2.5
+  maximum = 1
   # small epsilon
   lk_t = lk_0
 
   # step two - draw lk_prime - current proposal density
-  lk_prime = rtruncnorm(1, mean = lk_0, sd = 0.7, a = 0.1, b = maximum)
+  sd = (maximum - .1) / 3 
+  lk_prime = rtruncnorm(1, mean = lk_0, sd = sd, a = 0.1, b = maximum)
 
   # draw the uniform variable
   u_t = runif(1, 0, 1)
@@ -588,8 +590,9 @@ lb_acceptance = function(y, lb, lb_prime, xi, knots) # depends on lb, lb', g val
     ratio = exp(-0.5 * (matrix_part + new_term_determinant))
 
     # minimum value for eturn
-    numerator_const = pnorm((maximum - lb)/0.7) - pnorm((.1 - lb)/0.7)
-    denomonator_const = pnorm((maximum - lb_prime)/0.7) - pnorm((.1 - lb_prime)/0.7)
+    sd = (maximum - .1) / 3 
+    numerator_const = pnorm((maximum - lb)/sd) - pnorm((.1 - lb)/sd)
+    denomonator_const = pnorm((maximum - lb_prime)/sd) - pnorm((.1 - lb_prime)/sd)
     to_return = min(1, (numerator_const / denomonator_const) * as.numeric(ratio))
     # to_return = min(1, (lb_prime / lb) * as.numeric(ratio))
   }
@@ -607,7 +610,8 @@ get_lb = function(y, lb_0, xi, knots)
 
   # step two - draw lb_prime
   # lb_prime = rexp(1, lb_t)
-  lb_prime = rtruncnorm(1, mean = lb_0, sd = 0.7, a = 0.1, b = maximum)
+  sd = (maximum - .1) / 3 
+  lb_prime = rtruncnorm(1, mean = lb_0, sd = sd, a = 0.1, b = maximum)
   
   #  draw uniform valuable
   u_t = runif(1, 0, 1)
