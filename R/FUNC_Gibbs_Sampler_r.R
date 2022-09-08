@@ -9,6 +9,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
                          sigma_normal_prior = 1000, burn_in = 0.5, cpp = TRUE, 
                          NNGP = FALSE, n_to_store = 100)
 {
+  L_VALUE = 0.3
   # # for testing
   # B = 1000
   # a = 10^(-3)
@@ -201,9 +202,9 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     # save(time, file = "time_idx.rda")
     # print(paste("THIS IS ITERATION", idx, "|", lK_post_current))
     
-    lK_post_current = get_lk(y = y, mu = mu_post_current, g = g_gibbs, sigma_2 = sigma_2_post_current, 
-                               lk_0 = lK_post_current, time = time_idx)
-    
+    # lK_post_current = get_lk(y = y, mu = mu_post_current, g = g_gibbs, sigma_2 = sigma_2_post_current, 
+    #                            lk_0 = lK_post_current, time = time_idx)
+    lK_post_current = L_VALUE
     # y = y; mu = mu_post_current; g = g_gibbs; sigma_2 = sigma_2_post_current; lk_0 = lK_post_current; time = time_idx
     
     if (idx > cutoff)
@@ -223,8 +224,8 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
     }
     
     #### get l_b ####
-    lB_post_current = get_lb(y, lB_post_current, xi_post_current, knots_gibbs)
-    # lB_post[idx] = data_gibbs$lB_true
+    # lB_post_current = get_lb(y, lB_post_current, xi_post_current, knots_gibbs)
+    lB_post_current = L_VALUE
     
     if (idx > cutoff)
     {
