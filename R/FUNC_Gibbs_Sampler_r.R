@@ -9,7 +9,7 @@ gibbs_sampler_r = function(data_gibbs, B = 1000,
                          sigma_normal_prior = 1000, burn_in = 0.5, cpp = TRUE, 
                          NNGP = FALSE, n_to_store = 100)
 {
-  L_VALUE = 0.3
+  L_VALUE = 0.6
   # # for testing
   # B = 1000
   # a = 10^(-3)
