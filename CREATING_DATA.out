@@ -1,0 +1,147 @@
+
+R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> rm(list = ls())
+> library(invgamma)
+> library(MASS)
+> library(nlme)
+> library(invgamma)
+> library(MASS)
+> library(FastGP)
+> library(emulator)
+Loading required package: mvtnorm
+> 
+> 
+> source('R/FUNC_woodchan_samples.R')
+Loading required package: spam
+Loading required package: dotCall64
+Loading required package: grid
+Spam version 2.7-0 (2021-06-25) is loaded.
+Type 'help( Spam)' or 'demo( spam)' for a short introduction 
+and overview of this package.
+Help for individual functions is also obtained by adding the
+suffix '.spam' to the function name, e.g. 'help( chol.spam)'.
+
+Attaching package: ‘spam’
+
+The following object is masked from ‘package:mvtnorm’:
+
+    rmvnorm
+
+The following objects are masked from ‘package:base’:
+
+    backsolve, forwardsolve
+
+Loading required package: viridis
+Loading required package: viridisLite
+See https://github.com/NCAR/Fields for
+ an extensive vignette, other supplements and source code 
+> source('R/FUNC_paramater_estimates.R')
+> source('R/DATA_generate_simulation.R')
+> source('R/FUNC_Gibbs_Sampler.R')
+> source('R/FUNC_Gibbs_Sampler_r.R')
+> Rcpp::sourceCpp("src/FUNC_paramater_estimates_c.cpp")
+ld: warning: directory not found for option '-L/usr/local/gfortran/lib/gcc/x86_64-apple-darwin15/6.1.0'
+
+> timesTwo(42)
+[1] 84
+> 
+> args=(commandArgs(TRUE))
+> if(length(args)==0){
++   print("No arguments supplied.")
++   ##supply default values
++   stop("NO COMMAND LINE ARGUMENTS PASSED FOR R AND T")
++ }else{
++   for(i in 1:length(args)){
++     eval(parse(text=args[[i]]))
++   }
++ }
+> 
+> # t_vals = c(20,40,60,80)
+> max_t_val = 100
+> 
+> for (i in 1:50)
++   {
++   data = generate_simulation_data(n_datasets = 100, n_time = max_t_val, n_covariates = 15, seed = i, seed2 = i, xi_true = 1)
++   
++   set.seed(i) # seed needs to be set so it's 1-50, otherwise we'll have repeats
++   idx = sample(1:max_t_val, t_vals, replace = FALSE)
++   y_new = data$y[ ,idx]
++   x_new = lapply(data$X, function(X) X[c(idx), ])
++   data_new_x = do.call(rbind, x_new)
++   write.csv(data_new_x, file = paste0("t", t_vals, "/X_data_n100_t",t_vals,"_rep",i,".csv"), row.names = FALSE)
++   write.csv(y_new, file = paste0("t", t_vals, "/Y_data_n100_t",t_vals,"_rep",i,".csv"),row.names = FALSE)
++   
++   print(paste("JUST WROTE", t_vals, "/", i))
++ 
++ }
+[1] "JUST WROTE 20 / 1"
+[1] "JUST WROTE 20 / 2"
+[1] "JUST WROTE 20 / 3"
+[1] "JUST WROTE 20 / 4"
+[1] "JUST WROTE 20 / 5"
+[1] "JUST WROTE 20 / 6"
+[1] "JUST WROTE 20 / 7"
+[1] "JUST WROTE 20 / 8"
+[1] "JUST WROTE 20 / 9"
+[1] "JUST WROTE 20 / 10"
+[1] "JUST WROTE 20 / 11"
+[1] "JUST WROTE 20 / 12"
+[1] "JUST WROTE 20 / 13"
+[1] "JUST WROTE 20 / 14"
+[1] "JUST WROTE 20 / 15"
+[1] "JUST WROTE 20 / 16"
+[1] "JUST WROTE 20 / 17"
+[1] "JUST WROTE 20 / 18"
+[1] "JUST WROTE 20 / 19"
+[1] "JUST WROTE 20 / 20"
+[1] "JUST WROTE 20 / 21"
+[1] "JUST WROTE 20 / 22"
+[1] "JUST WROTE 20 / 23"
+[1] "JUST WROTE 20 / 24"
+[1] "JUST WROTE 20 / 25"
+[1] "JUST WROTE 20 / 26"
+[1] "JUST WROTE 20 / 27"
+[1] "JUST WROTE 20 / 28"
+[1] "JUST WROTE 20 / 29"
+[1] "JUST WROTE 20 / 30"
+[1] "JUST WROTE 20 / 31"
+[1] "JUST WROTE 20 / 32"
+[1] "JUST WROTE 20 / 33"
+[1] "JUST WROTE 20 / 34"
+[1] "JUST WROTE 20 / 35"
+[1] "JUST WROTE 20 / 36"
+[1] "JUST WROTE 20 / 37"
+[1] "JUST WROTE 20 / 38"
+[1] "JUST WROTE 20 / 39"
+[1] "JUST WROTE 20 / 40"
+[1] "JUST WROTE 20 / 41"
+[1] "JUST WROTE 20 / 42"
+[1] "JUST WROTE 20 / 43"
+[1] "JUST WROTE 20 / 44"
+[1] "JUST WROTE 20 / 45"
+[1] "JUST WROTE 20 / 46"
+[1] "JUST WROTE 20 / 47"
+[1] "JUST WROTE 20 / 48"
+[1] "JUST WROTE 20 / 49"
+[1] "JUST WROTE 20 / 50"
+> 
+> proc.time()
+   user  system elapsed 
+ 42.323   1.976  44.599 
